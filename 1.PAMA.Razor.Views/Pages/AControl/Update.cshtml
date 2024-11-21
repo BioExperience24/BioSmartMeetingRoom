@@ -1,0 +1,102 @@
+﻿@page
+@model _1.PAMA.Razor.Views.Pages.AControl.UpdateModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>AccessControl</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="AccessControl.Id" />
+            <div class="form-group">
+                <label asp-for="AccessControl.Name" class="control-label"></label>
+                <input asp-for="AccessControl.Name" class="form-control" />
+                <span asp-validation-for="AccessControl.Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.IpController" class="control-label"></label>
+                <input asp-for="AccessControl.IpController" class="form-control" />
+                <span asp-validation-for="AccessControl.IpController" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.AccessId" class="control-label"></label>
+                <input asp-for="AccessControl.AccessId" class="form-control" />
+                <span asp-validation-for="AccessControl.AccessId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.Channel" class="control-label"></label>
+                <input asp-for="AccessControl.Channel" class="form-control" />
+                <span asp-validation-for="AccessControl.Channel" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.ControllerList" class="control-label"></label>
+                <input asp-for="AccessControl.ControllerList" class="form-control" />
+                <span asp-validation-for="AccessControl.ControllerList" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.Type" class="control-label"></label>
+                <input asp-for="AccessControl.Type" class="form-control" />
+                <span asp-validation-for="AccessControl.Type" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.RoomControllerFalco" class="control-label"></label>
+                <input asp-for="AccessControl.RoomControllerFalco" class="form-control" />
+                <span asp-validation-for="AccessControl.RoomControllerFalco" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.Delay" class="control-label"></label>
+                <input asp-for="AccessControl.Delay" class="form-control" />
+                <span asp-validation-for="AccessControl.Delay" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.ModelController" class="control-label"></label>
+                <input asp-for="AccessControl.ModelController" class="form-control" />
+                <span asp-validation-for="AccessControl.ModelController" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.CreatedBy" class="control-label"></label>
+                <input asp-for="AccessControl.CreatedBy" class="form-control" />
+                <span asp-validation-for="AccessControl.CreatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.UpdatedBy" class="control-label"></label>
+                <input asp-for="AccessControl.UpdatedBy" class="form-control" />
+                <span asp-validation-for="AccessControl.UpdatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.CreatedAt" class="control-label"></label>
+                <input asp-for="AccessControl.CreatedAt" class="form-control" />
+                <span asp-validation-for="AccessControl.CreatedAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.UpdatedAt" class="control-label"></label>
+                <input asp-for="AccessControl.UpdatedAt" class="form-control" />
+                <span asp-validation-for="AccessControl.UpdatedAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AccessControl.IsDeleted" class="control-label"></label>
+                <input asp-for="AccessControl.IsDeleted" class="form-control" />
+                <span asp-validation-for="AccessControl.IsDeleted" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

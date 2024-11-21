@@ -1,0 +1,6 @@
+@_2.Web.API.Controllers_HostAddress = http://localhost:5265
+
+GET {{_2.Web.API.Controllers_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

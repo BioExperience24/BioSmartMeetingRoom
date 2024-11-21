@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>_2.Web.API.Controllers</RootNamespace>
+    <UserSecretsId>7fa983e2-a2a5-4eef-9c4c-c5ea7815364b</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\3.BusinessLogic.Services\3.BusinessLogic.Services.csproj" />
+    <ProjectReference Include="..\4.Data.ViewModels\4.Data.ViewModels.csproj" />
+    <ProjectReference Include="..\5.Helpers.Consumer\5.Helpers.Consumer.csproj" />
+  </ItemGroup>
+
+</Project>

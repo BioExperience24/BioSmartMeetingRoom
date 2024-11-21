@@ -1,0 +1,72 @@
+﻿@page
+@model _1.PAMA.Razor.Views.Pages.AControl.DetailModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+<div>
+    <h4>AccessControl</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.IpController)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.IpController)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.AccessId)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.AccessId)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.Channel)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.Channel)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.ControllerList)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.ControllerList)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.Type)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.Type)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.RoomControllerFalco)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.RoomControllerFalco)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.Delay)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.Delay)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.ModelController)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.ModelController)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.AccessControl.Id">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>

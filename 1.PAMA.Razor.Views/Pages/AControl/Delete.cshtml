@@ -1,0 +1,109 @@
+﻿@page
+@model _1.PAMA.Razor.Views.Pages.AControl.DeleteModel
+
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+
+
+<div>
+    <h4>AccessControl</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.IpController)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.IpController)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.AccessId)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.AccessId)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.Channel)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.Channel)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.ControllerList)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.ControllerList)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.Type)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.Type)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.RoomControllerFalco)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.RoomControllerFalco)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.Delay)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.Delay)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.ModelController)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.ModelController)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.CreatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.CreatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.UpdatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.UpdatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.CreatedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.CreatedAt)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.UpdatedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.UpdatedAt)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.AccessControl.IsDeleted)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.AccessControl.IsDeleted)
+        </dd>
+    </dl>
+
+    <form method="post">
+        <input type="hidden" asp-for="AccessControl.Id" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-page="./Index">Back to List</a>
+    </form>
+</div>

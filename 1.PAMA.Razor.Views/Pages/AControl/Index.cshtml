@@ -1,0 +1,83 @@
+﻿@page
+@model _1.PAMA.Razor.Views.Pages.AControl.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<p>
+    <a asp-page="Create">List</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessControl[0].Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessControl[0].IpController)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessControl[0].AccessId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessControl[0].Channel)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessControl[0].ControllerList)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessControl[0].Type)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessControl[0].RoomControllerFalco)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessControl[0].Delay)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AccessControl[0].ModelController)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.AccessControl)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IpController)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AccessId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Channel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ControllerList)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Type)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RoomControllerFalco)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Delay)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ModelController)
+                </td>
+                <td>
+                    <a asp-page="./Update" asp-route-id="@item.Id">Update</a> |
+                    <a asp-page="./Detail" asp-route-id="@item.Id">Details</a> |
+                    <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

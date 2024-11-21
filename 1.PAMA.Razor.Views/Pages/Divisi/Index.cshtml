@@ -1,0 +1,59 @@
+﻿@page
+@model _1.PAMA.Razor.Views.Pages.Divisi.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<p>
+    <a asp-page="Create">List</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Divisi[0].DivisiName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Divisi[0].IdPerusahaan)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Divisi[0].IdDepartment)
+            </th>
+             <th>
+                @Html.DisplayNameFor(model => model.Divisi[0].CreatedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Divisi[0].CreatedBy)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Divisi)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DivisiName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IdPerusahaan)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IdDepartment)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreatedBy)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreatedAt)
+                </td>
+                <td>
+                    <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-page="./Detail" asp-route-id="@item.Id">Details</a> |
+                    <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
