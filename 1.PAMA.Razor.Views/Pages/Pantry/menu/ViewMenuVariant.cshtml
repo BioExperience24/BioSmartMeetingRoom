@@ -1,0 +1,40 @@
+﻿<div class="row clearfix">
+    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
+        <div class="input-group">
+            <span class="input-group-addon">
+                <i class="material-icons">my_location</i>
+            </span>
+            <select onchange="ocBuilding()" class="form-control" name="id_building" id="id_menu_pantry_search" data-live-search="true">
+                <option value="">All Pantry/Kitchen</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="col-xs-12 col-sm-12 col-md-2 col-lg-2">
+        <button class="btn btn-success btn-block waves-effect" onclick="initMenu()"><b>Filter</b></button>
+    </div>
+</div>
+MENU VARIANT
+<div class="row table-responsive responsive">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+        <table class="table table-hover table-bordered" id="id_tbl_menu">
+            <thead>
+            <th style="width: 80px;">#</th>
+            <th>Image</th>
+            <th style="width: 200px;">Name</th>
+            <th style="width: 200px;">Prefix</th>
+            <?php if ($modules['price']['is_enabled'] == 1): ?>
+            <th>Menu Prices</th>
+            <?php else: ?>
+            <?php endif;?>
+            <th>
+                <button onclick="createDataMenu($(this))"
+                        type="button" class="btn btn-primary waves-effect ">
+                    <i class="material-icons">add_circle</i> CREATE
+                </button>
+            </th>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>

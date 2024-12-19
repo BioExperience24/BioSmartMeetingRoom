@@ -1,13 +1,26 @@
 ﻿using _6.Repositories.DB;
+using _6.Repositories.Extension;
 using _7.Entities.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace _6.Repositories.Repository;
 
 public class CompanyRepository : BaseRepository<Company>
 {
-    public CompanyRepository(MyDbContext context) : base(context)
+    private readonly MyDbContext _dbContext;
+    public CompanyRepository(MyDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
+    }
+
+    public async Task<Company?> GetOneItemAsync()
+    {
+        var query = _dbContext.Companies.AsQueryable();
+
+        query = query.OrderByColumn("CreatedAt", "desc");
+
+        var result = await query.FirstOrDefaultAsync();
+
+        return result;
     }
 }

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class RoomAutomation
+public partial class RoomAutomation : BaseLongEntity
 {
-    public int Id { get; set; }
+    // public long Id { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -21,5 +21,5 @@ public partial class RoomAutomation
 
     public DateTime UpdatedAt { get; set; }
 
-    public int IsDeleted { get; set; }
+    // public int IsDeleted { get; set; }
 }

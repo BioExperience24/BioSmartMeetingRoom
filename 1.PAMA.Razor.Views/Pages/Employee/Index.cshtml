@@ -1,80 +1,1068 @@
-﻿@page
+﻿@page "/employee"
 @model _1.PAMA.Razor.Views.Pages.Employee.IndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    Layout = "_LayoutAdmin";
+    ViewData["PageName"] = "Employee";
 }
 
-<p>
-    <a asp-page="Create">Create New Employee</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Employee[0].Name)
-            </th>
-             <th>
-                @Html.DisplayNameFor(model => model.Employee[0].Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Employee[0].Address)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Employee[0].BirthDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Employee[0].CardNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Employee[0].CardNumberReal)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Employee[0].DepartmentId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Employee[0].DivisionId)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Employee)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Email)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Address)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CardNumber)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CardNumberReal)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.BirthDate)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CompanyId)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DepartmentId)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DivisionId)
-                </td>
-                <td>
-                    <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-page="./Detail" asp-route-id="@item.Id">Details</a> |
-                    <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
-            </tr>
+@section Styles {
+    <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="~/assets/theme/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css" rel="stylesheet" />
+    @* <link href="~/assets/theme/plugins/jquery-datatable/select.dataTables.min.css" rel="stylesheet"> *@
+    @* <link href="~/assets/theme/plugins/jquery-datatable/fixedColumns.dataTables.min.css" rel="stylesheet"> *@
+}
+
+<section class="content">
+    <div class="container-fluid">
+    <div class="block-header">
+        <h2>@ViewData["PageName"]</h2>
+    </div>
+    <div class="row clearfix">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div class="card">
+                <ul class="nav nav-tabs tab-nav-right" role="tablist">
+                    <li role="presentation" class="active"><a href="#home" data-toggle="tab">Employee List</a></li>
+                    @* <li role="presentation"><a href="#upload" data-toggle="tab">Upload Employee</a></li> *@
+                    <li role="presentation"><a href="#add-new" data-toggle="tab">Create New</a></li>
+                </ul>
+                
+                <div class="body ">
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane fade in active table-responsive responsive" id="home">
+                            <table class="table table-hover" id="tbldata">
+                                <thead>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Company/Division</th>
+                                        <th>NIK/Employee ID</th>
+                                        <th>Email</th>
+                                        <th style="width: 150px;">
+                                            <!-- <button 
+                                                onclick="createData($(this))" 
+                                                type="button" class="btn btn-primary waves-effect ">
+                                                <i class="material-icons">add_circle</i> CREATE</button> -->
+                                        </th>
+                                </thead>
+                                <tbody>
+                                            
+                                </tbody>
+                            </table>
+                        </div>
+                        @* <div role="tabpanel" class="tab-pane table-responsive responsive" id="upload">
+                            
+                            <form id="frm_create_new_upload">
+                                <div class="row clearfix">
+                                    <div class="col-xs-12 ">
+                                        <label for="id_crt_new_photo">Uplaod </label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <input type="file" name="upload" id="id_crt_upload" class="form-control" >
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 ">
+                                        <button type="submit" id="id_btn_type_crt_new_submit" class="btn btn-primary m-t-15 btn-block waves-effect">S A V E</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div> *@
+                        <!--  -->
+                        <!--  -->
+                        <div role="tabpanel" class="tab-pane table-responsive responsive" id="add-new">
+                            <h4>Create New </h4>
+                            <hr>
+                            <form id="frm_create_new">
+                            <div class="row clearfix">
+                                
+                                <div class="col-xs-6 col-xs-6 col-md-6">
+                                    <label for="">Name <b style="color:red;">*</b></label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <input required="" type="text" name="name" id="id_crt_new_name" required=""  class="form-control" placeholder="Name">
+                                            </div>
+                                        </div>
+                                        <label for="">NIK / Employee ID  <b style="color:red;">*</b></label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <input required="" type="text" name="nik_display" id="id_crt_new_nik" required=""  class="form-control" placeholder="NIK/ Employee ID">
+                                            </div>
+                                        </div>
+                                        <label for="">Company <b style="color:red;">*</b></label>
+                                        <div class="form-group">
+                                            <select data-live-search="true"  onchange="oncCrtNewDiv()" required="" class="form-control show-tick" name="company_id" id="id_crt_new_div"  >
+                                                <option value=""> C H O O S E</option>
+                                            </select>
+                                            
+                                        </div>
+                                        <label for="">Department <b style="color:red;">*</b></label>
+                                        <div class="form-group">
+                                                <select data-live-search="true"  required="" class="form-control show-tick" name="department_id" id="id_crt_new_dept"  >
+                                                <option value=""> C H O O S E</option>
+                                            </select>
+                                        </div>
+
+                                        <label for="">Head Employee <b style="color:red;">*</b></label>
+                                        <div class="form-group">
+                                                <select data-live-search="true"  required="" class="form-control show-tick" name="head_employee" id="id_crt_new_heademployee"  >
+                                                <option value=""> C H O O S E</option>
+                                                <option value="" selected>Tommy May Perdana</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <label for="">Email Address <b style="color:red;">*</b></label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <input required="" type="text" name="email" id="id_crt_new_email" class="form-control" placeholder="Email">
+                                            </div>
+                                        </div>
+                                        <label for="">No Phone <b style="color:red;">optional</b></label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <input type="text" name="no_phone" id="id_crt_new_no_phone" class="form-control" placeholder="No Phone/Ext.">
+                                            </div>
+                                        </div>
+                                        <label for="">No Office Extension <b style="color:red;">optional</b></label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <input type="text" name="no_ext" id="id_crt_new_no_ext" class="form-control" placeholder="Ext.">
+                                            </div>
+                                        </div>
+                                        <label for="">Card Access <b style="color:red;">optional</b></label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <input type="text" name="card_number" id="id_crt_new_card_number"  class="form-control" placeholder="Card">
+                                            </div>
+                                        </div>
+                                        <label for="">Gender</label>
+                                        <div class="form-group">
+                                            <select name="gender" id="id_crt_new_gender" class="form-control show-tick"  >
+                                                <option value=""></option>
+                                                <option value="male">MALE</option>
+                                                <option value="female">FEMALE</option>
+                                                <option value="other">OTHER</option>
+                                            </select>
+                                        </div>
+                                        <label for="">Birth Date</label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <input required="" type="text" name="birth_date" id="id_crt_new_birth_date"  class="datepicker form-control" placeholder="Birth Date">
+                                            </div>
+                                        </div>
+                                        <label for="">Address <b style="color:red;">optional</b></label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <textarea  name="address" id="id_crt_new_address" rows="2" class="form-control" ></textarea>
+                                            </div>
+                                        </div>
+
+                                        
+                                        
+                                        <br>
+                                        
+                                </div>
+                                <div class="col-xs-6 col-xs-6 col-md-6">
+                                    <label for="id_crt_new_photo">Photo </label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                <input type="file" name="photo" id="id_crt_new_photo" class="form-control" >
+                                            </div>
+                                    </div>
+                                    @* <?php if ($modules['vip']['is_enabled'] == 1): ?> *@
+                                    <div class="row clearfix">
+                                        <div class="col-xs-6 align-left">
+                                            <label for="">Enable VIP</label>
+                                        </div>
+                                        <div class="col-xs-6 align-right">
+                                            <div class="switch">
+                                                <label><input id="id_crt_is_vip" name="is_vip" type="checkbox" ><span class="lever switch-col-red"></span></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row clearfix">
+                                        <div class="col-xs-6 align-left">
+                                            <label for="">Approval Bypass</label>
+                                        </div>
+                                        <div class="col-xs-6 align-right">
+                                            <div class="switch">
+                                                <label><input disabled id="id_crt_vip_approve_bypass" name="vip_approve_bypass" type="checkbox" ><span class="lever switch-col-red"></span></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row clearfix">
+                                        <div class="col-xs-6 align-left">
+                                            <label for="">Limit Capacity Bypass</label>
+                                        </div>
+                                        <div class="col-xs-6 align-right">
+                                            <div class="switch">
+                                                <label><input disabled id="id_crt_vip_limit_cap_bypass" name="vip_limit_cap_bypass" type="checkbox" ><span class="lever switch-col-red"></span></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row clearfix">
+                                        <div class="col-xs-6 align-left">
+                                            <label for="">Lock The Room</label>
+                                        </div>
+                                        <div class="col-xs-6 align-right">
+                                            <div class="switch">
+                                                <label><input disabled id="id_crt_vip_lock_room" name="vip_lock_room" type="checkbox" ><span class="lever switch-col-red"></span></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @* <?php endif ?> *@
+                                    <button type="submit"   id="id_btn_type_crt_new_submit" class="btn btn-primary m-t-15 btn-block waves-effect">S A V E</button>
+                                </div>
+                            </div>
+                            </form>
+                            
+                        </div>
+                        <!--  -->
+                    </div>
+                    
+            </div>
+        </div>
+        
+    </div>
+
+    </div>
+</section>
+<!-- # END MODAL CREATE  -->
+<div class="modal fade" id="id_mdl_update" tabindex="-1" role="dialog">
+    <div class="modal-dialog " role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="id_mdl_updateLabel">Update Employee</h4>
+            </div>
+            <div class="modal-body " id="id_mdl_update_body">
+                <ul class="nav nav-tabs tab-nav-right" role="tablist">
+                    <li role="presentation" class="active"><a href="#frm_update_tab" data-toggle="tab">Employee</a></li>
+                    @* <?php if ($modules['vip']['is_enabled'] == 1): ?> *@
+                        <li role="presentation"><a href="#frm_update_vip_tab" data-toggle="tab">VIP</a></li>
+                    @* <?php endif ?> *@
+                    
+                </ul>
+                <br>
+                <!-- start tab panel -->
+                <div class="tab-content">
+                    <!-- tab panel update -->
+                    <div role="tabpanel" class="tab-pane in active " id="frm_update_tab">
+                        <form id="frm_update">
+                            <div class="row clearfix">
+                                <div class="col-xs-6">
+                                    <label for="">Name <b style="color:red;">*</b></label>
+                                    <div class="form-group">
+                                        <div class="form-line">
+                                            <input required="" type="text" name="name" id="id_edt_name" required=""  class="form-control" placeholder="Name">
+                                            <input type="hidden" name="id" id="id_edt_id" required=""  class="form-control" >
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <label for="">NIK / Employee ID <b style="color:red;">*</b> </label>
+                                    <div class="form-group">
+                                        <div class="form-line">
+                                            <input type="text" name="nik_display" id="id_edt_nik" required=""  class="form-control" placeholder="NPK">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row clearfix">
+                                <div class="col-xs-6">
+                                    <label for="">Company <b style="color:red;">*</b></label>
+                                    <div class="form-group">
+                                        <select data-live-search="true"  onchange="oncCrtDiv()" required="" class="form-control show-tick" name="company_id" id="id_edt_div"  >
+                                            <option value=""> C H O O S E</option>
+                                        </select>
+                                        
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <label for="">Department <b style="color:red;">*</b></label>
+                                    <div class="form-group">
+                                            <select data-live-search="true" required="" class="form-control show-tick" name="department_id" id="id_edt_dept"  >
+                                            <option value=""> C H O O S E</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row clearfix">
+                                <div class="col-xs-12">
+                                    <label for="">Head Employee <b style="color:red;">*</b></label>
+                                    <div class="form-group">
+                                            <select data-live-search="true"  required="" class="form-control show-tick" name="head_employee" id="id_edt_heademployee"  >
+                                            <option value=""> C H O O S E</option>
+                                            <option selected value="">Tommy May Perdana</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row clearfix">
+                                <div class="col-xs-6">
+                                    <label for="">Email Address <b style="color:red;">*</b></label>
+                                    <div class="form-group">
+                                        <div class="form-line">
+                                            <input required="" type="text" name="email" id="id_edt_email" class="form-control" placeholder="Email">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <label for="">No Phone. <b style="color:red;">optional</b></label>
+                                    <div class="form-group">
+                                        <div class="form-line">
+                                            <input type="text" name="no_phone" id="id_edt_no_phone" class="form-control" placeholder="Ext.">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row clearfix">
+                                <div class="col-xs-6">
+                                    <label for="">No Extension. <b style="color:red;">optional</b></label>
+                                    <div class="form-group">
+                                        <div class="form-line">
+                                            <input type="text" name="no_ext" id="id_edt_no_ext" class="form-control" placeholder="No Phone/Ext.">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    
+                                        <label for="">Card Access <b style="color:red;">optional</b></label>
+                                    <div class="form-group">
+                                        <div class="form-line">
+                                            <input type="text" name="card_number" id="id_edt_card_number"  class="form-control" placeholder="Card">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row clearfix">
+                                <div class="col-xs-6">
+                                    <label for="">Gender</label>
+                                    <div class="form-group">
+                                        <select name="gender" id="id_edt_gender" class="form-control show-tick"  >
+                                            
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                        <label for="">Birth Date <b style="color:red;">optional</b></label>
+                                    <div class="form-group">
+                                        <div class="form-line">
+                                            <input type="text" name="birth_date" id="id_edt_birth_date"  class="datepicker form-control" placeholder="Birth Date">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <label for="">Address <b style="color:red;">optional</b></label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    <textarea  name="address" id="id_edt_address" rows="2" class="form-control" ></textarea>
+                                </div>
+                            </div>
+                            <br>
+                            <button type="submit" style="display: none;" id="id_btn_type_edt_submit" class="btn btn-primary m-t-15 waves-effect">Submit</button>
+                        </form>
+                    </div>
+                    <!-- end tab panel update -->
+                    <!-- tab panel vip -->
+
+                    <div role="tabpanel" class="tab-pane " id="frm_update_vip_tab">
+                        <form id="frm_update_vip">
+                            <div class="row clearfix">
+                                    <div class="col-xs-6 align-left">
+                                        <label for="">Enable VIP</label>
+                                    </div>
+                                    <div class="col-xs-6 align-right">
+                                        <div class="switch">
+                                            <label><input id="id_edt_is_vip" name="is_vip" type="checkbox" ><span class="lever switch-col-red"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row clearfix">
+                                    <div class="col-xs-6 align-left">
+                                        <label for="">Approval Bypass</label>
+                                    </div>
+                                    <div class="col-xs-6 align-right">
+                                        <div class="switch">
+                                            <label><input disabled id="id_edt_vip_approve_bypass" name="vip_approve_bypass" type="checkbox" ><span class="lever switch-col-red"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row clearfix">
+                                    <div class="col-xs-6 align-left">
+                                        <label for="">Limit Capacity Bypass</label>
+                                    </div>
+                                    <div class="col-xs-6 align-right">
+                                        <div class="switch">
+                                            <label><input disabled id="id_edt_vip_limit_cap_bypass" name="vip_limit_cap_bypass" type="checkbox" ><span class="lever switch-col-red"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row clearfix">
+                                    <div class="col-xs-6 align-left">
+                                        <label for="">Lock The Room</label>
+                                    </div>
+                                    <div class="col-xs-6 align-right">
+                                        <div class="switch">
+                                            <label><input disabled id="id_edt_vip_lock_room" name="vip_lock_room" type="checkbox" ><span class="lever switch-col-red"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                        </form>
+                        </div>
+                    <!-- end tab panel vip -->
+                </div> 
+                <!-- end tab pannel -->
+            </div>
+            <div class="modal-footer">
+                <div class="row clearfix">
+                    <div class="col-xs-6 align-left">
+                        <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+                    </div>
+                    <div class="col-xs-6 align-right">
+                        <button onclick="submitFrmUpdate()" type="button" class="btn btn-primary waves-effect " >SAVE</button>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* <textarea style="display: none;"  id="id_alocation"><?= json_encode($alocation) ?></textarea>
+<textarea style="display: none;"  id="id_modules"><?= json_encode($modules) ?></textarea>
+<input type="hidden" id="id_baseurl" value="~/"> *@
+
+<textarea style="display: none;" id="id_alocation">@Html.Raw(Model.AlocationTypes)</textarea>
+<textarea style="display: none;" id="id_modules">{"vip":{"module_id":"31","module_text":"module_user_vip","name":"Module Employee\/User VIP","module_serial":null,"is_enabled":"1"}}</textarea>
+
+@section Scripts {
+    <script>
+        const ajax = {
+            url : {
+                get_employees : "@Model.GetEmployees",
+                get_employee_by_id : "@Model.GetEmployeeById",
+                get_department_by_id : "@Model.GetAlocationByTypeId",
+                post_create_employee : "@Model.CreateEmployee",
+                post_update_employee : "@Model.UpdateEmployee",
+                post_update_employee_vip : "@Model.UpdateEmployeeVip",
+                post_delete_employee : "@Model.DeleteEmployee",
+            }
+        };
+    </script>
+    <!-- Datatables -->
+    <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
+    <script src="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
+    @* <script src="~/assets/theme/plugins/jquery-datatable/dataTables.select.min.js"></script> *@
+    @* <script src="~/assets/theme/plugins/jquery-datatable/dataTables.fixedColumns.min.js"></script> *@
+    <!-- end Datatables -->
+
+    <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.min.js"></script>
+    <!-- Moment Plugin Js -->
+    <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+    <!-- Bootstrap Material Datetime Picker Plugin Js -->
+    <script src="~/assets/theme/plugins/jquery-editable/src/table-edits.js"></script>
+    <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
+    <script>
+        $(function(){
+            init();
+            createNewData();
+        }) 
+        function clickSubmit(id){
+            $('#'+id).click();
         }
-    </tbody>
-</table>
+        var gAutomation = [];
+        var modules = JSON.parse($('#id_modules').val());
+        var gDivisi = JSON.parse($('#id_alocation').val());
+        function initTable(selector){
+            // selector.DataTable();
+            selector.DataTable({
+                "scrollX":        true,
+                "scrollCollapse": true,
+                "fixedHeader":    true,
+                paging:           true,
+                // searching:        false,
+                // bFilter :         false,
+                // scrollResize:     true,
+                order: [[ 1, "asc" ]],
+                lengthMenu: [[5, 10, 20, 100,-1], [5, 10, 20,100, 'ALL']],
+                fixedColumns: {
+                    leftColumns: 2,
+                    rightColumns: 1
+                },
+                columnDefs: [
+                    {
+                        orderable: true,
+                        // orderable: false,
+                        // className: 'select-checkbox',
+                        targets: 0,
+                        searchable: false,
+                    },
+                    // {
+                    //     orderable: true,
+                    // },
+                ],
+                
+            });
+
+        }
+        function clearTable(selector){
+            selector.DataTable().destroy();
+        }
+        function select_enable(){
+            $('select').selectpicker("refresh");
+            $('select').selectpicker("initialize");
+        }
+        function downloadTempalte(){
+            var bs = $('#id_baseurl').val();
+            // $.post(bs+'employee/donwload/template');
+            window.location = bs+'employee/donwload/template';
+        }
+
+
+        function enable_datetimepicker(){
+            $('.timepicker').bootstrapMaterialDatePicker({
+                format: 'HH:mm',
+                clearButton: true,
+                date: false
+            });
+            $('.datepicker').bootstrapMaterialDatePicker({
+                format: 'YYYY-MM-DD',
+                clearButton: true,
+                weekStart: 1,
+                time: false,
+                year:true,
+            });
+        }
+        function createData(){
+            $('#id_mdl_create').modal('show');
+            var htmlDiv = '<option value=""> C H O O S E</option>';
+            for(var x in gDivisi){
+                var r = gDivisi[x];
+                htmlDiv += '<option value="'+r.id+'">'+r.name+'</option>';
+            }
+            $('#id_crt_div').html(htmlDiv);
+            enable_datetimepicker()
+            select_enable()
+        }
+        function createNewData(){
+            // $('#id_mdl_create').modal('show');
+            var htmlDiv = '<option value=""> C H O O S E</option>';
+            for(var x in gDivisi){
+                var r = gDivisi[x];
+                htmlDiv += '<option value="'+r.id+'">'+r.name+'</option>';
+            }
+            $('#id_crt_new_div').html(htmlDiv);
+            enable_datetimepicker()
+            select_enable()
+        }
+        function oncCrtDiv(){
+           @* var div = $('#id_crt_div').val() *@
+           var div = $('#id_edt_div').val();
+           var bs = $('#id_baseurl').val();
+            $.ajax({
+                @* url : bs+"employee/get/departement/"+div, *@
+                @* url : ajax.url.get_department_by_id + `&id=${div}`, *@
+                url : ajax.url.get_department_by_id + `/${div}`,
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                        if(data.status == "success"){
+                            var col = data.collection;
+                            var htmlDep = '<option value=""> C H O O S E</option>';
+                            for(var x in col){
+                                var r = col[x];
+                                htmlDep += '<option value="'+r.id+'">'+r.name+'</option>';
+                            }
+                            @* $('#id_crt_dept').html(htmlDep); *@
+                            $('#id_edt_dept').html(htmlDep);
+                            select_enable();
+
+                        }else{
+                          showNotification('alert-danger', data.msg,'top','center')
+                        }
+                        $('#id_loader').html('');
+                    },
+                    error: errorAjax
+            })
+        }
+        function oncCrtNewDiv(){
+           var div = $('#id_crt_new_div').val()
+           var bs = $('#id_baseurl').val();
+            $.ajax({
+                @* url : bs+"employee/get/departement/"+div, *@
+                @* url : ajax.url.get_department_by_id + `&id=${div}`, *@
+                url : ajax.url.get_department_by_id + `/${div}`,
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                        if(data.status == "success"){
+                            var col = data.collection;
+                            var htmlDep = '<option value=""> C H O O S E</option>';
+                            for(var x in col){
+                                var r = col[x];
+                                htmlDep += '<option value="'+r.id+'">'+r.name+'</option>';
+                            }
+                            $('#id_crt_new_dept').html(htmlDep);
+                            select_enable();
+
+                        }else{
+                          showNotification('alert-danger', data.msg,'top','center')
+                        }
+                        $('#id_loader').html('');
+                    },
+                    error: errorAjax
+            })
+        }
+        function oncEdtDiv(value = ""){
+           var div = $('#id_edt_div').val()
+           var bs = $('#id_baseurl').val();
+            $.ajax({
+                @* url : bs+"employee/get/departement/"+div, *@
+                @* url : ajax.url.get_department_by_id + `&id=${div}`,*@
+                url : ajax.url.get_department_by_id + `/${div}`,
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                        if(data.status == "success"){
+                            var col = data.collection;
+                            var htmlDep = '<option value=""> C H O O S E</option>';
+                            for(var x in col){
+                                var r = col[x];
+                                var s = ( r.id == value ) ? "selected" : "";
+                                htmlDep += '<option '+s+' value="'+r.id+'">'+r.name+'</option>';
+                            }
+                            $('#id_edt_dept').html(htmlDep);
+                            select_enable();
+
+                        }else{
+                          showNotification('alert-danger', data.msg,'top','center')
+                        }
+                        $('#id_loader').html('');
+                    },
+                    error: errorAjax
+            })
+        }
+
+        $('#id_crt_is_vip').change(function() {
+            if(this.checked) {
+                $('#id_crt_vip_approve_bypass').removeAttr("disabled");
+                $('#id_crt_vip_limit_cap_bypass').removeAttr("disabled");
+                $('#id_crt_vip_lock_room').removeAttr("disabled");
+            }else{
+                $('#id_crt_vip_approve_bypass').attr("disabled",true);
+                $('#id_crt_vip_limit_cap_bypass').attr("disabled",true);
+                $('#id_crt_vip_lock_room').attr("disabled",true);
+            }
+            select_enable()
+
+        });
+        $('#id_edt_is_vip').change(function() {
+            if(this.checked) {
+                $('#id_edt_vip_approve_bypass').removeAttr("disabled");
+                $('#id_edt_vip_limit_cap_bypass').removeAttr("disabled");
+                $('#id_edt_vip_lock_room').removeAttr("disabled");
+            }else{
+                $('#id_edt_vip_approve_bypass').attr("disabled",true);
+                $('#id_edt_vip_limit_cap_bypass').attr("disabled",true);
+                $('#id_edt_vip_lock_room').attr("disabled",true);
+            }
+            select_enable()
+
+        });
+
+        $('#frm_create').submit(function(e){
+            e.preventDefault();
+            var form =  $('#frm_create').serialize();
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url : bs+"employee/post/create",
+                type : "POST",
+                dataType: "json",
+                data : form,
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                        if(data.status == "success"){
+                          $('#frm_create')[0].reset();
+                          init();
+                          $('#id_mdl_create').modal('hide');
+                          showNotification('alert-success', data.msg,'top','center')
+                        }else{
+                          showNotification('alert-danger', data.msg,'top','center')
+                        }
+                        $('#id_loader').html('');
+                    },
+                    error: errorAjax
+            })
+        }) 
+        $('#frm_create_new').submit(function(e){
+            e.preventDefault();
+            var form =  $('#frm_create_new')[0];
+            var form_data = new FormData(form); 
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                @* url : bs+"employee/post/create/new", *@
+                url : ajax.url.post_create_employee,
+                type : "POST",
+                dataType: "json",
+                data : form_data,
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                        if(data.status == "success"){
+                          // $('#frm_create')[0].reset();
+                          init();
+                          // $('#id_mdl_create').modal('hide');
+                          showNotification('alert-success', data.msg,'top','center')
+                        }else{
+                          showNotification('alert-danger', data.msg,'top','center')
+                        }
+                        $('#id_loader').html('');
+                    },
+                    error: errorAjax
+            })
+        });
+        $('#frm_upload').submit(function(e){
+            e.preventDefault();
+            var form_data = new FormData(); 
+            var file_data = $('#id_uploadt').prop('files')[0];
+            var form =  new FormData();
+            form.append('file', file_data);
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url : bs+"employee/upload/file",
+                type : "POST",
+                dataType: "json",
+                data : form,
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                        if(data.status == "success"){
+                          showNotification('alert-success', data.msg,'top','center')
+                        }else{
+                          showNotification('alert-danger', data.msg,'top','center')
+                        }
+                        $('#id_loader').html('');
+                        window.location.reload();
+                    },
+                    error: errorAjax
+            })
+        }) 
+
+        async function submitFrmUpdate() {
+            var ressUpdate = {status:'fail',collection:[],msg :""};
+            var ressUpdateAdv = {status:'fail',collection:[],msg :""};
+            var ressUpdateCheckin = {status:'fail',collection:[],msg :""};
+            $('#id_loader').html('<div class="linePreloader"></div>');
+            loadingg('Please wait ! ', 'Loading . . . ')
+            try { ressUpdate = await submitFrmModuleUpdate();
+            }catch(error){ console.log(error); }
+            if( (modules['vip']['is_enabled'] - 0) == 1  ){
+                 try { ressUpdateAdv = await submitFrmModuleUpdateVIP();
+                }catch(error){ console.log(error); }
+            }
+            setTimeout(function(){
+                $('#id_loader').html('');
+                $('#frm_update')[0].reset();
+                $('#frm_update_vip')[0].reset();
+                $('#id_mdl_update').modal('hide');
+                Swal.fire({
+                    title: 'Success',
+                    text: ressUpdate.msg,
+                    type: "success",
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Close !',
+                }).then((result) => {
+                    init();
+                })
+
+            }, 2000)
+            // console.log(ressUpdateAdv, JSON.stringify(gRoomForUsageGenerate))
+        }
+        function submitFrmModuleUpdate() {
+            $('#frm_update').submit();
+            var form =  $('#frm_update').serialize();
+            var bs = $('#id_baseurl').val();
+            var id = $('#id_edt_id').val();
+            return $.ajax({
+                @* url: bs+"employee/post/update/"+id, *@
+                url: ajax.url.post_update_employee + `/${id}`,
+                type: "POST",
+                dataType: "json",
+                data: form,
+                beforeSend: function() { },
+                success: function(data) { },
+                error: errorAjax
+            })
+        }
+        function submitFrmModuleUpdateVIP() {
+            $('#frm_update_vip').submit();
+            var form =  $('#frm_update_vip').serialize();
+            var bs = $('#id_baseurl').val();
+            var id = $('#id_edt_id').val();
+            return $.ajax({
+                @* url: bs+"employee/post/update-vip/"+id, *@
+                url: ajax.url.post_update_employee_vip + `/${id}`,
+                type: "POST",
+                dataType: "json",
+                data: form,
+                beforeSend: function() { },
+                success: function(data) { },
+                error: errorAjax
+            })
+        }
+        $('#frm_update').submit(function(e){
+            e.preventDefault();
+        })  
+        $('#frm_update_vip').submit(function(e){
+            e.preventDefault();
+        })  
+
+        
+        
+        function init(){
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                @* url : bs+"employee/get/data", *@
+                url : ajax.url.get_employees,
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                        clearTable($('#tbldata'));
+                        var html = "";
+                        var num = 0;
+                        $.each(data.collection, function(index, item){
+                            num++;
+                            html += '<tr data-id="'+item.id+'">'
+                            html += '<td>'+num+'</td>';
+                            html += '<td data-field="name">'+item.name+'</td>';
+                            html += '<td data-field="division_id">'+item.company_name+'</td>';
+                            html += '<td data-field="nik">'+item.nik_display+'</td>';
+                            // html += '<td data-field="card_number">'+item.card_number+'</td>';
+                            html += '<td data-field="email">'+item.email+'</td>';
+                            // html += '<td data-field="password_mobile">'+item.password_mobile+'</td>';
+                            
+                            html += '<td>';
+                            html += '<button \
+                                 title="Full Edit" \
+                                 onclick="editData($(this))" \
+                                 data-id="'+item.id+'" \
+                                 data-name="'+item.name+'" \
+                                 type="button" class="btn btn-primary waves-effect">\
+                                    <i class="material-icons">mode_edit</i></button> ';
+                            html += '<button \
+                                 onclick="removeData($(this))" \
+                                 data-id="'+item.id+'" \
+                                 data-name="'+item.name+'" \
+                                 type="button" class="btn btn-danger waves-effect "><i class="material-icons">delete</i></button>';
+                            html += '</td>';
+                            html += '</tr>';
+                        })
+                        $('#tbldata tbody').html(html);
+                        
+                        initTable($('#tbldata'));
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+        function removeData(t){
+            var id = t.data('id');
+            var name = t.data('name');
+            var form = new FormData();
+            form.append('id', id);
+            form.append('name', name);
+            Swal.fire({
+                title:'Are you sure you want delete it?',
+                text: "You will lose the data employee "+name+" !",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Delete !',
+                cancelButtonText: 'Cancel !',
+                reverseButtons: true
+                }).then((result) => {
+                    if (result.value) {
+                        var bs = $('#id_baseurl').val();
+                        $.ajax({
+                            @* url : bs+"employee/post/delete", *@
+                            url : ajax.url.post_delete_employee,
+                            type: "POST",
+                            data : form,
+                            processData: false,
+                            contentType: false,
+                            dataType :"json",
+                            beforeSend: function(){
+                                $('#id_loader').html('<div class="linePreloader"></div>');
+                            },
+                            success:function(data){
+                                $('#id_loader').html('');
+                                if (data.status == "success") {
+                                    showNotification('alert-success', "Succes deleted employee "+name ,'top','center')
+                                    init();
+                                }else{
+                                    showNotification('alert-danger', "Data not found",'bottom','left')
+                                }
+                            },
+                            error: errorAjax,
+                        })
+                    }
+                else{
+
+                }
+            })
+            
+        }
+        function editData(t){
+            var id = t.data('id');
+            var bs = $('#id_baseurl').val();
+            gDatalistRoom = [];
+            gDatalistDevices = [];
+            $.ajax({
+                @* url : bs+"employee/get/edit/"+id, *@
+                @* url : ajax.url.get_employee_by_id + `&id=${id}`, *@
+                url : ajax.url.get_employee_by_id + `/${id}`,
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                        var input = data.collection;
+                        $('#id_edt_name').val(input['name']);
+                        $('#id_edt_nik').val(input['nik_display']);
+                        $('#id_edt_div').val(input['division_id']);
+                        $('#id_edt_email').val(input['email']);
+                        $('#id_edt_no_phone').val(input['no_phone']);
+                        $('#id_edt_no_ext').val(input['no_ext']);
+                        $('#id_edt_card_number').val(input['card_number']);
+                        $('#id_edt_birth_date').val(input['birth_date']);
+                        $('#id_edt_address').val(input['address']);
+                        // $('#id_edt_password').val(input['password_mobile']);
+                        
+
+                        $('#id_edt_id').val(input['id']);
+                        var gender = ["","male", "female", "other"];
+                        var priority = ["General", "Special"];
+                        var html_gender = "";
+                        var html_priority="";
+                        $.each(gender, function(index, item){
+                                var sel = ""
+                                var gda = input['gender']
+                                console.log(item, gda)
+
+                                if(item == gda){
+                                    sel = "selected";
+                                    console.log(1)
+                                }
+                                html_gender += '<option '+sel+' value="'+item+'" >'+(item.toUpperCase())+'</option>';
+                        })
+                         $.each(priority, function(index, item){
+                                var sel = ""
+                                var gda = input['priority']
+                                if(index == gda){
+                                    sel = "selected";
+                                }
+                                html_priority += '<option '+sel+' value="'+item+'" >'+item+'</option>';
+                        })
+                        $('#id_mdl_update').modal('hide');
+                        showNotification('alert-success', data.msg,'top','center')
+                        var htmlDiv = '<option value=""> C H O O S E</option>';
+                        for(var x in gDivisi){
+                            var r = gDivisi[x];
+                            var s = (r.id == input['company_id'] ) ? "selected" : "";
+                            htmlDiv += '<option '+s+' value="'+r.id+'">'+r.name+'</option>';
+                        }
+                        $('#id_edt_div').html(htmlDiv);
+                        var is_vip = input['is_vip'] == null?0: input['is_vip']-0 ;
+                        if(is_vip == 1){
+                            $('#id_edt_is_vip').attr("checked", true);
+                            $('#id_edt_vip_approve_bypass').removeAttr("disabled");
+                            $('#id_edt_vip_limit_cap_bypass').removeAttr("disabled");
+                            $('#id_edt_vip_lock_room').removeAttr("disabled");
+
+                            if((input['vip_lock_room']-0) == 1){ $('#id_edt_vip_lock_room').attr("checked", true); }
+                            else { $('#id_edt_vip_lock_room').attr("checked", false); }
+                            if((input['vip_approve_bypass']-0) == 1){ $('#id_edt_vip_approve_bypass').attr("checked", true); }
+                            else { $('#id_edt_vip_approve_bypass').attr("checked", false); }
+                            if((input['vip_limit_cap_bypass']-0) == 1){ $('#id_edt_vip_limit_cap_bypass').attr("checked", true); }
+                            else { $('#id_edt_vip_limit_cap_bypass').attr("checked", false); }
+                        }else{
+                            $('#id_edt_is_vip').attr("checked", false);
+                            $('#id_edt_vip_approve_bypass').attr("disabled",true);
+                            $('#id_edt_vip_limit_cap_bypass').attr("disabled",true);
+                            $('#id_edt_vip_lock_room').attr("disabled",true);
+
+
+                        }
+
+                       
+                        $('#id_mdl_update').modal('show');
+                        $('#id_edt_gender').html(html_gender)
+                        $('#id_edt_priority').html(html_priority)
+                        enable_datetimepicker()
+                        select_enable()
+                        oncEdtDiv(input['department_id'])
+
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+
+        function loadingg(title = "", body = "") {
+            Swal.fire({
+                title: title,
+                html: body,
+                allowOutsideClick: false,
+                onBeforeOpen: () => {
+                    Swal.showLoading()
+                },
+            });
+        }
+        function errorAjax(xhr, ajaxOptions, thrownError){
+            $('#id_loader').html('');
+            if(ajaxOptions == "parsererror"){
+                var msg = "Status Code 500, Error Server bad parsing";
+                showNotification('alert-danger', msg,'bottom','left')
+            }else{
+                var msg ="Status Code "+ xhr.status + " Please check your connection !!!";
+                showNotification('alert-danger', msg,'bottom','left')
+            }
+        }
+    </script>
+}

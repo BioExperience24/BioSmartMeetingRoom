@@ -1,14 +1,141 @@
-﻿using _6.Repositories.DB;
-using _7.Entities.Models;
-using Microsoft.EntityFrameworkCore;
+﻿
+
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Identity.Client;
 
 namespace _6.Repositories.Repository;
 
 public class AccessControlRepository : BaseRepository<AccessControl>
 {
-    public AccessControlRepository(MyDbContext context) : base(context)
+    private readonly MyDbContext _dbContext;
+    public AccessControlRepository(MyDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
+    }
+
+    public async Task<IEnumerable<object>> GetAllItemAsync()
+    {
+        var query = from accessControl in _dbContext.AccessControls
+                    where accessControl.IsDeleted == 0
+                    orderby accessControl.Id ascending
+                    select new {
+                        accessControl,
+                        Room = (
+                            from accessIntegrated in _dbContext.AccessIntegrateds
+                            from room in _dbContext.Rooms
+                                .Where(q => q.RadId == accessIntegrated.RoomId)
+                            where accessIntegrated.AccessId == accessControl.Id
+                            && accessIntegrated.IsDeleted == 0
+                            && room.IsDeleted == 0
+                            select accessIntegrated
+                        ).Count()
+                    };
+
+        var list = await query.ToListAsync();
+        
+        return list;
+    }
+
+    public async Task<object?> GetItemByIdAsync(string id)
+    {
+        var query = from accessControl in _dbContext.AccessControls
+                    from accessControllerFalco in _dbContext.AccessControllerFalcos
+                            .Where(q => q.AccessId == accessControl.Id && q.IsDeleted == 0)
+                            .DefaultIfEmpty()
+                    where accessControl.Id == id && accessControl.IsDeleted == 0
+                    orderby accessControl.Id ascending
+                    select new {
+                        accessControl,
+                        AccessControllerFalco = new {
+                            FalcoUnitNo = accessControllerFalco != null ? accessControllerFalco.UnitNo : "",
+                            FalcoGroupAccess = accessControllerFalco != null ? accessControllerFalco.GroupAccess : ""
+                        },
+                        Room = (
+                            from accessIntegrated in _dbContext.AccessIntegrateds
+                            where accessIntegrated.AccessId == accessControl.Id
+                            && accessIntegrated.IsDeleted == 0
+                            select accessIntegrated
+                        ).Count()
+                    };
+
+        var item = await query.FirstOrDefaultAsync();
+        
+        return item;
+    }
+
+    // TODO: Jika menu meeting room - room management sudah di buat, merge repo ini
+    // Dipakai di Master/Base - Access Door
+    public async Task<IEnumerable<object>> GetAllItemRoomAsync()
+    {
+        var query = from room in _dbContext.Rooms
+                    from roomAutomation in _dbContext.RoomAutomations
+                            .Where(q => q.Id == room.AutomationId).DefaultIfEmpty()
+                    from building in _dbContext.Buildings
+                            .Where(q => q.Id == room.BuildingId).DefaultIfEmpty()
+                    where room.IsDeleted == 0
+                    orderby room.Name ascending
+                    select new {
+                        room,
+                        roomAutomation = new { 
+                            RaName = roomAutomation != null ? roomAutomation.Name : "",
+                            RaId = roomAutomation != null ? roomAutomation.Id : null },
+                        building = new { 
+                            BuildingName = building != null ? building.Name : "", 
+                            BuildingDetail = building != null ? building.DetailAddress : "",
+                            BuildingGoogleMap = building != null ? building.GoogleMap : "" }
+                    };
+
+        var list = await query.ToListAsync();
+        
+        return list;
+    }
+
+    // TODO: Jika menu meeting room - room management sudah di buat, merge repo ini
+    // Dipakai di Master/Base - Display Signage
+    public async Task<IEnumerable<object>> GetAllItemRoomRoomDisplayAsync()
+    {
+        var query = from room in _dbContext.Rooms
+                    from roomDisplay in _dbContext.RoomDisplays
+                            .Where(q => q.RoomId == room.RadId).DefaultIfEmpty()
+                    from building in _dbContext.Buildings
+                            .Where(q => q.Id == room.BuildingId).DefaultIfEmpty()
+                    where room.IsDeleted == 0
+                    orderby room.Name ascending
+                    select new {
+                        room,
+                        roomDisplay = new {
+                            RoomDisplayBackground = roomDisplay != null ? roomDisplay.Background : ""
+                        },
+                        building = new { 
+                            BuildingName = building != null ? building.Name : "", 
+                            BuildingDetail = building != null ? building.DetailAddress : "",
+                            BuildingGoogleMap = building != null ? building.GoogleMap : "" }
+                    };
+
+        var list = await query
+                            .GroupBy(q => q.room.RadId)
+                            .Select(q => q.FirstOrDefault())
+                            .ToListAsync();
+        
+        return list!;
+    }
+
+    // TODO: Jika menu meeting room - room management sudah di buat, merge repo ini
+    // Dipakai di Master/Base - Display Signage
+    public async Task<IEnumerable<Room>> GetAllItemRoomWithRadidsAsycn(string[] radIds)
+    {
+        var query = from room in _dbContext.Rooms
+                    where room.IsDeleted == 0
+                    // && radIds.Any(radId => room.Radid.Contains(radId))
+                    && radIds.Contains(room.RadId)
+                    orderby room.Name ascending
+                    select room;
+
+        var list = await query.ToListAsync();
+        
+        return list;
     }
 }
 

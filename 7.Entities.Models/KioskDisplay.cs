@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 
 namespace _7.Entities.Models;
 
-public partial class KioskDisplay
+public partial class KioskDisplay : BaseLongEntity
 {
-    public int Id { get; set; }
+    // public int Id { get; set; }
 
     public string? DisplaySerial { get; set; }
 
@@ -31,5 +30,5 @@ public partial class KioskDisplay
 
     public DateTime? UpdatedAt { get; set; }
 
-    public int? IsDeleted { get; set; }
+    // public int? IsDeleted { get; set; }
 }

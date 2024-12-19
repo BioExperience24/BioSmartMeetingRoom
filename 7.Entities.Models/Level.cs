@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace _7.Entities.Models;
 
-public partial class Level
+// public partial class Level : BaseEntity
+public partial class Level : BaseLongEntity
 {
-    public long Id { get; set; }
+    // public long Id { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -17,5 +19,5 @@ public partial class Level
 
     public DateTime? UpdatedAt { get; set; }
 
-    public short IsDeleted { get; set; }
+    // public short IsDeleted { get; set; }
 }

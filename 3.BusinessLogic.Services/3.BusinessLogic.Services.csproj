@@ -1,20 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>_3.BusinessLogic.Services</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>_3.BusinessLogic.Services</RootNamespace>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="AutoMapper" Version="13.0.1" />
+		<PackageReference Include="SkiaSharp" Version="2.88.9" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="13.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\4.Data.ViewModels\4.Data.ViewModels.csproj" />
-    <ProjectReference Include="..\6.Repositories\6.Repositories.csproj" />
-    <ProjectReference Include="..\7.Entities.Models\7.Entities.Models.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\4.Data.ViewModels\4.Data.ViewModels.csproj" />
+		<ProjectReference Include="..\6.Repositories\6.Repositories.csproj" />
+		<ProjectReference Include="..\7.Entities.Models\7.Entities.Models.csproj" />
+	</ItemGroup>
 
 </Project>

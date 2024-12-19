@@ -9,6 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\PantryDetailMenuVariantDetailController.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Pages\Pantry\index.php" />
+    <None Remove="Pages\Pantry\indexMenu.php" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="jQuery" Version="3.7.1" />
     <PackageReference Include="jQuery.Validation" Version="1.21.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
@@ -19,12 +28,14 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\3.BusinessLogic.Services\3.BusinessLogic.Services.csproj" />
     <ProjectReference Include="..\4.Data.ViewModels\4.Data.ViewModels.csproj" />
     <ProjectReference Include="..\6.Repositories\6.Repositories.csproj" />
+    <ProjectReference Include="..\5.Helpers.Consumer\5.Helpers.Consumer.csproj" />
   </ItemGroup>
 
 </Project>

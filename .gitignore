@@ -358,3 +358,5 @@ sw.*
 
 # Vim swap files
 *.swp
+
+*.backup

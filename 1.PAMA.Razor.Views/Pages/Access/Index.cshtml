@@ -1,0 +1,321 @@
+﻿@page "/access"
+@model _1.PAMA.Razor.Views.Pages.Access.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["PageName"] = "Access";
+}
+
+@section Styles
+{
+    <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="~/assets/theme/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css" rel="stylesheet" />
+    <link href="~/assets/external/filepond/filepond.min.css" rel="stylesheet">
+    <style>
+        .demo-filepond-wrapper{
+            height: 300px;
+            padding-left: 20px;
+            padding-top: 20px;
+            padding-right: 20px;
+            border: dashed 2px grey;
+            background: white center no-repeat;
+            background-size: cover;
+            text-align: center;
+            display: block;
+            cursor: pointer;
+        }
+        .image-box {
+            position: relative;
+            height: 200px;
+            width: 100%;
+            position: relative;
+            background-color: #eee;
+            border: dotted 1px grey;
+        }
+        .img_overlay{
+            opacity: 1;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .img_overlay:hover{
+            opacity: 0.6;
+            transition: 1s;
+        }
+        .image-box:hover .overlay{
+            opacity: 1;
+            /*width: 150px;*/
+        }
+    </style>
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="block-header">
+            <h2><?= strtoupper($pagename) ?></h2>
+        </div>
+        <div class="row clearfix">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="header">
+
+                        <div class="row clearfix">
+                            <div class="col-xs-12 col-sm-6">
+                                <h2>Access List</h2>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 align-right">
+                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="body table-responsive responsive">
+                        <table class="table table-hover" id="tbldata">
+                            <thead>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Controller IP</th>
+                                    <th>Channel</th>
+                                    <th>Room Integrated</th>
+                                    <th></th>
+                                    <!-- <th>Work Day</th> -->
+                                    <th>
+                                        <button 
+                                            onclick="createData($(this))" 
+                                            type="button" class="btn btn-primary waves-effect ">
+                                            <i class="material-icons">add_circle</i> CREATE</button>
+                                    </th>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="modal fade" id="id_mdl_create" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="idmdlcrLabel">Create Access Controller </h4>
+            </div>
+            <div class="modal-body " id="id_mdl_create_body">
+                <form id="frm_create">
+                    <label for="">Name</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="text" autocomplete="off" name="name" id="id_crt_name" required=""  class="form-control" placeholder="Name">
+                        </div>
+                    </div>
+                    <label for="">Controller Type</label>
+                    <div class="form-group">
+                        <select name="type" onchange="oncCRTControllerType()" required=""  id="id_crt_controller_type" class="form-control show-tick"></select>
+                    </div>
+                    <label for="">Controller Model</label>
+                    <div class="form-group">
+                        <select name="model_controller"  required=""  id="id_crt_model_controller" class="form-control show-tick">
+                        </select>
+                    </div>
+                    <label for="">Controller IP</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="text" name="ip_controller" id="id_crt_controller_ip"   class="form-control ip" placeholder="Controller IP">
+                        </div>
+                    </div>
+                    <div id="id_crt_controller_area_custid" > 
+                        <label for="">Access ID</label>
+                        <div class="form-line">
+                            <input type="text" name="access_id" id="id_crt_controller_access_id"  class="form-control" placeholder="Access ID">
+                        </div>
+                        <br>
+                    </div>
+                    
+                    <div id="id_crt_controller_area_falco" style="display: none;"> 
+                        <label for="">Falco Group Access</label>
+                        <div class="form-line">
+                            <input type="text" name="falco_group_access" id="id_crt_controller_falco_group_access"  class="form-control" placeholder="Falco Group Access">
+                            <small>Falco Group Access</small>
+                        </div>
+                        <label for="">Falco Unit No</label>
+                        <div class="form-line">
+                            <input type="text" name="falco_unit_no" id="id_crt_controller_falco_unit_no"  class="form-control" placeholder="Falco Unit No">
+                            <small>Falco Unit No</small>
+                        </div>
+                        <br>
+                    </div>
+                    
+                    <label for="">Channel</label>
+                    <div class="form-group">
+                        <select  data-live-search="true" name="channel" id="id_crt_channel" class="form-control show-tick"></select>
+                    </div>
+                    <label for="">Room Assign</label>
+                    <div class="form-group">
+                        <select  data-live-search="true" name="room[]" multiple="" id="id_crt_room" class="form-control show-tick"></select>
+                    </div>
+                    <br>
+                    <button type="submit" id="id_btn_crt_submit" class="btn btn-primary m-t-15 waves-effect" style="display: none;" >Save</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row clearfix">
+                    <div class="col-xs-6 align-left">
+                        
+                        <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+                    </div>
+                    <div class="col-xs-6">
+                        <button onclick="clickSubmit('id_btn_crt_submit')" type="button" class="btn btn-primary waves-effect " >SAVE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="id_mdl_assign" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" >Assign <b id="id_assign_title"></b> </h4>
+            </div>
+            <div class="modal-body " id="id_mdl_create_body" style="height: 300px;overflow-y: scroll;overflow-x: hidden;">
+
+                <form id="frm_assign">
+                    <input type="hidden" name="id" id="id_access_assign_id">
+                    <label for="">Room List</label>
+                    <ul class="list-group" id="id_list_assign">
+                        
+                    </ul>
+                    <br>
+                    <button style="display: none;" id="id_btn_assign_submit" type="submit" class="btn btn-primary m-t-15 waves-effect">Save</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row clearfix">
+                    <div class="col-xs-6 align-left">
+                        
+                        <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+                    </div>
+                    <div class="col-xs-6">
+                        <button onclick="clickSubmit('id_btn_assign_submit')" type="button" class="btn btn-primary waves-effect " >SAVE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="id_mdl_update" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="idmdlcrLabel">Update Access Controller</h4>
+            </div>
+            <div class="modal-body " id="id_mdl_update">
+                <form id="frm_update">
+                    <label for="">Name</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="hidden" name="id" id="id_edt_id">
+                            <input type="text" autocomplete="off" name="name" id="id_edt_name" required=""  class="form-control" placeholder="Name">
+                        </div>
+                    </div>
+                    <label for="">Controller Type</label>
+                    <div class="form-group">
+                        <select name="type" onchange="oncEDTControllerType()" id="id_edt_controller_type" class="form-control show-tick"></select>
+                    </div>
+                    <label for="">Controller Model</label>
+                    <div class="form-group">
+                        <select name="model_controller"  required=""  id="id_edt_model_controller" class="form-control show-tick">
+                        </select>
+                    </div>
+                    <label for="">Controller IP</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="text" name="ip_controller" id="id_edt_controller" required=""  class="form-control ip" placeholder="Controller IP">
+                        </div>
+                    </div>
+
+                    <div id="id_edt_controller_area_custid" > 
+                        <label for="">Access ID</label>
+                        <div class="form-line">
+                            <input type="text" name="access_id" id="id_edt_controller_access_id"  class="form-control" placeholder="Access ID">
+                        </div>
+                        <br>
+                    </div>
+
+                    <div id="id_edt_controller_area_falco" style="display: none;"> 
+                        <label for="">Falco Group Access</label>
+                        <div class="form-line">
+                            <input type="text" name="falco_group_access" id="id_edt_controller_falco_group_access"  class="form-control" placeholder="Falco Group Access">
+                            <small>Falco Group Access</small>
+                        </div>
+                        <label for="">Falco Unit No</label>
+                        <div class="form-line">
+                            <input type="text" name="falco_unit_no" id="id_edt_controller_falco_unit_no"  class="form-control" placeholder="Falco Unit No">
+                            <small>Falco Unit No</small>
+                        </div>
+                        <br>
+                    </div>
+                    <br>
+                    
+                    <label for="">Channel</label>
+                    <div class="form-group">
+                        <select  data-live-search="true" name="channel" id="id_edt_channel" class="form-control show-tick"></select>
+                    </div>
+                    <label for="">Room Assign</label>
+                    <div class="form-group">
+                        <select  data-live-search="true" name="room[]" multiple="" id="id_edt_room" class="form-control show-tick"></select>
+                    </div>
+                    <br>
+                    <button type="submit" id="id_btn_edt_submit" style="display: none;" class="btn btn-primary m-t-15 waves-effect">Save</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row clearfix">
+                    <div class="col-xs-6 align-left">
+                        <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+                    </div>
+                    <div class="col-xs-6">
+                        <button onclick="clickSubmit('id_btn_edt_submit')" type="button" class="btn btn-primary waves-effect " >SAVE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<textarea id="id_modules" style="display: none;"> 
+    @Html.Raw(Model.ModuleAccessDoor)
+</textarea>
+<input type="hidden" id="id_baseurl" value="@Model.ApiUrl">
+<textarea id="id_controller_type" style="display: none;">@Html.Raw(Model.ControllerTypes)</textarea>
+
+@section Scripts
+{
+    <script>
+        const ajax = {
+            url : {
+                get_access_controls : "@Model.GetAccessControls",
+                get_access_control : "@Model.GetAccessControlById",
+                get_rooms : "@Model.GetRooms",
+                get_access_channels : "@Model.GetAccessChannels",
+                get_access_integrateds : "@Model.GetAccessIntegrateds",
+                post_create_access_controls : "@Model.PostCreate",
+                post_update_access_controls : "@Model.PostUpdate",
+                post_delete_access_controls : "@Model.PostDelete",
+                post_assign_access_integrated : "@Model.PostAssign",
+            }
+        }
+    </script>
+    <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
+    <script src="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
+    <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.min.js"></script>
+    <!-- Moment Plugin Js -->
+    <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+    <!-- Bootstrap Material Datetime Picker Plugin Js -->
+    <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
+    <script src="~/assets/external/numeral/numeral.min.js"></script>
+    <script src="~/assets/external/numeral/locale.id.js"></script>
+    <!-- Input Mask Plugin Js -->
+    <script src="~/assets/theme/plugins/jquery-inputmask/jquery.inputmask.bundle.js"></script>
+    <script src="~/assets/process/access/index.js"></script>
+}

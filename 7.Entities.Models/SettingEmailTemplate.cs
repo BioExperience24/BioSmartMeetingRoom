@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class SettingEmailTemplate
+public partial class SettingEmailTemplate : BaseEntity
 {
     public long Id { get; set; }
 
@@ -40,4 +40,6 @@ public partial class SettingEmailTemplate
     public string? Link { get; set; }
 
     public string? MapLinkText { get; set; }
+
+    public new int? IsDeleted { get; set; }
 }

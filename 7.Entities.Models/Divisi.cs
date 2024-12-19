@@ -21,5 +21,5 @@ public partial class Divisi : BaseEntity
 
     public int UpdateAt { get; set; }
 
-    public int IsDeleted { get; set; }
+    // public int IsDeleted { get; set; }
 }

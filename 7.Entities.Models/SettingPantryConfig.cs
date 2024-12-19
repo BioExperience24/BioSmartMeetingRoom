@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class SettingPantryConfig
+public partial class SettingPantryConfig : BaseEntityId
 {
-    public int Id { get; set; }
+    public new int Id { get; set; }
 
     public int Status { get; set; }
 

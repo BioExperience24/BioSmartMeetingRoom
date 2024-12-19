@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class SettingRuleBooking
+public partial class SettingRuleBooking : BaseEntityId
 {
-    public long Id { get; set; }
+    //public new int Id { get; set; }
 
     public int? Duration { get; set; }
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class SettingInvoiceConfig
+public partial class SettingInvoiceConfig : BaseEntity
 {
     public long Id { get; set; }
 

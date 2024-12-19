@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class SettingLogConfig
+public partial class SettingLogConfig : BaseEntity
 {
-    public long Id { get; set; }
+    public new long Id { get; set; }
 
     public string? Text { get; set; }
 }

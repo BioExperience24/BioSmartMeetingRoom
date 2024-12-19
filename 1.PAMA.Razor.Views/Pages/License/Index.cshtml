@@ -1,0 +1,430 @@
+﻿@page "/license"
+@model _1.PAMA.Razor.Views.Pages.License.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "License";
+}
+
+@section Styles {
+    <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="~/assets/theme/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css" rel="stylesheet">
+    <link href="~/assets/external/daterangepicker/daterangepicker.css" rel="stylesheet" />
+    <style type="text/css">
+        .img-circle {
+            border-radius: 50%;
+            height: 80px;
+            width: 80px;
+            border: 1px solid #fafafa;
+        }
+
+        .img-icon {
+            width: 120px !important;
+        }
+
+        .vcenter {
+            display: inline-block;
+            position: relative;
+        }
+
+        .connected-area {
+            height: 93px;
+            display: table;
+            width: 100%;
+        }
+
+        .wrapper-div {
+            display: table-cell;
+            vertical-align: middle
+        }
+
+    </style>
+}
+
+@section Scripts {
+    <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
+    <script src="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
+    <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.min.js"></script>
+   
+    <!-- Moment Plugin Js -->
+    <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+    
+    <!-- Bootstrap Material Datetime Picker Plugin Js -->
+    <script src="~/assets/theme/plugins/jquery-editable/src/table-edits.js"></script>
+    <script src="~/assets/process/alocation/index.js"></script>
+    
+    <!-- Moment Plugin Js -->
+    <script src="~/assets/theme/plugins/jquery-validation/jquery.validate.js"></script>
+    <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+    <script src="~/assets/external/daterangepicker/daterangepicker.js"></script>
+    <script src="~/assets/external/numeral/numeral.min.js"></script>
+    <script src="~/assets/external/numeral/locale.id.js"></script>
+    <script src="~/assets/process/report/invoice.js"></script>
+    <script>
+        var alarm_integration = JSON.parse($('#id_alarm').val());
+        var iconData = {};
+        var arHttp = ["http://", "https://"];
+        var cIAalarm;
+
+        function btnConfigIntegrationAlarm() {
+            var auth = alarm_integration.url_auth;
+            var feedback = alarm_integration.url_feedback;
+            var s_auth = auth.split("//");
+            var s_feed = feedback.split("//");
+
+            var htmlAuth = "";
+            var htmlFeedback = "";
+
+
+            for (var i in arHttp) {
+
+                var xselA = s_auth[0] + "//" == arHttp[i] ? "selected" : "";
+                var xselF = s_feed[0] + "//" == arHttp[i] ? "selected" : "";
+                htmlAuth += "<option " + xselA + " value='" + arHttp[i] + "'>" + arHttp[i] + "</option>";
+                htmlFeedback += "<option " + xselF + " value='" + arHttp[i] + "'>" + arHttp[i] + "</option>";
+            }
+
+
+            $('#id_alarm_server_feedback').val(s_feed[1] == null ? "" : s_feed[1])
+            $('#id_alarm_server_feedback_http').html(htmlFeedback);
+            $('#id_alarm_server_auth_http').html(htmlAuth);
+            $('#id_alarm_server_auth').val(s_auth[1] == null ? "" : s_auth[1]);
+            $('#id_mdl_set_alarm').modal('show');
+            // enable_datetimepicker()
+            select_enable()
+        }
+        function btnIntegrationAlarm() {
+            if (alarm_integration.status_integration == 1) {
+                return;
+
+            }
+            var auth = alarm_integration.url_auth;
+            var feedback = alarm_integration.url_feedback;
+            var p_auth = alarm_integration.param_auth;
+            var p_feed = alarm_integration.param_feed;
+            feedback = feedback + p_feed;
+            var qq = "?feedback=" + feedback
+            var url = auth + p_auth + qq;
+
+
+            window.open(url, 'targetWindow',
+                `toolbar=no,
+                                            location=no,
+                                            status=no,
+                                            menubar=no,
+                                            scrollbars=yes,
+                                            resizable=yes,
+                                            width=500,
+                                            height=500`);
+
+            cIAalarm = setInterval(function () {
+                if ($('#id_feedback_collection').val() == "ok") {
+                    clearInterval(cIAalarm);
+                    window.location.reload();
+                }
+            }, 1000)
+
+        }
+
+        // id_btn_connect_alarm
+
+        $(function () {
+            if (alarm_integration.status_integration == 1) {
+                $('#id_btn_connect_alarm').hide();
+                $('#id_btn_connect_alarm_disconnected').show();
+
+
+            }
+            init();
+        })
+        function clickSubmit(id) {
+            $('#' + id).click();
+        }
+        var gAutomation = [];
+        function initTable(selector) {
+            selector.DataTable();
+        }
+        function clearTable(selector) {
+            selector.DataTable().destroy();
+        }
+        function select_enable() {
+            $('select').selectpicker("refresh");
+            $('select').selectpicker("initialize");
+        }
+        function enable_datetimepicker() {
+            $('.timepicker').bootstrapMaterialDatePicker({
+                format: 'HH:mm',
+                clearButton: true,
+                date: false
+            });
+        }
+        function oncSearchIcon(selectText, selectShow) {
+            iconData['text'] = selectText
+            iconData['show'] = selectShow
+            iconData['value'] = ""
+            $('#id_mdl_icon_list').modal('show');
+
+        }
+        function oncBtnIcon(t) {
+            var tx = t.find("span.icon-name").text();
+            iconData['text'].val(tx)
+            iconData['show'].html('<i class="material-icons">' + tx + '</i>');
+            iconData['value'] = tx;
+            $('#id_mdl_icon_list').modal('hide');
+        }
+        function createData() {
+            $('#id_mdl_create').modal('show');
+            enable_datetimepicker()
+            select_enable()
+
+        }
+        function updateData(t) {
+            var id = t.data('id')
+            // enable_datetimepicker()
+            // select_enable()
+            // e.preventDefault();
+            // var form =  $('#frm_create').serialize();
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url: bs + "facility/get/data/detail/" + id,
+                type: "POST",
+                dataType: "json",
+                // data : form,
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    if (data.status == "success") {
+                        var col = data.collection;
+                        $('#id_mdl_update').modal('show');
+                        $('#id_edt_name').val(col.name)
+                        $('#id_edt_google_icon').val(col.google_icon)
+                        $('#id_edt_id').val(col.id)
+                        $('#id_edt_icon_google_icon').html(col.google_icon)
+
+                    } else {
+                        $('#id_mdl_update').modal('hide');
+                        showNotification('alert-danger', data.msg, 'top', 'center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+
+        }
+        $('#frm_set_alarm').submit(function (e) {
+            e.preventDefault();
+            var form = $('#frm_set_alarm').serialize();
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url: bs + "integration/save/alarm-config",
+                type: "POST",
+                dataType: "json",
+                data: form,
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    if (data.status == "success") {
+                        alarm_integration.url_auth = data.collection.url_auth;
+                        alarm_integration.url_feedback = data.collection.url_feedback;
+                        $('#frm_set_alarm')[0].reset();
+                        // $('#id_crt_icon_google_icon').html("");
+                        init();
+                        $('#id_mdl_set_alarm').modal('hide');
+                        showNotification('alert-success', data.msg, 'top', 'center')
+                    } else {
+                        showNotification('alert-danger', data.msg, 'top', 'center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        })
+        $('#frm_create').submit(function (e) {
+            e.preventDefault();
+            var form = $('#frm_create').serialize();
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url: bs + "facility/post/create",
+                type: "POST",
+                dataType: "json",
+                data: form,
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    if (data.status == "success") {
+                        $('#frm_create')[0].reset();
+                        $('#id_crt_icon_google_icon').html("");
+                        init();
+                        $('#id_mdl_create').modal('hide');
+                        showNotification('alert-success', data.msg, 'top', 'center')
+                    } else {
+                        showNotification('alert-danger', data.msg, 'top', 'center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        })
+        $('#frm_update').submit(function (e) {
+            e.preventDefault();
+            var form = $('#frm_update').serialize();
+            var id = $('#id_edt_id').val()
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url: bs + "facility/post/update/" + id,
+                type: "POST",
+                dataType: "json",
+                data: form,
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    if (data.status == "success") {
+                        $('#frm_update')[0].reset();
+                        $('#id_edt_icon_google_icon').html("");
+                        init();
+                        $('#id_mdl_update').modal('hide');
+                        showNotification('alert-success', data.msg, 'top', 'center')
+                    } else {
+                        showNotification('alert-danger', data.msg, 'top', 'center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        })
+
+        function init() {
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url: bs + "facility/get/data",
+                type: "GET",
+                dataType: "json",
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    if (data.status == "success") {
+                        clearTable($('#tbldata'));
+                        var html = "";
+                        $.each(data.collection, function (index, item) {
+                            html += '<tr data-id="' + item.id + '">'
+                            html += '<td data-field="name">' + item.name + '</td>';
+                            html += '<td>';
+                            // html += '<a class="btn btn-info waves-effect edit" title="Edit">\
+                            //           <i class="material-icons">mode_edit</i>\
+                            //         </a>\
+                            //        ';
+                            html += '&nbsp;&nbsp;&nbsp;';
+                            html += '<button \
+                                         onclick="updateData($(this))" \
+                                         data-id="'+ item.id + '" \
+                                         data-name="'+ item.name + '" \
+                                         type="button" class="btn btn-default waves-effect "><i class="material-icons">edit</i></button>';
+                            html += '<button \
+                                         onclick="removeData($(this))" \
+                                         data-id="'+ item.id + '" \
+                                         data-name="'+ item.name + '" \
+                                         type="button" class="btn btn-danger waves-effect "><i class="material-icons">delete</i></button>';
+                            html += '</td>';
+                            html += '</tr>';
+                        })
+                        $('#tbldata tbody').html(html);
+                        $('#tbldata  tr').editable({
+                            dropdowns: {},
+                            dblclick: true,
+                            button: true, // enable edit buttons
+                            buttonSelector: ".edit", // CSS selector for edit buttons
+                            edit: function (values) {
+                                $(".edit i", this)
+                                    .html('save')
+                                    .attr('title', 'Save');
+
+                            },
+                            save: function (values) {
+                                $(".edit i", this)
+                                    .html('mode_edit')
+                                    .attr('title', 'Edit');
+                                var id = $(this).data('id');
+                                $.post(bs + 'facility/post/update/' + id, values);
+                            },
+                            cancel: function (values) {
+                                $(".edit i", this)
+                                    .html('mode_edit')
+                                    .attr('title', 'Edit');
+                            }
+                        });
+                        initTable($('#tbldata'));
+                    } else {
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg, 'top', 'center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+
+
+        function removeData(t) {
+            var id = t.data('id');
+            var name = t.data('name');
+            var form = new FormData();
+            form.append('id', id);
+            form.append('name', name);
+            Swal.fire({
+                title: 'Are you sure you want delete it?',
+                text: "You will lose the data facility " + name + " !",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Delete !',
+                cancelButtonText: 'Cancel !',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.value) {
+                    var bs = $('#id_baseurl').val();
+                    $.ajax({
+                        url: bs + "facility/post/delete",
+                        type: "POST",
+                        data: form,
+                        processData: false,
+                        contentType: false,
+                        dataType: "json",
+                        beforeSend: function () {
+                            $('#id_loader').html('<div class="linePreloader"></div>');
+                        },
+                        success: function (data) {
+                            $('#id_loader').html('');
+                            if (data.status == "success") {
+                                showNotification('alert-success', "Succes deleted facility " + name, 'top', 'center')
+                                init();
+                            } else {
+                                showNotification('alert-danger', "Data not found", 'bottom', 'left')
+                            }
+                        },
+                        error: errorAjax,
+                    })
+                }
+                else {
+
+                }
+            })
+
+        }
+
+        function errorAjax(xhr, ajaxOptions, thrownError) {
+            $('#id_loader').html('');
+            if (ajaxOptions == "parsererror") {
+                var msg = "Status Code 500, Error Server bad parsing";
+                showNotification('alert-danger', msg, 'bottom', 'left')
+            } else {
+                var msg = "Status Code " + xhr.status + " Please check your connection !!!";
+                showNotification('alert-danger', msg, 'bottom', 'left')
+            }
+        }
+    </script>
+}

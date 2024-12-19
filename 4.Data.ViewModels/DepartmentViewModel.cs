@@ -11,16 +11,16 @@ public class DepartmentViewModel : BaseViewModel
 
     public string NamaPerusahaan { get; set; } = null!;
 
-    public string DepartmentName { get; set; } = null!;
+    public string? DepartmentName { get; set; } = null!;
 
-    public string Foto { get; set; } = null!;
+    public string? Foto { get; set; } = null!;
 
     public int CreatedBy { get; set; }
 
     public int CreatedAt { get; set; }
 
     public int UpdateAt { get; set; }
-    public string CompanyName { get; set; } = null!;
-    public CompanyViewModel Company { get; set; } = null!;
+    public string? CompanyName { get; set; } = null!;
+    public CompanyViewModel? Company { get; set; } = null!;
 
 }

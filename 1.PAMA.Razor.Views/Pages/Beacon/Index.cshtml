@@ -1,0 +1,711 @@
+﻿@page "/beacon-floor"
+@model _1.PAMA.Razor.Views.Pages.BeaconFloor.IndexModel
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["PageName"] = "Floor";
+}
+
+@section Styles {
+    <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="~/assets/theme/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css" rel="stylesheet" />
+    <link href="~/assets/external/filepond/filepond.min.css" rel="stylesheet">
+    <style>
+        .demo-filepond-wrapper{
+            height: 300px;
+            padding-left: 20px;
+            padding-top: 20px;
+            padding-right: 20px;
+            border: dashed 2px grey;
+            background: white center no-repeat;
+            background-size: cover;
+            text-align: center;
+            display: block;
+            cursor: pointer;
+        }
+        .image-box {
+            position: relative;
+            height: 200px;
+            width: 100%;
+            position: relative;
+            background-color: #eee;
+            border: dotted 1px grey;
+        }
+        .img_overlay{
+            opacity: 1;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .img_overlay:hover{
+            opacity: 0.6;
+            transition: 1s;
+        }
+        .image-box:hover .overlay{
+            opacity: 1;
+            /*width: 150px;*/
+        }
+    </style>
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="block-header">
+            <h2>@ViewData["PageName"]</h2>
+        </div>
+        <div class="row clearfix">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="card">
+                    <ul class="nav nav-tabs tab-nav-right" role="tablist">
+                        <li role="presentation" class="active"><a href="#home" data-toggle="tab">Floor List</a></li>
+                        @* <li role="presentation"  ><a href="#floor-room" data-toggle="tab">Floor Room</a></li> *@
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane fade in active table-responsive responsive" id="home">
+                            <div class="body table-responsive responsive">
+                                <table class="table table-hover" id="tbldata">
+                                    <thead>
+                                            <th>#</th>
+                                            <th>Floor Name</th>
+                                            <th>Building</th>
+                                            <th>Image</th>
+                                            <th>Pixel</th>
+                                            <th>Length</th>
+                                            <th>Width</th>
+                                            <th>Meter  pixel</th>
+                                            <th>
+                                                <button 
+                                                    onclick="createData($(this))" 
+                                                    type="button" class="btn btn-primary waves-effect ">
+                                                    <i class="material-icons">add_circle</i> CREATE</button>
+                                            </th>
+                                    </thead>
+                                    <tbody>
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        @* <div role="tabpanel" class="tab-pane table-responsive responsive" id="floor-room">
+                            <div class="body table-responsive responsive" >
+                                <table class="table table-hover" id="tbldataroom">
+                                <thead>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Building</th>
+                                        <th>Floor</th>
+                                        <th>Room</th>
+                                        <!-- <th>Color Box</th> -->
+                                        <th>
+                                            <button 
+                                                onclick="createRoomData($(this))" 
+                                                type="button" class="btn btn-primary waves-effect ">
+                                                <i class="material-icons">add_circle</i> CREATE FLOOR ROOM</button>
+                                        </th>
+                                </thead>
+                                <tbody>
+                                    
+                                </tbody>
+                                </table>
+                            </div>
+                        </div> *@
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="id_mdl_create" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="idmdlcrLabel">Create Floor  </h4>
+            </div>
+            <div class="modal-body " id="id_mdl_create_body">
+                <form id="frm_create">
+                    <label for="">Building</label>
+                    <div class="form-group">
+                        <select title="Choose one of the building..." data-live-search="true" name="building_id" id="id_crt_building_id" class="form-control selectpickerr show-tick"></select>
+                    </div>
+                    <div class="row clearfix">
+                        <div class="col-xs-6">
+                            <label for="">Image Floor (PNG, JPG, JPEG)</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    <input type="file" accept="image/png, image/jpeg, image/jpg" name="image" id="id_crt_image" required=""  class="form-control" >
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-6">
+                            <a href="#" class="thumbnail">
+                                <img src="" id="id_crt_image_preview" class="img-responsive">
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <label for="">Name</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="text" autocomplete="off" name="name" id="id_crt_name" required=""  class="form-control" placeholder="Name">
+                        </div>
+                    </div>
+                    <label for="">Pixel</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="text" readonly autocomplete="off" name="pixel" id="id_crt_pixel" required=""  class="form-control" placeholder="Image Pixel">
+                        </div>
+                    </div>
+                    
+                    <label for="">Floor Length(meter)</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="number" name="floor_length" id="id_crt_floor_length"   class="form-control" placeholder="Floor Length">
+                        </div>
+                    </div>
+                    <label for="">Floor Width(meter)</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="number" name="floor_width" id="id_crt_floor_width"   class="form-control" placeholder="Floor Width">
+                        </div>
+                    </div>
+                    <div id="id_crt_controller_area_custid" > 
+                        <label for="">Meter per pixel</label>
+                        <div class="input-group">
+                            
+                            <div class="form-line">
+                                <input type="text" readonly name="meter_per_px" id="id_crt_meter_per_px"  class="form-control" placeholder="Meter per Pixel">
+                            </div>
+                                <span class="input-group-addon">
+                                <button onclick="calcPixel()" class="btn btn-sm btn-info waves-effect" type="button">Calculate</button>
+                            </span>
+                        </div>
+                    </div>
+                        
+                    <button type="submit" id="id_btn_crt_submit" class="btn btn-primary m-t-15 waves-effect" style="display: none;" >Save</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row clearfix">
+                    <div class="col-xs-6 align-left">
+                        
+                        <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+                    </div>
+                    <div class="col-xs-6">
+                        <button onclick="clickSubmit('id_btn_crt_submit')" type="button" class="btn btn-primary waves-effect " >SAVE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    
+<div class="modal fade" id="id_mdl_update" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="idmdlcrLabel">Update Beacon Tag</h4>
+            </div>
+            <div class="modal-body " id="">
+                <form id="frm_update">
+                    <label for="">Building</label>
+                    <div class="form-group">
+                        <select title="Choose one of the building..." data-live-search="true" name="building_id" id="id_edt_building_id" class="form-control selectpickerr show-tick"></select>
+                    </div>
+                    <div class="row clearfix">
+                        <div class="col-xs-6">
+                            <a href="#" class="thumbnail">
+                                <img src="" id="id_edt_image_old_preview" class="img-responsive">
+                                <div class="caption">
+                                    <h3>Old Image</h3>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-xs-6">
+                            <a href="#" class="thumbnail">
+                                <img src="" id="id_edt_image_preview" class="img-responsive">
+                                <div class="caption">
+                                    <h3>New Image</h3>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <label for="">Image Floor (PNG, JPG, JPEG)</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="file" accept="image/png, image/jpeg, image/jpg" name="image" id="id_edt_image"  class="form-control" >
+                        </div>
+                    </div>
+                    
+                    <label for="">Name</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                                    
+
+                            <input type="hidden" autocomplete="off" name="id" id="id_edt_floor_id" required="" >
+                            <input type="text" autocomplete="off" name="name" id="id_edt_name" required=""  class="form-control" placeholder="Name">
+                        </div>
+                    </div>
+                    <label for="">Pixel</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="text" readonly autocomplete="off" name="pixel" id="id_edt_pixel" required=""  class="form-control" placeholder="Image Pixel">
+                        </div>
+                    </div>
+                    
+                    <label for="">Floor Length(meter)</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="number" name="floor_length" id="id_edt_floor_length"   class="form-control" placeholder="Floor Length">
+                        </div>
+                    </div>
+                    <label for="">Floor Width(meter)</label>
+                    <div class="form-group">
+                        <div class="form-line">
+                            <input type="number" name="floor_width" id="id_edt_floor_width"   class="form-control" placeholder="Floor Width">
+                        </div>
+                    </div>
+                    <div id="id_crt_controller_area_custid" > 
+                        <label for="">Meter per pixel</label>
+                        <div class="input-group">
+                            
+                            <div class="form-line">
+                                <input type="text" readonly name="meter_per_px" id="id_edt_meter_per_px"  class="form-control" placeholder="Meter per Pixel">
+                            </div>
+                                <span class="input-group-addon">
+                                <button onclick="calcPixelEdt()" class="btn btn-sm btn-info waves-effect" type="button">Calculate</button>
+                            </span>
+                        </div>
+                    </div>
+                    <br>
+                    <button type="submit" id="id_btn_edt_submit" style="display: none;" class="btn btn-primary m-t-15 waves-effect">Save</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row clearfix">
+                    <div class="col-xs-6 align-left">
+                        
+                            <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+                    </div>
+                    <div class="col-xs-6">
+                        <button onclick="clickSubmit('id_btn_edt_submit')" type="button" class="btn btn-primary waves-effect " >SAVE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* <textarea id="id_modules" style="display: none;"> 
+    <?= json_encode($modules)?>
+</textarea> 
+<input type="hidden" id="id_baseurl" value="<?= base_url()?>">
+<textarea id="id_building_json" style="display: none;"><?= $data['building']?></textarea> *@
+
+<textarea id="id_modules" style="display: none;">{"beacon":{"module_id":"18","module_text":"module_beacon","name":"Module Beacon","module_serial":null,"is_enabled":"1"}}</textarea> 
+@* <textarea id="id_building_json" style="display: none;">[{"id":"1","generate":"4","name":"PUSAT","image":"061237.jpeg","description":"KANTOR PUSAT","timezone":"Asia\/Jakarta","detail_address":"Jl. Buni No.19, RT.9\/RW.5, Mangga Besar, Kec. Taman Sari, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11180\n","google_map":"https:\/\/maps.app.goo.gl\/woummfg6Zit5vb9n9","koordinate":"-6.1449754,106.8191852","is_deleted":"0","created_at":"2023-06-30 23:22:52","created_by":null,"updated_at":"2023-06-30 23:22:52","updated_by":null},{"id":"3","generate":"6","name":"CAFE","image":"5973201648.jpeg","description":"CAFE","timezone":"Asia\/Jakarta","detail_address":"CAFE","google_map":"","koordinate":null,"is_deleted":"0","created_at":"2023-06-30 23:22:54","created_by":null,"updated_at":"2023-06-30 23:22:54","updated_by":null},{"id":"2147483647","generate":"7","name":"Test data","image":"3754120896.png","description":"Test data","timezone":"Asia\/Jakarta","detail_address":"Test data","google_map":"","koordinate":null,"is_deleted":"0","created_at":"2024-12-04 11:17:00","created_by":null,"updated_at":"2024-12-04 11:17:00","updated_by":null}]</textarea> *@
+<textarea id="id_building_json" style="display: none;">@Html.Raw(Model.Buildings)</textarea>
+
+@section Scripts {
+    <script>
+        const ajax = {
+            url : {
+                get_beacon_floors : "@Model.GetBeaconFloors",
+                get_beacon_floor_byid : "@Model.GetBeaconFloorById",
+                post_create_beacon_floors : "@Model.CreateBeaconFloors",
+                post_update_beacon_floors : "@Model.UpdateBeaconFloors",
+                post_delete_beacon_floors : "@Model.DeleteBeaconFloors"
+            }
+        }
+    </script>
+    <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
+    <script src="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
+    <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.min.js"></script>
+    <!-- Moment Plugin Js -->
+    <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+    <!-- Bootstrap Material Datetime Picker Plugin Js -->
+    <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
+    <script src="~/assets/external/numeral/numeral.min.js"></script>
+    <!-- <script src="~/assets/external/numeral/locale.id.js"></script> -->
+    <!-- Input Mask Plugin Js -->
+    <script src="~/assets/theme/plugins/jquery-inputmask/jquery.inputmask.bundle.js"></script>
+    <script src="~/assets/process/beacon/beacon.floor.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            @* initRoom(); *@
+        }) 
+        
+        function initRoom(){
+            var bs = $('#id_baseurl').val();
+            var modules = getModule();
+            $.ajax({
+                url : bs+"beacon-floor-room/get/data",
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                        clearTable($('#tbldataroom'));
+                        var html = "";
+                        var nn = 0;
+                        $.each(data.collection, function(index, item){
+                            nn++;
+                            var ename = "";
+                            if(item.employee_id != null){
+                                ename = item.employee_name;
+                            }
+                            var pathfile = bs + "assets/file/beaconfloor/"+item.image;
+                            var cobx = "";
+                            if(item.color_box == null || item.image == ""){
+                                cobx = '';
+                            }else{
+                                cobx = "<div style='height:15px;width:15px;border:1px solid #000;background-color:"+item.color_box+"'></div>";
+                            }
+                            var px = item.position_px;
+                            var pxreal = item.length+"x"+item.width;
+                            var room_name = item.room2_name == null ? "" : item.room2_name ;
+                            html += '<tr>'
+                            html += '<td>'+nn+'</td>';
+                            html += '<td>'+item.name+'</td>';
+                            html += '<td>'+item.building_name+'</td>';
+                            html += '<td style="width:150px;">'+item.floor_name+'</td>';
+                            html += '<td>'+room_name +'</td>';
+                            // html += '<td>'+cobx+'</td>';
+                            html += '<td>';
+                            // html += '<button \
+                            //      onclick="updateData($(this))" \
+                            //      data-id="'+item.id+'" \
+                            //      data-id="'+item.beacon_name+'" \
+                            //      type="button" class="btn btn-info waves-effect">Detail</button>';
+                            html += ' <button \
+                                onclick="removeDataBeacon($(this))" \
+                                data-id="'+item.id+'" \
+                                data-name="'+item.name+'" \
+                                type="button" class="btn btn-danger waves-effect"><i class="material-icons">delete</i> </button> ';
+                            html += '</td>';
+                            html += '</tr>';
+                        });
+                        $('#tbldataroom tbody').html(html);
+                        initTable($('#tbldataroom'));
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        swalShowNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+
+        function createRoomData(){
+            var bs = $('#id_baseurl').val()+"beacon-floor-area-room-editor";
+            // var bs = $('#id_baseurl').val()+"beacon-floor-room/create";
+            window.open(bs, '_blank', 'location=yes,height=1080,width=1920,scrollbars=yes,status=yes');
+        }
+
+        function updateRoomData(t){
+            var id = t.data('id');
+            var bs = $('#id_baseurl').val();
+            var modules = getModule();
+            $.ajax({
+                url : bs+"beacon-floor-room/get/data",
+                type : "POST",
+                data : {
+                    id : id
+                },
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                        var row = data.collection;
+
+                        $('#id_edt_floor_id').val(row.id);
+                        var html = "";
+                        for(var x in gBuilding){
+                            var s = gBuilding[x]['id'] == row.building_id ? "selected" : "";
+                            html += "<option "+s+" value='"+gBuilding[x]['id']+"' >"+gBuilding[x]['name']+"</option>";
+                        }
+                        var pathfile = bs + "assets/file/beaconfloor/"+row.image;
+                        if(row.image == null || row.image == ""){
+                            $('#id_edt_image_old_preview').attr('src', "");
+                        }else{
+                            $('#id_edt_image_old_preview').attr('src', pathfile);
+                        }
+
+                        $('#id_edt_building_id').html(html);
+                        $('#id_edt_name').val(row.name);
+                        $('#id_edt_pixel').val(row.pixel);
+                        $('#id_edt_floor_length').val(row.floor_length);
+                        $('#id_edt_floor_width').val(row.floor_width);
+                        $('#id_edt_meter_per_px').val(row.meter_per_px);
+                        $('#id_mdl_update').modal('show');
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        swalShowNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+            enable_datetimepicker()
+            select_enable()
+        }
+        function removeData(t){
+            var id = t.data('id');
+            var name = t.data('name');
+            Swal.fire({
+                title:'Are you sure you want delete '+name+'?',
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Delete !',
+                cancelButtonText: 'Cancel !',
+                reverseButtons: true
+                }).then((result) => {
+                    if (result.value) {
+                        var bs = $('#id_baseurl').val();
+                        $.ajax({
+                            @* url : bs+"beacon-floor/post/delete", *@
+                            url : ajax.url.post_delete_beacon_floors,
+                            type : "POST",
+                            data : {id:id},
+                            dataType: "json",
+                            beforeSend: function(){
+                                $('#id_loader').html('<div class="linePreloader"></div>');
+                            },
+                            success:function(data){
+                                if(data.status == "success"){
+                                    Swal.fire({
+                                    title:'Message',
+                                    text: data.msg,
+                                    type: "success"})
+                                    init();
+                                    
+                                }else{
+                                    var msg = "Your session is expired, login again !!!";
+                                    swalShowNotification('alert-danger', msg,'top','center')
+                                }
+                                $('#id_loader').html('');
+                            },
+                            error: errorAjax
+                        })
+                    }
+                else{
+
+                }
+            })
+        }
+        function removeDataBeacon(t){
+            var id = t.data('id');
+            var name = t.data('name');
+            Swal.fire({
+                title:'Confirmation',
+                text: 'Are you sure you want delete '+name+'?',
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Delete !',
+                cancelButtonText: 'Cancel !',
+                reverseButtons: true
+                }).then((result) => {
+                    if (result.value) {
+                        var bs = $('#id_baseurl').val();
+                        $.ajax({
+                            url : bs+"beacon-floor-room/post/delete",
+                            type : "POST",
+                            data : {id:id},
+                            dataType: "json",
+                            beforeSend: function(){
+                                $('#id_loader').html('<div class="linePreloader"></div>');
+                                loadingg('Please wait ! ', 'Loading . . . ')
+                            },
+                            success:function(data){
+                                swal.close();
+                                if(data.status == "success"){
+                                    Swal.fire({
+                                    title:'Message',
+                                    text: data.msg,
+                                    type: "success"})
+                                    initRoom();
+                                    
+                                }else{
+                                    var msg = "Your session is expired, login again !!!";
+                                    swalShowNotification('alert-danger', msg,'top','center')
+                                }
+                                $('#id_loader').html('');
+                            },
+                            error: errorAjax
+                        })
+                    }
+                else{
+
+                }
+            })
+        }
+        $('#frm_create').submit(function(e){
+            e.preventDefault();
+            Swal.fire({
+                title:'Are you sure you want save it?',
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Save !',
+                cancelButtonText: 'Cancel !',
+                reverseButtons: true
+                }).then((result) => {
+                    if (result.value) {
+                        saveCreate()
+                    }
+                else{
+
+                }
+            })
+        })
+        $('#frm_update').submit(function(e){
+            e.preventDefault();
+            Swal.fire({
+                title:'Are you sure you want save it?',
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Save !',
+                cancelButtonText: 'Cancel !',
+                reverseButtons: true
+                }).then((result) => {
+                    if (result.value) {
+                        saveUpdate()
+                    }
+                else{
+
+                }
+            })
+        })
+
+        function saveCreate(){
+
+            var form = $('#frm_create')[0];
+            var formdata = new FormData(form)
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                @* url : bs+"beacon-floor/post/create", *@
+                url : ajax.url.post_create_beacon_floors,
+                type : "POST",
+                data : formdata,
+                dataType: "json",
+                contentType: false,
+                processData: false,
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                    loadingg('Please wait ! ', 'Loading . . . ')
+                },
+                success:function(data){
+                    swal.close();
+                    if(data.status == "success"){
+                        Swal.fire({
+                        title:'Message',
+                        text: data.msg,
+                        type: "success"})
+                        init();
+                        $('#id_mdl_create').modal('hide');
+                        $('#frm_create')[0].reset()
+                        
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        swalShowNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+        
+        function saveUpdate(){
+            var form = $('#frm_update')[0];
+            var formdata = new FormData(form)
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                @* url : bs+"beacon-floor/post/update", *@
+                url : ajax.url.post_update_beacon_floors,
+                type : "POST",
+                data : formdata,
+                dataType: "json",
+                contentType: false,
+                processData: false,
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                    loadingg('Please wait ! ', 'Loading . . . ')
+                },
+                success:function(data){
+                    swal.close();
+                    if(data.status == "success"){
+                        Swal.fire({
+                        title:'Message',
+                        text: data.msg,
+                        type: "success"})
+                        init();
+                        $('#id_mdl_update').modal('hide');
+                        $('#frm_update')[0].reset()
+                        
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        swalShowNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+        function loadingg(title = "",body = ""){
+            Swal.fire({
+                title: title,
+                html: body,
+                allowOutsideClick: false,
+                onBeforeOpen: () => {
+                    Swal.showLoading()
+                },
+            });
+        }
+    </script>
+    <script type="text/javascript">
+        function errorAjax(xhr, ajaxOptions, thrownError){
+            $('#id_loader').html('');
+            if(ajaxOptions == "parsererror"){
+                var msg = "Status Code 500, Error Server bad parsing";
+                showNotification('alert-danger', msg,'bottom','left')
+            }else{
+                var msg ="Status Code "+ xhr.status + " Please check your connection !!!";
+                showNotification('alert-danger', msg,'bottom','left')
+            }
+        }
+        function swalShowNotification(icon,title,loc = "", loc2="" ){
+            var ic = "";
+            if(icon == "alert-success"){
+                ic = "success";
+            }else if(icon == "alert-danger"){
+                ic = "danger";
+            }else if(icon == "alert-warning"){
+                ic = "warning";
+            }else if(icon == "alert-info"){
+                ic = "info";
+            }
+            Swal.fire(
+                title,
+                '',
+                ic
+            )
+        }
+    </script>
+}

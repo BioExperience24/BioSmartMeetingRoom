@@ -3,7 +3,7 @@ using _4.Data.ViewModels;
 using _5.Helpers.Consumer.EnumType;
 using Microsoft.AspNetCore.Mvc;
 
-namespace _1.API.Controllers.Controllers;
+namespace Controllers;
 
 /// <summary>
 /// 
@@ -36,7 +36,7 @@ public class BaseController<VM> : ControllerBase
     {
         ReturnalModel ret = new()
         {
-            Data = await _service.GetAll()
+            Collection = await _service.GetAll()
         };
         return Ok(ret);
     }
@@ -53,17 +53,17 @@ public class BaseController<VM> : ControllerBase
         var item = await _service.GetById(id);
         ReturnalModel ret = new()
         {
-            Data = item
+            Collection = item
         };
 
         if (item == null)
         {
-            ret.Status = 400;
+            ret.StatusCode = 400;
             ret.Title = ReturnalType.BadRequest;
-            ret.Type = "ID not registered";
-            ret.Detail = $"id {id} is not found";
+            ret.Status = "ID not registered";
+            ret.Message = $"id {id} is not found";
         }
-        return StatusCode(ret.Status, ret);
+        return StatusCode(ret.StatusCode, ret);
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ public class BaseController<VM> : ControllerBase
     {
         ReturnalModel ret = new()
         {
-            Data = await _service.Create(Model)
+            Collection = await _service.Create(Model)
         };
         return Ok(ret);
     }
@@ -89,7 +89,7 @@ public class BaseController<VM> : ControllerBase
     {
         ReturnalModel ret = new()
         {
-            Data = await _service.Update(Model)
+            Collection = await _service.Update(Model)
         };
         return Ok(ret);
     }
@@ -103,7 +103,7 @@ public class BaseController<VM> : ControllerBase
     {
         ReturnalModel ret = new()
         {
-            Data = await _service.SoftDelete(id)
+            Collection = await _service.SoftDelete(id)
         };
         return Ok(ret);
     }

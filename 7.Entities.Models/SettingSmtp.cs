@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class SettingSmtp
+public partial class SettingSmtp : BaseEntity
 {
     public int Id { get; set; }
 

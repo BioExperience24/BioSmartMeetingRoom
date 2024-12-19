@@ -17,7 +17,7 @@ public class DetailModel : PageModel
     }
 
     public FacilityViewModel Facility { get; set; } = default!;
-    public async Task<IActionResult> OnGetAsync(string id)
+    public async Task<IActionResult> OnGetAsync(long id)
     {
         if (id == null)
         {

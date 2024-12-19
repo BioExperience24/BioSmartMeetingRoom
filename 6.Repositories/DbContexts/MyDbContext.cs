@@ -2,7 +2,6 @@
 using _7.Entities.Models;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace _6.Repositories.DB;
 
 public partial class MyDbContext : DbContext
@@ -16,6 +15,7 @@ public partial class MyDbContext : DbContext
     {
     }
 
+    public virtual DbSet<IdOnly> IdOnly { get; set; }
     public virtual DbSet<AccessChannel> AccessChannels { get; set; }
     public virtual DbSet<AccessControl> AccessControls { get; set; }
     public virtual DbSet<AccessControllerFalco> AccessControllerFalcos { get; set; }
@@ -89,6 +89,7 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<PantryTransaksiD> PantryTransaksiDs { get; set; }
     public virtual DbSet<PantryTransaksiStatus> PantryTransaksiStatuses { get; set; }
     public virtual DbSet<Room> Rooms { get; set; }
+    public virtual DbSet<RoomData> RoomDatas { get; set; }
     public virtual DbSet<Room365> Room365s { get; set; }
     public virtual DbSet<RoomAutomation> RoomAutomations { get; set; }
     public virtual DbSet<RoomDetail> RoomDetails { get; set; }
@@ -126,6 +127,9 @@ public partial class MyDbContext : DbContext
     {
         modelBuilder.ApplyConfiguration(new AccessChannelConfiguration());
         modelBuilder.ApplyConfiguration(new AccessControlConfiguration());
+        modelBuilder.ApplyConfiguration(new PantryMenuPaketConfiguration());
+        modelBuilder.ApplyConfiguration(new PackageDConfiguration());
+        modelBuilder.ApplyConfiguration(new PantryTransaksiConfiguration());
 
         modelBuilder.Entity<AccessControllerFalco>(entity =>
         {
@@ -293,8 +297,10 @@ public partial class MyDbContext : DbContext
 
         modelBuilder.Entity<AlocationMatrix>(entity =>
         {
+            entity.HasKey(e => e.Generate).HasName("PK_alocation_matrix__generate");
+
             entity
-                .HasNoKey()
+                // .HasNoKey()
                 .ToTable("alocation_matrix", "smart_meeting_room");
 
             entity.HasIndex(e => e.Generate, "alocation_matrix$_generate")
@@ -1090,11 +1096,11 @@ public partial class MyDbContext : DbContext
 
         modelBuilder.Entity<Building>(entity =>
         {
-            entity.HasKey(e => e.Generate).HasName("PK_building_generate");
+             entity.HasKey(e => e.Generate).HasName("PK_building_generate");
 
             entity.ToTable("building", "smart_meeting_room");
 
-            entity.Property(e => e.Generate).HasColumnName("generate");
+             entity.Property(e => e.Generate).HasColumnName("generate");
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
                 .HasDefaultValueSql("(NULL)")
@@ -1142,11 +1148,11 @@ public partial class MyDbContext : DbContext
 
         modelBuilder.Entity<BuildingFloor>(entity =>
         {
-            entity.HasKey(e => e.Generate).HasName("PK_building_floor__generate");
+             entity.HasKey(e => e.Generate).HasName("PK_building_floor__generate");
 
             entity.ToTable("building_floor", "smart_meeting_room");
 
-            entity.Property(e => e.Generate).HasColumnName("_generate");
+             entity.Property(e => e.Generate).HasColumnName("_generate");
             entity.Property(e => e.BuildingId)
                 .HasDefaultValueSql("(NULL)")
                 .HasColumnName("building_id");
@@ -2182,6 +2188,9 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(255)
                 .HasDefaultValueSql("(NULL)")
                 .HasColumnName("type");
+            entity.Property(e => e.IsDeleted)
+               .HasDefaultValue(0)
+               .HasColumnName("is_deleted");
         });
 
         modelBuilder.Entity<LicenseSetting>(entity =>
@@ -2945,46 +2954,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("updated_by");
         });
 
-        modelBuilder.Entity<PantryMenuPaket>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK_pantry_menu_paket_id");
 
-            entity.ToTable("pantry_menu_paket", "smart_meeting_room");
-
-            entity.HasIndex(e => e.Generate, "pantry_menu_paket$_generate").IsUnique();
-
-            entity.Property(e => e.Id)
-                .HasMaxLength(50)
-                .HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
-                .HasPrecision(0)
-                .HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
-            entity.Property(e => e.Generate)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("_generate");
-            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
-            entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .HasColumnName("name");
-            entity.Property(e => e.PantryId).HasColumnName("pantry_id");
-            entity.Property(e => e.UpdatedAt)
-                .HasPrecision(0)
-                .HasColumnName("updated_at");
-            entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
-        });
-
-        modelBuilder.Entity<PantryMenuPaketD>(entity =>
-        {
-            entity.HasKey(e => e.Generate).HasName("PK_pantry_menu_paket_d__generate");
-
-            entity.ToTable("pantry_menu_paket_d", "smart_meeting_room");
-
-            entity.Property(e => e.Generate).HasColumnName("_generate");
-            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
-            entity.Property(e => e.MenuId).HasColumnName("menu_id");
-            entity.Property(e => e.PackageId).HasColumnName("package_id");
-        });
 
         modelBuilder.Entity<PantryNotif>(entity =>
         {
@@ -3016,149 +2986,6 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
-        });
-
-        modelBuilder.Entity<PantryTransaksi>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK_pantry_transaksi_id");
-
-            entity.ToTable("pantry_transaksi", "smart_meeting_room");
-
-            entity.HasIndex(e => e.Generate, "pantry_transaksi$_generate").IsUnique();
-
-            entity.Property(e => e.Id)
-                .HasMaxLength(100)
-                .HasColumnName("id");
-            entity.Property(e => e.BookingId)
-                .HasMaxLength(100)
-                .HasColumnName("booking_id");
-            entity.Property(e => e.CanceledAt)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("canceled_at");
-            entity.Property(e => e.CanceledBy)
-                .HasMaxLength(100)
-                .HasColumnName("canceled_by");
-            entity.Property(e => e.CanceledPantryBy)
-                .HasMaxLength(100)
-                .HasDefaultValue("")
-                .HasColumnName("canceled_pantry_by");
-            entity.Property(e => e.Complete).HasColumnName("complete");
-            entity.Property(e => e.CompletedAt)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("completed_at");
-            entity.Property(e => e.CompletedBy)
-                .HasMaxLength(100)
-                .HasColumnName("completed_by");
-            entity.Property(e => e.CompletedPantryBy)
-                .HasMaxLength(100)
-                .HasDefaultValue("")
-                .HasColumnName("completed_pantry_by");
-            entity.Property(e => e.CreatedAt)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("created_at");
-            entity.Property(e => e.Datetime)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("datetime");
-            entity.Property(e => e.Done).HasColumnName("done");
-            entity.Property(e => e.EmployeeId)
-                .HasMaxLength(50)
-                .HasColumnName("employee_id");
-            entity.Property(e => e.ExpiredAt)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("expired_at");
-            entity.Property(e => e.Failed).HasColumnName("failed");
-            entity.Property(e => e.FromPantry)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("(NULL)")
-                .HasColumnName("from_pantry");
-            entity.Property(e => e.Generate)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("_generate");
-            entity.Property(e => e.IsBlive).HasColumnName("is_blive");
-            entity.Property(e => e.IsCanceled).HasColumnName("is_canceled");
-            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
-            entity.Property(e => e.IsExpired).HasColumnName("is_expired");
-            entity.Property(e => e.IsRejectedPantry).HasColumnName("is_rejected_pantry");
-            entity.Property(e => e.IsTrashpantry).HasColumnName("is_trashpantry");
-            entity.Property(e => e.Note).HasColumnName("note");
-            entity.Property(e => e.NoteCanceled)
-                .HasMaxLength(255)
-                .HasDefaultValue("")
-                .HasColumnName("note_canceled");
-            entity.Property(e => e.NoteReject).HasColumnName("note_reject");
-            entity.Property(e => e.OrderDatetime)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("order_datetime");
-            entity.Property(e => e.OrderDatetimeBefore)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("order_datetime_before");
-            entity.Property(e => e.OrderNo)
-                .HasMaxLength(11)
-                .HasColumnName("order_no");
-            entity.Property(e => e.OrderSt).HasColumnName("order_st");
-            entity.Property(e => e.OrderStName)
-                .HasMaxLength(100)
-                .HasColumnName("order_st_name");
-            entity.Property(e => e.PantryId).HasColumnName("pantry_id");
-            entity.Property(e => e.Pending)
-                .HasDefaultValue(0)
-                .HasColumnName("pending");
-            entity.Property(e => e.PendingAt)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(NULL)")
-                .HasColumnName("pending_at");
-            entity.Property(e => e.Process).HasColumnName("process");
-            entity.Property(e => e.ProcessAt)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(NULL)")
-                .HasColumnName("process_at");
-            entity.Property(e => e.ProcessBy)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("(NULL)")
-                .HasColumnName("process_by");
-            entity.Property(e => e.ProcessPantryBy)
-                .HasMaxLength(100)
-                .HasDefaultValue("")
-                .HasColumnName("process_pantry_by");
-            entity.Property(e => e.RejectedAt)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("rejected_at");
-            entity.Property(e => e.RejectedBy)
-                .HasMaxLength(100)
-                .HasColumnName("rejected_by");
-            entity.Property(e => e.RejectedPantryBy)
-                .HasMaxLength(100)
-                .HasDefaultValue("")
-                .HasColumnName("rejected_pantry_by");
-            entity.Property(e => e.RoomId)
-                .HasMaxLength(32)
-                .HasColumnName("room_id");
-            entity.Property(e => e.Timezone)
-                .HasMaxLength(255)
-                .HasDefaultValue("")
-                .HasColumnName("timezone");
-            entity.Property(e => e.ToPantry)
-                .HasMaxLength(255)
-                .HasDefaultValueSql("(NULL)")
-                .HasColumnName("to_pantry");
-            entity.Property(e => e.UpdatedAt)
-                .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("updated_at");
-            entity.Property(e => e.UpdatedBy)
-                .HasMaxLength(100)
-                .HasColumnName("updated_by");
-            entity.Property(e => e.Via)
-                .HasMaxLength(50)
-                .HasColumnName("via");
         });
 
         modelBuilder.Entity<PantryTransaksiD>(entity =>
@@ -3250,10 +3077,6 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.ConfigReleaseRoomCheckinTimeout)
                 .HasDefaultValue(10)
                 .HasColumnName("config_release_room_checkin_timeout");
-            entity.Property(e => e.ConfigRoomForUsage)
-                .HasMaxLength(255)
-                .HasDefaultValue("")
-                .HasColumnName("config_room_for_usage");
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
                 .HasDefaultValueSql("(NULL)")
@@ -3273,9 +3096,13 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("image");
             entity.Property(e => e.Image2).HasColumnName("image2");
             entity.Property(e => e.IsAutomation).HasColumnName("is_automation");
-            entity.Property(e => e.IsBeacon)
+            /* entity.Property(e => e.IsBeacon)
                 .HasDefaultValue(0)
-                .HasColumnName("is_beacon");
+                .HasColumnName("is_beacon"); */
+            entity.Property(e => e.IsBeacon)
+                .HasColumnName("is_beacon")
+                .HasColumnType("SMALLINT")
+                .HasDefaultValue((short)0);
             entity.Property(e => e.IsConfigSettingEnable)
                 .HasDefaultValue(0)
                 .HasColumnName("is_config_setting_enable");
@@ -3307,7 +3134,7 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("name");
             entity.Property(e => e.Price).HasColumnName("price");
-            entity.Property(e => e.Radid)
+            entity.Property(e => e.RadId)
                 .HasMaxLength(100)
                 .HasColumnName("radid");
             entity.Property(e => e.TypeRoom)
@@ -3326,6 +3153,11 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.WorkTime)
                 .HasMaxLength(30)
                 .HasColumnName("work_time");
+            entity.Property(e => e.ConfigRoomForUsage)
+                .HasMaxLength(30)
+                .HasColumnName("config_room_for_usage");
+
+
         });
 
         modelBuilder.Entity<Room365>(entity =>
@@ -3865,6 +3697,9 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(50)
                 .HasDefaultValue("")
                 .HasColumnName("type");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValueSql("(NULL)")
+                .HasColumnName("is_deleted");
         });
 
         modelBuilder.Entity<SettingInvoiceConfig>(entity =>
@@ -3998,7 +3833,7 @@ public partial class MyDbContext : DbContext
 
         modelBuilder.Entity<SettingRuleBooking>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_setting_rule_booking_id");
+            //entity.HasKey(e => e.Id).HasName("PK_setting_rule_booking_id");
 
             entity.ToTable("setting_rule_booking", "smart_meeting_room");
 
@@ -4444,7 +4279,17 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("time");
         });
 
+
+
+
+        //modelBuilder.Entity<RoomData>().HasNoKey();
+
         OnModelCreatingPartial(modelBuilder);
+    }
+
+    internal IEnumerable<ModuleBackend> Where(Func<object, bool> value)
+    {
+        throw new NotImplementedException();
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

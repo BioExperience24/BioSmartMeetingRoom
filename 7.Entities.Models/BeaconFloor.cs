@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class BeaconFloor
+public partial class BeaconFloor : BaseLongEntity
 {
-    public int Id { get; set; }
+    // public int Id { get; set; }
 
-    public int? BuildingId { get; set; }
+    public long? BuildingId { get; set; }
 
     public string? Name { get; set; }
 
@@ -37,5 +37,8 @@ public partial class BeaconFloor
 
     public DateTime? UpdatedAt { get; set; }
 
-    public int? IsDeleted { get; set; }
+    // public int? IsDeleted { get; set; }
 }
+
+
+

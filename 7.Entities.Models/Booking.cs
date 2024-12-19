@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace _7.Entities.Models;
 
-public partial class Booking
+public partial class Booking : BaseLongEntity
 {
-    public long Id { get; set; }
 
     public string BookingId { get; set; } = null!;
 
@@ -19,7 +19,7 @@ public partial class Booking
 
     public string Title { get; set; } = null!;
 
-    public DateOnly Date { get; set; }
+    public DateTime Date { get; set; }
 
     public string RoomId { get; set; } = null!;
 
@@ -115,8 +115,6 @@ public partial class Booking
 
     public int? IsAccessTrigger { get; set; }
 
-    public short IsDeleted { get; set; }
-
     public int? IsConfigSettingEnable { get; set; }
 
     public int? IsEnableApproval { get; set; }
@@ -191,9 +189,43 @@ public partial class Booking
 
     public string? UserCleaning { get; set; }
 
-    public DateOnly? ServerDate { get; set; }
+    public DateTime? ServerDate { get; set; }
 
     public DateTime? ServerStart { get; set; }
 
     public DateTime? ServerEnd { get; set; }
+}
+
+
+public class BookingMenuDto
+{
+    [JsonPropertyName("level_id")]
+    public long? LevelId { get; set; }
+
+    [JsonPropertyName("level_name")]
+    public string LevelName { get; set; }
+
+    [JsonPropertyName("menu_group_id")]
+    public long? MenuGroupId { get; set; }
+
+    [JsonPropertyName("g_menu_name")]
+    public string GMenuName { get; set; }
+
+    [JsonPropertyName("g_menu_id")]
+    public long? GMenuId { get; set; }
+
+    [JsonPropertyName("mg_icon")]
+    public string MgIcon { get; set; }
+
+    [JsonPropertyName("menu_name")]
+    public string MenuName { get; set; }
+
+    [JsonPropertyName("url")]
+    public string Url { get; set; }
+
+    [JsonPropertyName("icon")]
+    public string Icon { get; set; }
+
+    [JsonPropertyName("is_child")]
+    public int? IsChild { get; set; }
 }

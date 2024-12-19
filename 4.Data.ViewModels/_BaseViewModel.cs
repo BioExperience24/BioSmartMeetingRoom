@@ -1,17 +1,40 @@
 ﻿using _5.Helpers.Consumer.EnumType;
+using System.Net;
+using System.Text.Json.Serialization;
 
 namespace _4.Data.ViewModels;
-
-public class BaseViewModel
+public class BaseViewModelId
 {
-    public string Id { get; set; }
+    [JsonPropertyName("id")]
+    public long? Id { get; set; } = null;
+
+    [JsonPropertyName("is_deleted")]
     public int? IsDeleted { get; set; }
 }
+public class BaseViewModel
+{
+    [JsonPropertyName("id")]
+    public string? Id { get; set; } = null;
+
+    [JsonPropertyName("is_deleted")]
+    public int? IsDeleted { get; set; }
+}
+
 public class ReturnalModel
 {
-    public string Type { get; set; } = ReturnalType.Success;
-    public int Status { get; set; } = 200;
+
+    [JsonPropertyName("status")]
+    public string Status { get; set; } = ReturnalType.Success;
+
+    [JsonPropertyName("status_code")]
+    public int StatusCode { get; set; } = (int)HttpStatusCode.OK;
+
+    [JsonPropertyName("title")]
     public string Title { get; set; } = ReturnalType.Success;
-    public string Detail { get; set; } = ReturnalType.Success;
-    public object Data { get; set; }
+
+    [JsonPropertyName("msg")]
+    public string Message { get; set; } = ReturnalType.Success;
+
+    [JsonPropertyName("collection")]
+    public object? Collection { get; set; }
 }

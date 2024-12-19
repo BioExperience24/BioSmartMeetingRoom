@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace _7.Entities.Models;
 
-public partial class Menu
+public partial class Menu : BaseLongEntity
 {
-    public long Id { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -29,5 +29,20 @@ public partial class Menu
 
     public DateTime UpdatedAt { get; set; }
 
-    public short IsDeleted { get; set; }
+}
+
+public class MenuDto
+{
+    public int IsChild { get; set; }
+
+    [JsonIgnore]
+    public bool IsChildBool => IsChild == 1;
+    public string MgIcon { get; set; } = string.Empty;
+    public int MenuGroupId { get; set; }
+    public string GMenuName { get; set; } = string.Empty;
+    public string LevelName { get; set; } = string.Empty;
+    public string MenuName { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public string Icon { get; set; } = string.Empty;
+    public bool Active { get; set; }
 }

@@ -1,5 +1,6 @@
 
 using _6.Repositories.DB;
+using _6.Repositories.Repository;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -17,7 +18,10 @@ public class Program
         // Add services to the container.
         // Tambahkan konfigurasi DbContext di sini
         builder.Services.AddDbContext<MyDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        // DI HttpContext Acceessor
+        builder.Services.AddHttpContextAccessor();
 
         builder.Services.AddCustomService();
         builder.Services.AddCustomRepository();
@@ -46,6 +50,14 @@ public class Program
             });
         });
 
+        builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
+        {
+            builder.AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .SetIsOriginAllowed((host) => true)
+                   .AllowCredentials();
+        }));
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -58,7 +70,7 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
-
+        app.UseCors("MyPolicy");
 
         app.MapControllers();
 

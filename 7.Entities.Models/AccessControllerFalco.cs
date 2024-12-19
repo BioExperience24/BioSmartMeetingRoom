@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 
 namespace _7.Entities.Models;
 
-public partial class AccessControllerFalco
+public partial class AccessControllerFalco : BaseLongEntity
 {
-    public int Id { get; set; }
+    // public int Id { get; set; }
 
     public string AccessId { get; set; } = null!;
 
@@ -15,5 +14,5 @@ public partial class AccessControllerFalco
 
     public string FalcoIp { get; set; } = null!;
 
-    public int IsDeleted { get; set; }
+    // public int IsDeleted { get; set; }
 }

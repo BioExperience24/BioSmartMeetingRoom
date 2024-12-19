@@ -1,28 +1,25 @@
-﻿using _6.Repositories.DB;
-using _7.Entities.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace _6.Repositories.Repository;
 
-public class AccessChannelRepository
+public class AccessChannelRepository : BaseLongRepository<AccessChannel>
 {
-    private readonly MyDbContext _context;
+    private readonly MyDbContext _dbContext;
 
-    public AccessChannelRepository(MyDbContext context)
+    public AccessChannelRepository(MyDbContext dbContext) : base(dbContext)
     {
-        _context = context;
+        _dbContext = dbContext;
     }
 
-    public async Task<AccessChannel> GetAccessChannelById(Guid id)
+    public async Task<AccessChannel?> GetAccessChannelById(Guid id)
     {
-        return await _context.AccessChannels.FindAsync(id);
+        return await _dbContext.AccessChannels.FindAsync(id);
     }
 
     public async Task AddAccessChannel(AccessChannel accessChannel)
     {
-        await _context.AccessChannels.AddAsync(accessChannel);
-        await _context.SaveChangesAsync();
+        await _dbContext.AccessChannels.AddAsync(accessChannel);
+        await _dbContext.SaveChangesAsync();
     }
 
     // Tambah method lainnya sesuai kebutuhan
@@ -45,7 +42,7 @@ public class AccessChannelConfiguration : IEntityTypeConfiguration<AccessChannel
             .HasColumnName("channel");
 
         entity.Property(e => e.IsDeleted)
-            .HasDefaultValue((short)0)
+            .HasDefaultValue(0)
             .HasColumnName("is_deleted");
     }
 }

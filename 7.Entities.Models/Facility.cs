@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace _7.Entities.Models;
 
-namespace _7.Entities.Models;
-
-public partial class Facility : BaseEntity
+public partial class Facility : BaseLongEntity
 {
-    public long Id { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -17,5 +13,5 @@ public partial class Facility : BaseEntity
 
     public DateTime? UpdatedAt { get; set; }
 
-    public short IsDeleted { get; set; }
+    public int IsDeleted { get; set; }
 }

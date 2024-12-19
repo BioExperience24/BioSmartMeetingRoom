@@ -5,7 +5,7 @@ namespace _7.Entities.Models;
 
 public partial class RoomForUsageDetail
 {
-    public string? RoomId { get; set; }
+    public long? RoomId { get; set; }
 
     public int? RoomUsageId { get; set; }
 

@@ -1,5 +1,3 @@
-using _4.Data.ViewModels;
-
 namespace _3.BusinessLogic.Services.Interface;
 
 public interface IBaseService<VM>
@@ -7,8 +5,12 @@ public interface IBaseService<VM>
 {
     Task<IEnumerable<VM>> GetAll();
     Task<VM?> GetById(string id);
-    Task<int> Create(VM viewModel);
-    Task<int> Update(VM viewModel);
-    Task<int?> SoftDelete(string id);
+    Task<VM?> Create(VM viewModel, bool isAInc = true);
+    Task<VM?> Update(VM viewModel);
+    Task<VM?> SoftDelete(string id);
     Task<int?> PermanentDelete(string id);
+    Task<IEnumerable<VM>> GetListByField(string field, string value);
+    Task<VM?> GetOneByField(string field, string value);
+    Task<IEnumerable<VM>?> CreateBulk(IEnumerable<VM> viewModels);
+    Task<IEnumerable<VM>?> UpdateBulk(IEnumerable<VM> viewModels);
 }

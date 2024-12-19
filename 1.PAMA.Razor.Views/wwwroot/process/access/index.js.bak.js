@@ -1,0 +1,497 @@
+        var uploadimageCrt = false;
+        var assetsImageUrl = "";
+        var gChannel = [];
+        var gRoom = [];
+        var gChecked = {};
+        $(function(){
+            init();
+            getChannel();
+            getRoom();
+        }) 
+        function clickSubmit(id){
+            $('#'+id).click();
+        }
+        function getModule(){
+            var modules = $('#id_modules').val();
+            return JSON.parse(modules)
+        }
+        function initTable(selector){
+            selector.DataTable();
+        }
+        function clearTable(selector){
+            selector.DataTable().destroy();
+        }
+        function select_enable(){
+            $('select').selectpicker("refresh");
+            $('select').selectpicker("initialize");
+        }
+        function enableControllerType(data, type){
+            switch(data){
+                case "custid":
+                    if(type == "edit"){
+                        $('#id_edt_controller_area_falco').hide('slow');
+
+                    }else if(type == "add"){
+                        $('#id_crt_controller_area_falco').hide('slow');
+                    }
+                    break;
+                case "falcoid":
+                    if(type == "edit"){
+                        $('#id_edt_controller_area_falco').show('slow');
+
+                    }else if(type == "add"){
+                        $('#id_crt_controller_area_falco').show('slow');
+                    }
+                    break;
+                default : 
+                    if(type == "edit"){
+                        $('#id_edt_controller_area_falco').hide('slow');
+                    }else if(type == "add"){
+                        $('#id_crt_controller_area_falco').hide('slow');
+                    }
+                    break;
+            }
+        }
+        function enable_datetimepicker(){
+            $('.timepicker').bootstrapMaterialDatePicker({
+                format: 'HH:mm',
+                clearButton: true,
+                date: false
+            });
+        }
+        function createData(){
+            var ctrl_type = $('#id_controller_type').val()
+            var jsctrl_type = JSON.parse(ctrl_type);
+            var htmlctrl = '<option value="">List Controller</option>';
+            var html = '';
+            html += '<option value=""></option>';
+            $.each(gChannel, (index, item)=>{
+                html += '<option value="'+item.channel+'">Ch '+item.channel+'</option>';
+            })
+            var htmlx = '<option value=""></option>';
+            $.each(gRoom, (index, item)=>{
+                htmlx += '<option value="'+item.radid+'">'+item.name+'</option>';
+            })
+
+            $.each(jsctrl_type, (index, item)=>{
+                htmlctrl += '<option value="'+item.id+'">'+item.name+'</option>';
+            })
+
+            $('#id_crt_channel').html(html)
+            $('#id_crt_room').html(htmlx)
+            $('#id_crt_controller_type').html(htmlctrl)
+            enableControllerType("", "add");
+            $('#id_mdl_create').modal('show');
+            enable_datetimepicker()
+            select_enable()
+        }
+        function oncCRTControllerType(){
+            var ct = $('#id_crt_controller_type').val()
+            enableControllerType(ct, "add")
+        }
+        function oncEDTControllerType(){
+            var ct = $('#id_edt_controller_type').val()
+            enableControllerType(ct, "edit")
+        }
+        function openData(id,data){
+            var html = '';
+            var dataloop = [];
+            $.each(data, (index, item) => {
+                dataloop.push(item.room_id);
+            });
+            gChecked = {};
+            $.each(gRoom, (index, item)=>{
+                if(dataloop.indexOf(item.radid) > -1){
+                    
+                    gChecked[item.radid] = {
+                        room : item.radid,
+                        status : 1,
+                    }
+                    html += '<li class="list-group-item">\
+                            <input onchange="onCheckRoom($(this))" type="checkbox" name="room-'+item.radid+'" class="filled-in" id="check-'+item.radid+'" checked value="'+item.radid+'">\
+                            <label for="check-'+item.radid+'">'+item.name+'</label>\
+                        </li>';
+                }else{
+                    gChecked[item.radid] = {
+                        room : item.radid,
+                        status : 0,
+                    }
+                    html += '<li class="list-group-item">\
+                            <input onchange="onCheckRoom($(this))" class="filled-in" type="checkbox"  name="room-'+item.radid+'"  id="check-'+item.radid+'" value="'+item.radid+'">\
+                            <label for="check-'+item.radid+'">'+item.name+'</label>\
+                        </li>';
+                }
+            });
+            $('#id_access_assign_id').val(id)
+            $('#id_list_assign').html(html)
+            $('#id_mdl_assign').modal('show');
+            enable_datetimepicker()
+            select_enable()
+            // $('.ip').inputmask('099.099.099.099', { placeholder: '___.___.___.___' });
+        }
+        function onCheckRoom(t){
+            var ck = t.is(":checked");
+            gChecked[t.val()]['room'] = t.val();
+            gChecked[t.val()]['status'] = ck == true ? 1 : 0;
+        }
+        function assignData(t){
+            var html = '';
+            var bs = $('#id_baseurl').val();
+            var id = t.data('id');
+            $.ajax({
+                url : bs+"access/get/data/integrated/"+id,
+                type : "POST",
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                        openData(id,data.collection);
+                        // showNotification('alert-success', data.msg,'top','center')
+                    }else{
+                        showNotification('alert-danger', data.msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+        $('#frm_assign').submit(function(e){
+            e.preventDefault();
+            var form =  $('#frm_assign').serialize();
+            var formData = new FormData();
+            var strChecked = JSON.stringify(gChecked);
+            var id = $('#id_access_assign_id').val();
+            formData.append("strdata", strChecked);
+            formData.append("access", id);
+            var bs = $('#id_baseurl').val();
+            Swal.fire({
+                title:'Are you sure you want save it?',
+                text: "",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Save !',
+                cancelButtonText: 'Cancel !',
+                reverseButtons: true
+                }).then((result) => {
+                    if (result.value) {
+                        // var bs = $('#id_baseurl').val();
+                        $.ajax({
+                            url : bs+"access/post/assign",
+                            type : "POST",
+                            dataType: "json",
+                            data:  formData,
+                            processData: false,
+                            contentType: false,
+                            beforeSend: function(){
+                                $('#id_loader').html('<div class="linePreloader"></div>');
+                            },
+                            success:function(data){
+                                if(data.status == "success"){
+                                    init();
+                                    $('#id_mdl_assign').modal('hide');
+                                      showNotification('alert-success', data.msg,'top','center')
+                                }else{
+                                      showNotification('alert-danger', data.msg,'top','center')
+                                }
+                                $('#id_loader').html('');
+                            },
+                            error: errorAjax
+                        })
+                    }
+                else{
+
+                }
+            })
+            
+        }) 
+        $('#frm_create').submit(function(e){
+            e.preventDefault();
+            var form =  $('#frm_create').serialize();
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url : bs+"access/post/create",
+                type : "POST",
+                dataType: "json",
+                data:  new FormData(this),
+                contentType: false,
+                cache: false,
+                processData:false,
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                        $('#frm_create')[0].reset();
+                        init();
+                        $('#id_mdl_create').modal('hide');
+                          showNotification('alert-success', data.msg,'top','center')
+                    }else{
+                          showNotification('alert-danger', data.msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                    },
+                error: errorAjax
+            })
+        })  
+        $('#frm_update').submit(function(e){
+            e.preventDefault();
+            var form = $('#frm_update').serialize();
+            var id = $('#id_edt_id').val()
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url : bs+"access/post/update/"+id,
+                type : "POST",
+                dataType: "json",
+                contentType: false,
+                cache: false,
+                processData:false,
+                // data : form,
+                data:  new FormData(this),
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                        $('#frm_update')[0].reset();
+                        $('#id_edt_room').html("");
+                        $('#id_edt_channel').html("")
+                        $('#id_mdl_update').modal('hide');
+                        init();
+                        showNotification('alert-success', data.msg,'top','center')
+                    }else{
+                        showNotification('alert-danger', data.msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        })
+
+        function getChannel(){
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url : bs+"access/get/data/channel",
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                       gChannel = data.collection;
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+        function getRoom(){
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                url : bs+"room/get/data",
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                       gRoom = data.collection;
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+        
+        function init(){
+            var bs = $('#id_baseurl').val();
+            var modules = getModule();
+            $.ajax({
+                url : bs+"access/get/data",
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                        clearTable($('#tbldata'));
+                        var html = "";
+                        var nn = 0;
+                        $.each(data.collection, function(index, item){
+                            nn++;
+                            html += '<tr>'
+                            html += '<td>'+nn+'</td>';
+                            html += '<td style="width:150px;">'+item.name+'</td>';
+                            html += '<td>'+item.ip_controller+'</td>';
+                            html += '<td>CH '+item.channel+'</td>';
+                            html += '<td>'+item.room+' room</td>';
+                            html += '<td>';
+                            html += '<button \
+                                 onclick="assignData($(this))" \
+                                 data-id="'+item.id+'" \
+                                 data-id="'+item.name+'" \
+                                 type="button" class="btn btn-info waves-effect">Assign Room</button>';
+                            html += '</td>';
+                            html += '<td>';
+                            html += '<button \
+                                 onclick="editData($(this))" \
+                                 data-id="'+item.id+'" \
+                                 data-id="'+item.name+'" \
+                                 type="button" class="btn btn-info waves-effect">Detail</button>';
+                            html += ' <button \
+                                 onclick="removeData($(this))" \
+                                 data-id="'+item.id+'" \
+                                 data-name="'+item.name+'" \
+                                 type="button" class="btn btn-danger waves-effect"><i class="material-icons">delete</i> </button> ';
+                            html += '</td>';
+                            html += '</tr>';
+                        })
+                        $('#tbldata tbody').html(html);
+                        initTable($('#tbldata'));
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+
+        function editData(t){
+            var id = t.data('id');
+            var bs = $('#id_baseurl').val();
+            var modules = getModule();
+            $('#frm_update')[0].reset();
+            $('#id_edt_room').html("");
+            $('#id_edt_channel').html("")
+            assetsImageUrl = "";
+            $.ajax({
+                url : bs+"access/get/edit/"+id,
+                type : "GET",
+                dataType: "json",
+                beforeSend: function(){
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    if(data.status == "success"){
+                        var input = data.collection.access;
+                        var integrate = data.collection.integrate;
+                        $('#id_edt_id').val(id);
+                        $('#id_edt_name').val(input['name']);
+                        $('#id_edt_controller').val(input['ip_controller']);
+                        var htmlc = "";
+                        $.each(gChannel,function(index, item) {
+                            var sl = item.channel == input['channel'] ? "selected" : "";
+                            htmlc += "<option "+sl+" value='"+item.channel+"' >"+item.channel+"</option>";
+                        });
+                        $('#id_edt_channel').html(htmlc)
+                        var htmlx = '<option value=""></option>';
+                        $.each(gRoom, (index, item)=>{
+                            var checks = checkInArrayLoop(item.radid , integrate, 'room_id');
+                            var sld = checks ? "selected" : "";
+                            htmlx += '<option '+sld+' value="'+item.radid+'">'+item.name+'</option>';
+                        })
+                        $('#id_edt_room').html(htmlx)
+                        var ctrl_type = $('#id_controller_type').val()
+                        console.log(ctrl_type);
+                        var jsctrl_type = JSON.parse(ctrl_type);
+                        var htmlctrl = '<option value="">List Controller</option>';
+                        var controller_type = input['controller_type'];
+                        console.log(controller_type)
+                        $.each(jsctrl_type, (index, item)=>{
+                            var sldct = item.id==input['controller_type'] ? "selected" : "";
+                            htmlctrl += '<option value="'+item.id+'">'+item.name+'</option>';
+                        })
+                        $('#id_edt_controller_type').html(htmlctrl)
+                        enableControllerType(controller_type, "edit");
+                        enable_datetimepicker()
+                        select_enable()
+                        $('#id_mdl_update').modal('show');
+                    }else{
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                    
+                },
+                error: errorAjax
+            })
+        }
+        function checkInArrayLoop(radid, myArray, key =""){
+            var ret = false;
+            for(var x in myArray){
+                if(radid == myArray[x][key] ){
+                    ret = true;
+                }
+            }
+            return ret;
+        }
+        function removeData(t){
+            var id = t.data('id');
+            var name = t.data('name');
+            var form = new FormData();
+            form.append('id', id);
+            form.append('name', name);
+            Swal.fire({
+                title:'Are you sure you want delete it?',
+                text: "You will lose the data access control "+name+" !",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Delete !',
+                cancelButtonText: 'Cancel !',
+                reverseButtons: true
+                }).then((result) => {
+                    if (result.value) {
+                        var bs = $('#id_baseurl').val();
+                        $.ajax({
+                            url : bs+"access/post/delete",
+                            type: "POST",
+                            data : form,
+                            processData: false,
+                            contentType: false,
+                            dataType :"json",
+                            beforeSend: function(){
+                                $('#id_loader').html('<div class="linePreloader"></div>');
+                            },
+                            success:function(data){
+                                $('#id_loader').html('');
+                                if (data.status == "success") {
+                                    showNotification('alert-success', "Succes deleted access control "+name ,'top','center')
+                                    init();
+                                }else{
+                                    showNotification('alert-danger', "Data not found",'bottom','left')
+                                }
+                            },
+                            error: errorAjax,
+                        })
+                    }
+                else{
+
+                }
+            })
+            
+        }
+
+        function errorAjax(xhr, ajaxOptions, thrownError){
+            $('#id_loader').html('');
+            if(ajaxOptions == "parsererror"){
+                var msg = "Status Code 500, Error Server bad parsing";
+                showNotification('alert-danger', msg,'bottom','left')
+            }else{
+                var msg ="Status Code "+ xhr.status + " Please check your connection !!!";
+                showNotification('alert-danger', msg,'bottom','left')
+            }
+        }

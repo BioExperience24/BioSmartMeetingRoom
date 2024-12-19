@@ -1,60 +1,241 @@
-﻿namespace _4.Data.ViewModels;
+﻿using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace _4.Data.ViewModels;
 
 public class EmployeeViewModel : BaseViewModel
 {
-    public int Generate { get; set; }
+    [JsonPropertyName("division_id")]
+    public string DivisionId { get; set; } = string.Empty;
 
-    public string Id { get; set; } = null!;
+    [JsonPropertyName("company_id")]
+    public string CompanyId { get; set; } = string.Empty;
 
-    public string DivisionId { get; set; } = null!;
+    [JsonPropertyName("department_id")]
+    public string DepartmentId { get; set; } = string.Empty;
 
-    public string CompanyId { get; set; } = null!;
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
 
-    public string DepartmentId { get; set; } = null!;
+    [JsonPropertyName("nik")]
+    public string Nik { get; set; } = string.Empty;
 
-    public string Name { get; set; } = null!;
-
-    public string Nik { get; set; } = null!;
-
+    [JsonPropertyName("nik_display")]
     public string? NikDisplay { get; set; }
 
-    public string Photo { get; set; } = null!;
+    [JsonPropertyName("photo")]
+    public string Photo { get; set; } = string.Empty;
 
-    public string Email { get; set; } = null!;
+    [JsonPropertyName("email")]
+    public string Email { get; set; } = string.Empty;
 
+    [JsonPropertyName("no_phone")]
     public string? NoPhone { get; set; }
 
+    [JsonPropertyName("no_ext")]
     public string? NoExt { get; set; }
 
+    [JsonPropertyName("birth_date")]
     public DateOnly? BirthDate { get; set; }
 
-    public string Gender { get; set; } = null!;
+    [JsonPropertyName("gender")]
+    public string Gender { get; set; } = string.Empty;
 
-    public string Address { get; set; } = null!;
+    [JsonPropertyName("address")]
+    public string Address { get; set; } = string.Empty;
 
-    public string CardNumber { get; set; } = null!;
+    [JsonPropertyName("card_number")]
+    public string CardNumber { get; set; } = string.Empty;
 
-    public string CardNumberReal { get; set; } = null!;
-
-    public string PasswordMobile { get; set; } = null!;
-
-    public string GbId { get; set; } = null!;
-
-    public string FrId { get; set; } = null!;
-
+    [JsonPropertyName("priority")]
     public int Priority { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    [JsonPropertyName("is_vip")]
+    public int? IsVip { get; set; } 
 
-    public DateTime UpdatedAt { get; set; }
+    [JsonPropertyName("vip_approve_bypass")]
+    public int? VipApproveBypass { get; set; }
 
-    public int IsDeleted { get; set; }
+    [JsonPropertyName("vip_limit_cap_bypass")]
+    public int? VipLimitCapBypass { get; set; }
 
-    public bool IsVip { get; set; } = false;
+    [JsonPropertyName("vip_lock_room")]
+    public int? VipLockRoom { get; set; }
+}
 
-    public bool VipApproveBypass { get; set; } = false;
+public class EmployeeVMDefaultFR
+{
+    [FromForm(Name ="company_id")]
+    public string CompanyId { get; set; } = string.Empty;
 
-    public bool VipLimitCapBypass { get; set; } = false;
+    [FromForm(Name = "department_id")]
+    public string DepartmentId { get; set; } = string.Empty;
 
-    public bool VipLockRoom { get; set; } = false;
+    [FromForm(Name = "name")]
+    public string Name { get; set; } = string.Empty;
+
+    [FromForm(Name = "nik_display")]
+    public string? NikDisplay { get; set; }
+
+    [FromForm(Name = "email")]
+    public string Email { get; set; } = string.Empty;
+
+    [FromForm(Name = "no_phone")]
+    public string? NoPhone { get; set; }
+
+    [FromForm(Name = "no_ext")]
+    public string? NoExt { get; set; }
+
+    [FromForm(Name = "birth_date")]
+    public DateOnly? BirthDate { get; set; }
+
+    [FromForm(Name = "gender")]
+    public string Gender { get; set; } = string.Empty;
+
+    [FromForm(Name = "address")]
+    public string? Address { get; set; } = string.Empty;
+
+    [FromForm(Name = "card_number")]
+    public string? CardNumber { get; set; }
+}
+
+public class EmployeeVMCreateFR : EmployeeVMDefaultFR
+{
+    [FromForm(Name = "is_vip")]
+    public string? IsVip { get; set; } 
+
+    [FromForm(Name = "vip_approve_bypass")]
+    public string? VipApproveBypass { get; set; }
+
+    [FromForm(Name = "vip_limit_cap_bypass")]
+    public string? VipLimitCapBypass { get; set; }
+
+    [FromForm(Name = "vip_lock_room")]
+    public string? VipLockRoom { get; set; }
+
+    [FromForm(Name = "photo")]
+    public IFormFile? FilePhoto { get; set; }
+
+    public string? Photo { get; set; }
+
+}
+
+public class EmployeeVMUpdateVipFR
+{
+    [FromForm(Name = "is_vip")]
+    public string? IsVip { get; set; } 
+
+    [FromForm(Name = "vip_approve_bypass")]
+    public string? VipApproveBypass { get; set; }
+
+    [FromForm(Name = "vip_limit_cap_bypass")]
+    public string? VipLimitCapBypass { get; set; }
+
+    [FromForm(Name = "vip_lock_room")]
+    public string? VipLockRoom { get; set; }
+}
+
+public class EmployeeVMDeleteFR
+{
+    [FromForm(Name = "id")]
+    public string Id { get; set; } = string.Empty;
+
+    [FromForm(Name = "name")]
+    public string Name { get; set; } = string.Empty;
+}
+
+public class EmployeeVMResp : EmployeeViewModel
+{
+    [JsonPropertyName("company_name")]
+    public string? CompanyName { get; set; }
+    
+    [JsonPropertyName("department_name")]
+    public string? DepartmentName { get; set; }
+}
+public class EmployeeWithAccessInfoViewModel
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+    [JsonPropertyName("email")]
+    public string Email { get; set; }
+    [JsonPropertyName("employee_id")]
+    public string EmployeeId { get; set; }
+    [JsonPropertyName("nik")]
+    public string Nik { get; set; }
+    [JsonPropertyName("card_number")]
+    public string CardNumber { get; set; }
+    [JsonPropertyName("no_phone")]
+    public string PhoneNumber { get; set; }
+    [JsonPropertyName("no_ext")]
+    public string ExtensionNumber { get; set; }
+    [JsonPropertyName("access_id")]
+    public string AccessId { get; set; }
+}
+
+public class EmployeeWithDetailsViewModel
+{
+
+    [JsonPropertyName("id")]
+    public string? Id { get; set; } = null!;
+    [JsonPropertyName("division_id")]
+    public string DivisionId { get; set; } = string.Empty;
+
+    [JsonPropertyName("company_id")]
+    public string CompanyId { get; set; } = string.Empty;
+
+    [JsonPropertyName("department_id")]
+    public string DepartmentId { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("nik")]
+    public string Nik { get; set; } = string.Empty;
+
+    [JsonPropertyName("nik_display")]
+    public string? NikDisplay { get; set; }
+
+    [JsonPropertyName("photo")]
+    public string Photo { get; set; } = string.Empty;
+
+    [JsonPropertyName("email")]
+    public string Email { get; set; } = string.Empty;
+
+    [JsonPropertyName("no_phone")]
+    public string? NoPhone { get; set; }
+
+    [JsonPropertyName("no_ext")]
+    public string? NoExt { get; set; }
+
+    [JsonPropertyName("birth_date")]
+    public DateOnly? BirthDate { get; set; }
+
+    [JsonPropertyName("gender")]
+    public string Gender { get; set; } = string.Empty;
+
+    [JsonPropertyName("address")]
+    public string Address { get; set; } = string.Empty;
+
+    [JsonPropertyName("card_number")]
+    public string CardNumber { get; set; } = string.Empty;
+
+    [JsonPropertyName("priority")]
+    public int Priority { get; set; }
+
+    [JsonPropertyName("is_vip")]
+    public int? IsVip { get; set; }
+
+    [JsonPropertyName("vip_approve_bypass")]
+    public int? VipApproveBypass { get; set; }
+
+    [JsonPropertyName("vip_limit_cap_bypass")]
+    public int? VipLimitCapBypass { get; set; }
+
+    [JsonPropertyName("vip_lock_room")]
+    public int? VipLockRoom { get; set; }
+    [JsonPropertyName("company_name")]
+    public string CompanyName { get; set; }
+    [JsonPropertyName("department_name")]
+    public string DepartmentName { get; set; }
 }

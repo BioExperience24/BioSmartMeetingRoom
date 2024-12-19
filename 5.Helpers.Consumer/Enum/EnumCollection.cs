@@ -18,6 +18,21 @@ public static class EnumMessage
     public const string Auto = "Automated by System";
     public const string Manual = "Manual Pull";
 }
+public static class ModuleBackendTextModule
+{
+    
+    public const string Automation = "module_automation";
+    public const string Price = "module_price";
+    public const string Int365 = "module_int_365";
+    public const string IntGoogle = "module_int_google";
+    public const string UserVIP = "module_user_vip";
+    public const string RoomAdvance = "module_room_advance";
+    public const string Pantry = "module_pantry";
+    
+
+}
+
+
 
 public enum AlarmLevel : int
 {
@@ -157,6 +172,7 @@ public static class SeverityPeriorityInt
 public static class ReturnalType
 {
     public const string Success = "success";
+    public const string Failed = "fail";
     public const string Error = "error";
     public const string BadRequest = "bad_request";
     public const string NotFound = "not_found";

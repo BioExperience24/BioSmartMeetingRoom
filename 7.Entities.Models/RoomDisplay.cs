@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace _7.Entities.Models;
 
-public partial class RoomDisplay
+public partial class RoomDisplay : BaseLongEntity
 {
-    public long Id { get; set; }
+    // public long Id { get; set; }
 
     public string? RoomId { get; set; }
 
@@ -37,7 +35,7 @@ public partial class RoomDisplay
 
     public DateTime? UpdatedAt { get; set; }
 
-    public int? IsDeleted { get; set; }
+    // public int? IsDeleted { get; set; }
 
     public int? StatusSync { get; set; }
 

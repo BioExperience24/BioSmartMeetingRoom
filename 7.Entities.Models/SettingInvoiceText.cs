@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class SettingInvoiceText
+public partial class SettingInvoiceText : BaseEntity
 {
     public string Id { get; set; } = null!;
 

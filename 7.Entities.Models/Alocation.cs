@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace _7.Entities.Models;
 
-public partial class Alocation
+public partial class Alocation : BaseEntity
 {
     public int Generate { get; set; }
 
-    public string Id { get; set; } = null!;
+    // public string Id { get; set; } = null!;
 
     public string DepartmentCode { get; set; } = null!;
 
@@ -29,7 +30,7 @@ public partial class Alocation
 
     public int IsPermanent { get; set; }
 
-    public int? IsDeleted { get; set; }
+    // public int? IsDeleted { get; set; }
 
     public int? ShowInInvitation { get; set; }
 }

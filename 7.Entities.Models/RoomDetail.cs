@@ -5,11 +5,11 @@ namespace _7.Entities.Models;
 
 public partial class RoomDetail
 {
-    public long Id { get; set; }
+    public long? Id { get; set; }
 
-    public string RoomId { get; set; } = null!;
+    public long? RoomId { get; set; } 
 
-    public string FacilityId { get; set; } = null!;
+    public long? FacilityId { get; set; }
 
     public DateTime? Datetime { get; set; }
 }

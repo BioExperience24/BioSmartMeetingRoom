@@ -1,10 +1,4 @@
-﻿using _3.BusinessLogic.Services.Interface;
-using _4.Data.ViewModels;
-using _6.Repositories.Repository;
-using _7.Entities.Models;
-using AutoMapper;
-
-namespace _3.BusinessLogic.Services.Implementation;
+﻿namespace _3.BusinessLogic.Services.Implementation;
 
 public class DepartementService(DepartmentRepository repo, IMapper mapper)
     : BaseService<DepartmentViewModel, Department>(repo, mapper), IDepartmentService

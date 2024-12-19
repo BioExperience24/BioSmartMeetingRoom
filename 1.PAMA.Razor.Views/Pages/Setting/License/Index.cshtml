@@ -1,0 +1,215 @@
+﻿@page "/setting/license"
+@model _1.PAMA.Razor.Views.Pages.Setting.License.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Setting - License";
+}
+
+@section Styles {
+    <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="~/assets/theme/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css" rel="stylesheet">
+    <style type="text/css">
+            .img-circle {
+                border-radius: 50%;
+                height: 80px;
+                width: 80px;
+                border: 1px solid #fafafa;
+            }
+            .img-icon{
+                width: 120px !important;
+            }
+            .vcenter {
+                display: inline-block;
+                position: relative;
+            }
+            .connected-area {
+                height: 93px;
+                display: table;
+                width: 100%;
+            }
+
+        .wrapper-div {
+            display: table-cell;
+          vertical-align: middle
+        }
+
+    </style>
+}
+<section class="content">
+
+    <div class="container-fluid">
+
+        <div class="block-header">
+            <h2><?= strtoupper($pagename) ?></h2>
+        </div>
+        <div class="row clearfix">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="header">
+
+                        <div class="row clearfix">
+                            <div class="col-xs-12 col-sm-6">
+                                <h2>License</h2>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 align-right">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <?php if ($license['status'] == 0): ?>
+                                <form id="frm_set_license">
+                                    <label for="">Upload License </label>
+                                    <div class="form-group">
+                                        <div class="form-line">
+                                            <input type="file" name="photo" id="" class="form-control">
+                                        </div>
+                                    </div>
+
+                                    <button onclick="clickSubmit('id_btn_type_crt_submit')" type="button" class="btn btn-primary waves-effect ">UPLOAD NEW LICENSE</button>
+
+                                </form>
+                                <?php elseif($license['status'] == 1): ?>
+                                <label for="">Serial </label>
+                                <div class="form-group">
+                                    <div class="form-line">
+                                        <input readonly class="form-control" value="<?= $license['serial']?>">
+                                    </div>
+                                </div>
+                                <?php endif ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="row clearfix">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="header">
+
+                        <div class="row clearfix">
+                            <div class="col-xs-12 col-sm-6">
+                                <h2></h2>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 align-right">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <table id="tbl" class="table table-hover table-bordered">
+                            <thead>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Expired</th>
+                            <th>QTY</th>
+                            <th>Status</th>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+<div class="modal fade" id="id_mdl_set_alarm" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="idmdlcrLabel">Set Alarm Configuration </h4>
+            </div>
+            <div class="modal-body " id="id_mdl_create_body">
+                <form id="frm_set_alarm">
+                    <label for="">Alarm Server Auth</label>
+                    <div class="form-group">
+                        <div class="col-xs-3">
+                            <select name="auth_http" class="form-control" id="id_alarm_server_auth_http"></select>
+                        </div>
+                        <div class="col-xs-9">
+                            <div class="form-line">
+                                <input type="text" autocomplete="off" name="url_auth" id="id_alarm_server_auth" required="" class="form-control" placeholder="ex server.local.alarm">
+                            </div>
+                        </div>
+                    </div>
+                    <label for=""> Server Auth</label>
+                    <div class="form-group">
+                        <div class="col-xs-3">
+                            <select name="feed_http" class="form-control" id="id_alarm_server_feedback_http"></select>
+                        </div>
+                        <div class="col-xs-9">
+                            <div class="form-line">
+                                <input type="text" autocomplete="off" name="url_feedback" id="id_alarm_server_feedback" required="" value="<?= ROOT_URL?>" class="form-control" placeholder="ex this.domain.local">
+                            </div>
+                        </div>
+                    </div>
+
+                    <br>
+                    <button type="submit" style="display: none;" id="id_btn_type_crt_submit" class="btn btn-primary m-t-15 waves-effect">Submit</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row clearfix">
+                    <div class="col-xs-6 align-left">
+                        <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+                    </div>
+                    <div class="col-xs-6 align-right">
+                        <button onclick="clickSubmit('id_btn_type_crt_submit')" type="button" class="btn btn-primary waves-effect ">SAVE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- # END MODAL CREATE  -->
+
+@section Scripts {
+    <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
+    <script src="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
+    <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.min.js"></script>
+    <!-- Moment Plugin Js -->
+    <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+    <!-- Bootstrap Material Datetime Picker Plugin Js -->
+    <script src="~/assets/theme/plugins/jquery-editable/src/table-edits.js"></script>
+    <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
+    <input type="hidden" id="id_baseurl" value="~/">
+    <textarea style="display:none;" id="id_alarm"><?= $alarm_integration?></textarea>
+    <textarea style="display:none;" id="id_module_alarm"><?= $alarm_integration?></textarea>
+    <textarea style="display:none;" id="id_feedback_collection"></textarea>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: location.origin + '/api/LicenseList/GetAllLicenseLists', // Adjust the URL to your API endpoint
+                method: 'GET',
+                success: function (response) {
+                    var licenseList = response.collection;
+                    var tbody = $('#tbl tbody');
+                    tbody.empty(); // Clear existing data
+
+                    $.each(licenseList, function (index, value) {
+                        var xp = value.is_lifetime == 1 ? "Perpetual" : value.expired_at;
+                        var stt = value.status == 1 ? "Enabled" : 'Disabled';
+
+                        var row = '<tr>' +
+                            '<td>' + value.name + '</td>' +
+                            '<td>' + value.type + '</td>' +
+                            '<td>' + xp + '</td>' +
+                            '<td>' + value.qty + '</td>' +
+                            '<td>' + stt + '</td>' +
+                            '</tr>';
+
+                        tbody.append(row);
+                    });
+                },
+                error: function (error) {
+                    console.error('Error fetching license list:', error);
+                }
+            });
+        });
+    </script>
+}

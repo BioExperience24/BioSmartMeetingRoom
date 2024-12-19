@@ -5,7 +5,7 @@ namespace _7.Entities.Models;
 
 public partial class Company : BaseEntity
 {
-    public string Id { get; set; } = null!;
+    // public string Id { get; set; } = null!;
 
     public string Name { get; set; } = null!;
 
@@ -35,5 +35,5 @@ public partial class Company : BaseEntity
 
     public int UpdateAt { get; set; }
 
-    public int IsDeleted { get; set; }
+    // public int IsDeleted { get; set; }
 }

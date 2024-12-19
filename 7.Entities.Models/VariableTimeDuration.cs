@@ -3,9 +3,15 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class VariableTimeDuration
+public partial class VariableTimeDuration : BaseEntityId
 {
-    public long Id { get; set; }
+    //public new long Id { get; set; }
 
     public int? Time { get; set; }
+}
+
+public class VariableSetting : BaseEntityId
+{
+    public required List<VariableTimeDuration> Duration { get; set; }
+    public required List<VariableTimeExtend> TimeExtend { get; set; }
 }
