@@ -3,11 +3,13 @@ using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Encryption;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.Building
 {
+    [Authorize]
     public class FloorModel(IConfiguration config, IBuildingService service) : PageModel
     {
         private readonly IConfiguration _config = config;
@@ -17,11 +19,11 @@ namespace _1.PAMA.Razor.Views.Pages.Building
 
         [BindProperty(Name = "building", SupportsGet = true)]
         public string BuildingEncId { get; set; } = string.Empty;
-        
+
         public long BuildingId { get; set; } = default!;
         public string? Building;
         public IEnumerable<BuildingViewModel> BuildingList = default!;
-        
+
         public string? AppUrl { get; set; } = config["App:BaseUrl"];
         public string? ApiUrl { get; set; } = config["ApiUrls:BaseUrl"];
         public string? GetBuildingFloors { get; set; } = config["ApiUrls:Endpoints:GetBuildingFloors"];
@@ -41,9 +43,9 @@ namespace _1.PAMA.Razor.Views.Pages.Building
             {
                 return Redirect("/building");
             }
-            
+
             Building = building != null ? JsonSerializer.Serialize(building) : null;
-            
+
             BuildingList = await _service.GetAllItemAsync(BuildingId);
 
             return Page();

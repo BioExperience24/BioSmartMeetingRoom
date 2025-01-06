@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class LicenseSetting
+public partial class LicenseSetting : BaseEntity
 {
     public int Id { get; set; }
 

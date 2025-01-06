@@ -1,6 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace _4.Data.ViewModels;
 
@@ -25,7 +23,7 @@ public class BookingViewModel : BaseLongViewModel
     public string Title { get; set; } = string.Empty;
 
     [JsonPropertyName("date")]
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
 
     [JsonPropertyName("room_id")]
     public string RoomId { get; set; } = string.Empty;
@@ -287,23 +285,43 @@ public class BookingViewModel : BaseLongViewModel
 
     [JsonPropertyName("server_end")]
     public DateTime? ServerEnd { get; set; }
+
+
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("duration")]
+    public double? Duration { get; set; }
 }
 
-
+public class BookingVMChart
+{
+    [JsonPropertyName("month")]
+    public string Month { get; set; } = string.Empty;
+    
+    [JsonPropertyName("md")]
+    public string Md { get; set; } = string.Empty;
+    
+    [JsonPropertyName("total")]
+    public int Total { get; set; }
+    
+    [JsonPropertyName("tahun")]
+    public int Tahun { get; set; }
+}
 
 public class BookingModuleDetailsViewModel
 {
     [JsonPropertyName("module_id")]
-    public string ModuleId { get; set; }
+    public string ModuleId { get; set; } = string.Empty;
 
     [JsonPropertyName("module_text")]
-    public string ModuleText { get; set; }
+    public string ModuleText { get; set; } = string.Empty;
 
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [JsonPropertyName("module_serial")]
-    public string ModuleSerial { get; set; }
+    public string ModuleSerial { get; set; } = string.Empty;
 
     [JsonPropertyName("is_enabled")]
     public int IsEnabled { get; set; }
@@ -313,54 +331,54 @@ public class BookingModuleDetailsViewModel
 public class BookingModulesViewModel
 {
     [JsonPropertyName("automation")]
-    public BookingModuleDetailsViewModel Automation { get; set; }
+    public BookingModuleDetailsViewModel? Automation { get; set; }
 
     [JsonPropertyName("vip")]
-    public BookingModuleDetailsViewModel Vip { get; set; }
+    public BookingModuleDetailsViewModel? Vip { get; set; }
 
     [JsonPropertyName("price")]
-    public BookingModuleDetailsViewModel Price { get; set; }
+    public BookingModuleDetailsViewModel? Price { get; set; }
 
     [JsonPropertyName("int_365")]
-    public BookingModuleDetailsViewModel Int365 { get; set; }
+    public BookingModuleDetailsViewModel? Int365 { get; set; }
 
     [JsonPropertyName("int_google")]
-    public BookingModuleDetailsViewModel IntGoogle { get; set; }
+    public BookingModuleDetailsViewModel? IntGoogle { get; set; }
 
     [JsonPropertyName("room_adv")]
-    public BookingModuleDetailsViewModel RoomAdv { get; set; }
+    public BookingModuleDetailsViewModel? RoomAdv { get; set; }
 }
 
 
 public class BookingMenuDetailViewModel
 {
     [JsonPropertyName("pagename")]
-    public string Pagename { get; set; }
+    public string Pagename { get; set; } = string.Empty;
 
     [JsonPropertyName("menu")]
-    public object Menu { get; set; }
+    public object Menu { get; set; } = default!;
 
     [JsonPropertyName("building")]
-    public object Building { get; set; }
+    public object Building { get; set; } = default!;
 
     [JsonPropertyName("invoice")]
-    public object Invoice { get; set; }
+    public object Invoice { get; set; } = default!;
 
     [JsonPropertyName("category")]
-    public object Category { get; set; }
+    public object Category { get; set; } = default!;
 
     [JsonPropertyName("setting_general")]
-    public object SettingGeneral { get; set; }
+    public object SettingGeneral { get; set; } = default!;
 
     [JsonPropertyName("room")]
-    public object Room { get; set; }
+    public object Room { get; set; } = default!;
 
     [JsonPropertyName("organizer")]
-    public object Organizer { get; set; }
+    public object Organizer { get; set; } = default!;
 
     [JsonPropertyName("modules")]
-    public BookingModulesViewModel Modules { get; set; }
+    public BookingModulesViewModel? Modules { get; set; }
 
     [JsonPropertyName("facility")]
-    public object Facility { get; set; }
+    public object Facility { get; set; } = default!;
 }

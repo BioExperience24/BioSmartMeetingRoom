@@ -87,7 +87,8 @@ function getChartTransaction(year = ""){
         year = moment().format('YYYY');
     }
     $.ajax({
-        url : bs+"dashboard/get/chart/booking/"+year,
+        // url : bs+"dashboard/get/chart/booking/"+year,
+        url : bs + ajax.url.get_booking_charts + `/${year}`,
         type : "GET",
         dataType: "json",
         beforeSend: function(){
@@ -108,7 +109,8 @@ function getChartTopRoom(year = ""){
         year = moment().format('YYYY');
     }
     $.ajax({
-        url : bs+"dashboard/get/chart/top-room/"+year,
+        // url : bs+"dashboard/get/chart/top-room/"+year,
+        url : bs + ajax.url.get_room_top_charts + `/${year}`,
         type : "GET",
         dataType: "json",
         beforeSend: function(){
@@ -132,7 +134,7 @@ function getTableOngoing(date1 = "", date2=""){
         date2 = date1;
     }
     $.ajax({
-        url : bs+"dashboard/get/table/ongoing/"+date1+"/"+date2,
+        url : bs + ajax.url.get_ongoing_bookings + `/${date1}/${date2}`,
         type : "GET",
         dataType: "json",
         beforeSend: function(){

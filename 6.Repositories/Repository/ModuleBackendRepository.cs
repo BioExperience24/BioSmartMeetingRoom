@@ -4,13 +4,9 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.AccessControl;
+using System.Transactions;
 using _6.Repositories.DB;
 using _6.Repositories.Extension;
-using _7.Entities.Models;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace _6.Repositories.Repository;
 
@@ -93,6 +89,18 @@ public class ModuleBackendRepository
             .Where(m => m.RoomId == id)
             .ToListAsync();
     }
+
+    public async Task DeleteOldRoomForUsageDetailAsync(long id)
+    {
+        // Use ExecuteDelete for efficient deletion
+        var rowsAffected = await _dbContext.RoomForUsageDetails
+                                           .Where(x => x.RoomId == id)
+                                           .ExecuteDeleteAsync();
+    }
+
+
+
+
     public async Task RemoveRoomMergeDetail(long? roomId)
     {
         await _dbContext.RoomMergeDetails
@@ -105,6 +113,13 @@ public class ModuleBackendRepository
             .Where(m => m.RoomId == roomId)
             .ExecuteDeleteAsync();
     }
+
+
+    public async Task CreateBulkRoomForUsageDetail(List<RoomForUsageDetail> entities)
+    {
+        await _dbContext.BulkInsertAsync(entities.ToList());
+    }
+
 
     public async Task<LicenseList?> GetLicenseByModule()
     {
@@ -287,7 +302,7 @@ public async Task<(string Error, List<RoomData> Data)> GetRoomDataAsync()
                               {
                                   Id = r.Id,                  // Inherited from Room
                                   Name = r.Name,              // Inherited from Room
-                                  RadId = r.RadId,                // Inherited from Room
+                                  RadId = r.Radid,                // Inherited from Room
                                   RaName = ra.Name,               // From RoomAutomations
                                   RaId = ra.Id,                   // From RoomAutomations
                                   AutomationName = ra.Name,       // From RoomAutomations
@@ -664,7 +679,7 @@ public async Task<List<EmployeeWithDetails>> GetEmployeesWithDetailsAsync()
                     {
 
                         Id = room.Id,
-                        RadId = room.RadId,
+                        Radid = room.Radid,
                         BuildingId = room.BuildingId,
                         FloorId = room.FloorId,
                         TypeRoom = room.TypeRoom,

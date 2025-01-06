@@ -30,6 +30,20 @@ public class EmployeeRepository : BaseRepository<Employee>
         return await query.ToListAsync();
     }
 
+    public async Task<int> GetCountAsync()
+    {
+        var query = from employee in _dbContext.Employees
+                    from alocationType in _dbContext.AlocationTypes
+                        .Where(at => employee.CompanyId == at.Id).DefaultIfEmpty()
+                    from alocation in _dbContext.Alocations
+                        .Where(a => employee.DepartmentId == a.Id).DefaultIfEmpty()
+                    where employee.IsDeleted == 0 
+                    orderby employee.Generate ascending
+                    select new { employee, alocationType = new { CompanyName = alocationType.Name }, alocation = new { DepartmentName = alocation.Name } };
+
+        return await query.CountAsync();
+    }
+
     public async Task<IEnumerable<object>> GetItemsWithoutUserAsync()
     {
         var query = (from employee in _dbContext.Employees

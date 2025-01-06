@@ -109,7 +109,7 @@ public class AccessControlVMDeleteFR
 public class AccessControlVMRoom : BaseLongViewModel
 {
     [JsonPropertyName("radid")]
-    public string RadId { get; set; } = string.Empty;
+    public string Radid { get; set; } = string.Empty;
 
     [JsonPropertyName("building_id")]
     public long? BuildingId { get; set; }

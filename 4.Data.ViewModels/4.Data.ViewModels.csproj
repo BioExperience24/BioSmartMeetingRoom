@@ -9,6 +9,8 @@
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="Microsoft.Activities.Extensions" Version="2.0.6.9" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<ProjectReference Include="..\5.Helpers.Consumer\5.Helpers.Consumer.csproj" />
 	</ItemGroup>
 

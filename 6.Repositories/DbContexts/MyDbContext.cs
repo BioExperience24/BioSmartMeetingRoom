@@ -3134,7 +3134,7 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("name");
             entity.Property(e => e.Price).HasColumnName("price");
-            entity.Property(e => e.RadId)
+            entity.Property(e => e.Radid)
                 .HasMaxLength(100)
                 .HasColumnName("radid");
             entity.Property(e => e.TypeRoom)
@@ -3156,7 +3156,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.ConfigRoomForUsage)
                 .HasMaxLength(30)
                 .HasColumnName("config_room_for_usage");
-
+            entity.Property(e => e.KindRoom)
+                .HasDefaultValue("room")
+                .HasColumnName("kind_room");
 
         });
 

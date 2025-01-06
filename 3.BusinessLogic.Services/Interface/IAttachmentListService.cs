@@ -11,6 +11,7 @@ public interface IAttachmentListService
     Task DeleteFile(string fileName);
     Task<FileReady> DownloadFile(Guid id);
     Task<string> GenerateThumbnailBase64(string? fileName, int sizeh = 60);
-    Task<string> NoImageBase64(string filename = "no-image.jpg", int sizeh = 60);
+    Task<string> NoImageBase64(string filename = "no-image.jpg", int sizeh = 100);
+    Task<FileReady> ViewNoImage();
     MemoryStream ConvertBase64ToMemoryStream(string base64String);
 }

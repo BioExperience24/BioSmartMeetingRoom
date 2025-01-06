@@ -58,26 +58,23 @@
                     <div class="body">
                         <div class="row">
                             <div class="col-xs-12">
-                                <?php if ($license['status'] == 0): ?>
-                                <form id="frm_set_license">
+                                <form id="frm_set_license" style="display: none;">
                                     <label for="">Upload License </label>
                                     <div class="form-group">
                                         <div class="form-line">
-                                            <input type="file" name="photo" id="" class="form-control">
+                                            <input type="file" name="photo" id="photo" class="form-control">
                                         </div>
                                     </div>
-
-                                    <button onclick="clickSubmit('id_btn_type_crt_submit')" type="button" class="btn btn-primary waves-effect ">UPLOAD NEW LICENSE</button>
-
+                                    <button id="uploadBtn" type="button" class="btn btn-primary waves-effect">UPLOAD NEW LICENSE</button>
                                 </form>
-                                <?php elseif($license['status'] == 1): ?>
-                                <label for="">Serial </label>
-                                <div class="form-group">
-                                    <div class="form-line">
-                                        <input readonly class="form-control" value="<?= $license['serial']?>">
+                                <div id="licenseInfo" style="display: none;">
+                                    <label for="">Serial </label>
+                                    <div class="form-group">
+                                        <div class="form-line">
+                                            <input readonly class="form-control" id="licenseSerial">
+                                        </div>
                                     </div>
                                 </div>
-                                <?php endif ?>
                             </div>
                         </div>
                     </div>
@@ -210,6 +207,52 @@
                     console.error('Error fetching license list:', error);
                 }
             });
+
+            // Function to fetch license settings
+            function fetchLicenseSettings() {
+                $.ajax({
+                    url: location.origin +  '/api/LicenseSetting/GetAllLicenseSettings', // Adjust the URL to your API endpoint
+                    type: 'GET',
+                    success: function (response) {
+                        if (response.collection[0].status === 0) {
+                            $('#frm_set_license').show();
+                            $('#licenseInfo').hide();
+                        } else if (response.collection[0].status === 1) {
+                            $('#frm_set_license').hide();
+                            $('#licenseInfo').show();
+                            $('#licenseSerial').val(response.collection[0].serial);
+                        }
+                    },
+                    error: function (error) {
+                        console.error('Error fetching license settings:', error);
+                    }
+                });
+            }
+
+            // Call the function to fetch license settings on page load
+            fetchLicenseSettings();
+
+            // Handle the form submission
+            $('#uploadBtn').on('click', function () {
+                var formData = new FormData($('#frm_set_license')[0]);
+
+                $.ajax({
+                    url: '/api/LicenseList/UploadLicense', // Adjust the URL to your API endpoint
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        // After successful upload, fetch the license settings again
+                        fetchLicenseSettings();
+                    },
+                    error: function (error) {
+                        console.error('Error uploading license:', error);
+                    }
+                });
+            });
         });
+
+
     </script>
 }

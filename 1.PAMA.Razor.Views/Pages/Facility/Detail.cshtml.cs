@@ -1,12 +1,14 @@
 using _3.BusinessLogic.Services.Implementation;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace _1.PAMA.Razor.Views.Pages.Facility;
 
+[Authorize]
 public class DetailModel : PageModel
 {
     private readonly IFacilityService _service;

@@ -1,28 +1,49 @@
-using System.Text;
-using System.Text.Json;
-using _2.BusinessLogic.Services.Interface;
-using _3.BusinessLogic.Services.Implementation;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
-using _5.Helpers.Consumer._Common;
-using _5.Helpers.Consumer._Response;
 using _5.Helpers.Consumer.EnumType;
-using _7.Entities.Models;
-using AutoMapper;
 using Controllers;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.DotNet.MSIdentity.Shared;
 
 namespace _1.PAMA.Razor.Views.Controllers
 {
     [ApiController]
     [Route("api/[controller]/[action]")]
-    public class RoomController(IRoomService service, IHttpContextAccessor httpContextAccessor, IMapper _mapper, IAttachmentListService _attachmentListService) 
-    : BaseLongController<RoomViewModel>(service)
+    public class RoomController(IRoomService service) : BaseLongController<RoomViewModel>(service)
     {
-        private readonly _Json _jsonResponse = new(httpContextAccessor.HttpContext);
+        
+        [HttpGet("{year}")]
+        public async Task<IActionResult> GetChartTopRoom(int year)
+        {
+            ReturnalModel ret = new();
+
+            ret.Message = "Get success";
+            ret.Collection = await service.GetAllChartTopFiveRoomAsync(year);
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetItems()
+        {
+            ReturnalModel ret = new();
+            ret.Message = "Get success";
+
+            ret.Collection = await service.GetAllRoomItemAsync(false);
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetItemsWithRoomDisplays()
+        {
+            ReturnalModel ret = new();
+            ret.Message = "Get success";
+
+            ret.Collection = await service.GetAllRoomRoomDisplayItemAsync();
+
+            return StatusCode(ret.StatusCode, ret);
+        }
 
         [HttpGet]
         public async Task<ActionResult> GetRoomData()
@@ -40,6 +61,16 @@ namespace _1.PAMA.Razor.Views.Controllers
             ReturnalModel ret = new()
             {
                 Collection = await service.GetSingleRoomData()
+            };
+            return Ok(ret);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetOnLoadModules(string pagename)
+        {
+            ReturnalModel ret = new()
+            {
+                Collection = await service.GetRoomDetailsAsync(pagename)
             };
             return Ok(ret);
         }
@@ -75,11 +106,13 @@ namespace _1.PAMA.Razor.Views.Controllers
 
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteItemsByIds([FromQuery] string ids)
+        public async Task<ReturnalModel> DeleteItemsByIds([FromQuery] string ids)
         {
+            ReturnalModel ret = new();
             if (string.IsNullOrEmpty(ids))
             {
-                return BadRequest("No IDs provided.");
+                ret.Message = "No IDs provided";
+                ret.Status = ReturnalType.BadRequest;
             }
 
             var idList = ids.Split(',').Select(id => int.Parse(id)).ToList();
@@ -89,7 +122,7 @@ namespace _1.PAMA.Razor.Views.Controllers
                 await service.SoftDelete(id);
             }
 
-            return Ok("Items deleted successfully.");
+            return ret;
         }
 
 

@@ -30,14 +30,14 @@ public class AttachmentListController(IAttachmentListService service) : Controll
         return Ok(result);
     }
 
-    [AllowAnonymous]
-    [HttpGet]
-    public async Task<IActionResult> DownloadFile(Guid id)
-    {
-        var result = await service.DownloadFile(id);
+    //[AllowAnonymous]
+    //[HttpGet]
+    //public async Task<IActionResult> DownloadFile(Guid id)
+    //{
+    //    var result = await service.DownloadFile(id);
 
-        return File(result.FileStream, "application/octet-stream", result.FileName); // returns a FileStreamResult
-    }
+    //    return File(result.FileStream, "application/octet-stream", result.FileName); // returns a FileStreamResult
+    //}
 
     [AllowAnonymous]
     [HttpGet]
@@ -48,4 +48,13 @@ public class AttachmentListController(IAttachmentListService service) : Controll
         return Ok(result);
     }
 
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<IActionResult> ViewNoImage()
+    {
+        var result = await service.ViewNoImage();
+
+        Response.Headers.Append("Content-Disposition", "inline; filename=" + result.FileName);
+        return File(result.FileStream, "image/PNG"); // Ganti "image/jpeg" dengan tipe MIME yang sesuai
+    }
 }

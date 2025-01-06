@@ -866,6 +866,22 @@ function getFacility() {
     })
 }
 
+function initKindRoom(id_edt_kind_room, value) {
+
+    var html = "";
+
+    var listKindRoom = ["room", "noroom", "trainingroom", "specialroom"]
+
+
+    $.each(listKindRoom, function (index, item) {
+        var sel = item == value ? "selected" : "";
+        html += '<option ' + sel + '  value="' + item + '" >' + item + '</option>'
+    })
+
+    $('#' + id_edt_kind_room).html(html);
+    select_enable()
+}
+
 function initTypeRoom(action, id_type_room, id_merge_room, values) {
     // console.log($('#'+id_type_room).val());
     if ($('#' + id_type_room).val() == "") {
@@ -998,33 +1014,28 @@ function init() {
                     html += '<td>' + item.work_time + '</td>';
                     // html += '<td>'+item.work_day+'</td>';
                     // 
-                    if (modules['automation']['is_enabled'] == 1) {
-                        html += '<td>' + automation + '</td>';
-                        html += '<td>' + ra_name + '</td>';
-                    }
                     if (modules['price']['is_enabled'] == 1) {
                         html += '<td>' + numeral(price).format('$ 0,0.00'); + '</td>';
                     }
-                    console.log(modules['int_365'])
-                    if (modules['int_365']['is_enabled'] == 1 || modules['int_google']['is_enabled'] == 1) {
-                        html += '<td>';
-                        if (modules['int_365']['is_enabled'] == 1) {
-                            var ms365 = item.config_microsoft == null ? "" : item.config_microsoft;
-                            if (ms365 != "") {
-                                html += `<button type="button" class="btn btn-default waves-effect">Microsoft 365</button>`;
-                            }
+                    //if (modules['int_365']['is_enabled'] == 1 || modules['int_google']['is_enabled'] == 1) {
+                    //    html += '<td>';
+                    //    if (modules['int_365']['is_enabled'] == 1) {
+                    //        var ms365 = item.config_microsoft == null ? "" : item.config_microsoft;
+                    //        if (ms365 != "") {
+                    //            html += `<button type="button" class="btn btn-default waves-effect">Microsoft 365</button>`;
+                    //        }
 
-                        }
-                        if (modules['int_google']['is_enabled'] == 1) {
-                            var msGoogle = item.config_google == null ? "" : item.config_google;
-                            if (msGoogle != "") {
-                                html += `<button type="button" class="btn btn-default waves-effect">Google</button>`;
-                            }
+                    //    }
+                    //    if (modules['int_google']['is_enabled'] == 1) {
+                    //        var msGoogle = item.config_google == null ? "" : item.config_google;
+                    //        if (msGoogle != "") {
+                    //            html += `<button type="button" class="btn btn-default waves-effect">Google</button>`;
+                    //        }
 
-                        }
-                        html += '</td>';
+                    //    }
+                    //    html += '</td>';
 
-                    }
+                    //}
                     html += '<td>' + enabledRoom[item.is_disabled] + '</td>';
                     html += '<td>';
                      html += `<button 
@@ -1036,24 +1047,24 @@ function init() {
                                  data-ra_id="${item.ra_id}" 
                                  type="button" class="btn btn-danger waves-effect"><i class="material-icons">delete</i></button>&nbsp;`
                     
-                    if (modules['int_365']['is_enabled'] == 1 || modules['int_google']['is_enabled'] == 1) {
-                        html += `&nbsp; <div class="btn-group">
-                                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                       <i class="material-icons">link</i> <span class="caret"></span>
-                                    </button>
-                                `;
-                        html += `<ul class="dropdown-menu">`;
-                        if (modules['int_365']['is_enabled'] == 1) {
-                            html += `<li><a href="javascript:openIntData('${item.radid}','365');" class=" waves-effect waves-block">Connected to 365</a></li>`;
-                        }
-                        if (modules['int_google']['is_enabled'] == 1) {
-                            html += `<li><a href="javascript:openIntData('${item.radid}','365');" class=" waves-effect waves-block">Connected to Google</a></li>`;
-                        }
+                    //if (modules['int_365']['is_enabled'] == 1 || modules['int_google']['is_enabled'] == 1) {
+                    //    html += `&nbsp; <div class="btn-group">
+                    //                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    //                   <i class="material-icons">link</i> <span class="caret"></span>
+                    //                </button>
+                    //            `;
+                    //    html += `<ul class="dropdown-menu">`;
+                    //    if (modules['int_365']['is_enabled'] == 1) {
+                    //        html += `<li><a href="javascript:openIntData('${item.radid}','365');" class=" waves-effect waves-block">Connected to 365</a></li>`;
+                    //    }
+                    //    if (modules['int_google']['is_enabled'] == 1) {
+                    //        html += `<li><a href="javascript:openIntData('${item.radid}','365');" class=" waves-effect waves-block">Connected to Google</a></li>`;
+                    //    }
 
-                        html += `</ul">`;
-                        html += `</div">`;
+                    //    html += `</ul">`;
+                    //    html += `</div">`;
 
-                    }
+                    //}
 
                     html += '</td>';
                     html += '</tr>';
@@ -1154,7 +1165,7 @@ function editData(t) {
                     for (var x in im2) {
                         n0++;
                         var imgp2 = im2[x] == "" || im2[x] == null ? defaultImage : im2[x];
-                        var imap2 = pathImage + imgp2;
+                        var imap2 = bs + 'api/Room/GetRoomDetailView/' + imgp2 + '?h=80&noCache=false';
                         $('#id_edt_image2_' + n0 + '_old').attr("src", imap2);
 
                     }
@@ -1263,7 +1274,7 @@ function editData(t) {
                 var is_config_adv_checkin = input['is_enable_checkin'] -0;
                 var is_config_adv_recurring = input['is_enable_recurring'] -0;
 
-                var editRoomForUsage = input['room_data_usage'];
+
 
 
 
@@ -1274,40 +1285,35 @@ function editData(t) {
                     advanceEdtRoomEnabled();
                 }
 
+                if (data.collection?.config_room_for_usage) {
 
-                (function () {
-                    getRoomForUsageDetail(id)
-                        .then(config_room_for_usage => {
+                    let html_adv_room_for_usage = "";
 
-                            let html_adv_room_for_usage = "";
+                    var room_for_usage = data.collection?.config_room_for_usage
 
-                            for (const room of gRoomForUsage) {
-                                const roomName = room.name;
-                                const roomId = room.id;
-
-                                const isSelected = config_room_for_usage.some(item => item.room_usage_id === roomId);
-
-                                html_adv_room_for_usage += `<option ${isSelected ? "selected" : ""} value='${roomId}'>${roomName}</option>`;
-                            }
-
-                            $('#id_edt_adv_room_for_usage').html(html_adv_room_for_usage);
-                        })
-                        .catch(error => {
-                            console.error("Error fetching or processing room usage details:", error);
-                        });
-                })();
+                    for (const room of gRoomForUsage) {
+                        const roomName = room.name;
+                        const roomId = room.id;
 
 
+                        const isSelected = room_for_usage.some(item => item === roomId.toString());
+
+                        html_adv_room_for_usage += `<option ${isSelected ? "selected" : ""} value='${roomId}'>${roomName}</option>`;
+                    }
+
+                    $('#id_edt_adv_room_for_usage').html(html_adv_room_for_usage);
 
 
-                var html_adv_tbl_room_for_usage = "";
-                gRoomForUsageGenerate = editRoomForUsage;
-                if(is_config_enable == 1){
-                    html_adv_tbl_room_for_usage = generateTableUsage();
+                    // for trigger the select element
+                    var old_data = $('#id_edt_adv_room_for_usage').val()
+                    $('#id_edt_adv_room_for_usage').val(null)
+                    $('#id_edt_adv_room_for_usage').val(old_data)
+
                 }
-                $('#id_edt_adv_tbl_room_for_usage tbody').html(html_adv_tbl_room_for_usage);
 
-                // Recurreing
+                fetchRoomForUsageDetail(id, is_config_enable)
+
+                //// Recurreing
                 if (is_config_adv_recurring == 1 && is_config_enable == 1) {
                     $('#id_edt_adv_is_enable_recurring').attr("checked", true);
                 } else {
@@ -1415,6 +1421,8 @@ function editData(t) {
                 enable_datetimepicker()
                 select_enable()
                 initTypeRoom('edit', 'id_edt_type_room', 'id_edt_merge_room', input.id);
+                initKindRoom('id_edt_kind_room', data.collection.kind_room);
+                ocEdtRoomForUsage()
 
                 $('#id_mdl_update').modal('show');
             } else {
@@ -1428,6 +1436,27 @@ function editData(t) {
     })
 }
 
+function fetchRoomForUsageDetail(id, is_config_enable) {
+    assetsImageUrl = "";
+    $.ajax({
+        url: "api/Room/GetConfigRoomForUsageByIdRoom/" + id,
+        type: "GET",
+        dataType: "json",
+        beforeSend: function () {
+            $('#id_loader').html('<div class="linePreloader"></div>');
+        },
+        success: function (data) {
+            gRoomForUsageGenerate = data.collection;
+
+            var html_adv_tbl_room_for_usage = "";
+            if (is_config_enable == 1) {
+                html_adv_tbl_room_for_usage = generateTableUsage();
+            }
+            $('#id_edt_adv_tbl_room_for_usage tbody').html(html_adv_tbl_room_for_usage);
+
+        }
+    })
+}
 function advanceCrtRoomDisabled() {
     // checked
     $('#id_crt_adv_is_config_setting_enable').attr("checked", false);

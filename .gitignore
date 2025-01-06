@@ -360,3 +360,5 @@ sw.*
 *.swp
 
 *.backup
+
+robots.txt

@@ -36,6 +36,44 @@ public class BookingService : BaseLongService<BookingViewModel, Booking>, IBooki
         _alocationMatrixRepo = alocationMatrixRepo;
         _userRepo = userRepo;
     }
+
+    public async Task<IEnumerable<BookingVMChart>> GetItemChartsAsync(int year)
+    {
+        var items = await _repo.GetAllItemChartAsync(year);
+
+        var result = __mapper.Map<List<BookingVMChart>>(items);
+
+        return result;
+    }
+
+    public async Task<IEnumerable<BookingViewModel>> GetItemOngoingAsync(DateOnly startDate, DateOnly endDate, string? nik = null)
+    {
+        var items = await _repo.GetAllItemOngoingAsync(startDate, endDate, nik);
+
+        var result = __mapper.Map<List<BookingViewModel>>(items);
+
+        if (result.Any())
+        {
+            foreach (var item in result)
+            {
+                if (item.Start != DateTime.MinValue && item.End != DateTime.MinValue)
+                {
+                    // Menghitung selisih waktu
+                    TimeSpan difference = item.End.Subtract(item.Start);
+                    // Mendapatkan total menit
+                    item.Duration = difference.TotalMinutes;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public async Task<int> GetCountAsync()
+    {
+        return await _repo.GetCountAsync();
+    }
+
     public async Task<IEnumerable<BookingViewModel>> GetDataBookingAsync(DateTime start, DateTime end)
     {
         var bookings = await _repo.GetDataBookingAsync(start, end);
@@ -83,7 +121,7 @@ public class BookingService : BaseLongService<BookingViewModel, Booking>, IBooki
                 ModuleId = module_automation.ModuleId.ToString(),
                 ModuleText = module_automation.ModuleText,
                 Name = module_automation.Name,
-                ModuleSerial = module_automation.ModuleSerial,
+                ModuleSerial = module_automation.ModuleSerial ?? string.Empty,
                 IsEnabled = module_automation.IsEnabled
             } : new BookingModuleDetailsViewModel(),
 
@@ -92,7 +130,7 @@ public class BookingService : BaseLongService<BookingViewModel, Booking>, IBooki
                 ModuleId = vip.ModuleId.ToString(),
                 ModuleText = vip.ModuleText,
                 Name = vip.Name,
-                ModuleSerial = vip.ModuleSerial,
+                ModuleSerial = vip.ModuleSerial ?? string.Empty,
                 IsEnabled = vip.IsEnabled
             } : new BookingModuleDetailsViewModel(),
 
@@ -101,7 +139,7 @@ public class BookingService : BaseLongService<BookingViewModel, Booking>, IBooki
                 ModuleId = module_price.ModuleId.ToString(),
                 ModuleText = module_price.ModuleText,
                 Name = module_price.Name,
-                ModuleSerial = module_price.ModuleSerial,
+                ModuleSerial = module_price.ModuleSerial ?? string.Empty,
                 IsEnabled = module_price.IsEnabled
             } : new BookingModuleDetailsViewModel(),
 
@@ -110,7 +148,7 @@ public class BookingService : BaseLongService<BookingViewModel, Booking>, IBooki
                 ModuleId = module_int_365.ModuleId.ToString(),
                 ModuleText = module_int_365.ModuleText,
                 Name = module_int_365.Name,
-                ModuleSerial = module_int_365.ModuleSerial,
+                ModuleSerial = module_int_365.ModuleSerial ?? string.Empty,
                 IsEnabled = module_int_365.IsEnabled
             } : new BookingModuleDetailsViewModel(),
 
@@ -119,7 +157,7 @@ public class BookingService : BaseLongService<BookingViewModel, Booking>, IBooki
                 ModuleId = module_int_google.ModuleId.ToString(),
                 ModuleText = module_int_google.ModuleText,
                 Name = module_int_google.Name,
-                ModuleSerial = module_int_google.ModuleSerial,
+                ModuleSerial = module_int_google.ModuleSerial ?? string.Empty,
                 IsEnabled = module_int_google.IsEnabled
             } : new BookingModuleDetailsViewModel(),
 
@@ -128,7 +166,7 @@ public class BookingService : BaseLongService<BookingViewModel, Booking>, IBooki
                 ModuleId = module_room_adv.ModuleId.ToString(),
                 ModuleText = module_room_adv.ModuleText,
                 Name = module_room_adv.Name,
-                ModuleSerial = module_room_adv.ModuleSerial,
+                ModuleSerial = module_room_adv.ModuleSerial ?? string.Empty,
                 IsEnabled = module_room_adv.IsEnabled
             } : new BookingModuleDetailsViewModel(),
         };
@@ -148,6 +186,5 @@ public class BookingService : BaseLongService<BookingViewModel, Booking>, IBooki
             Facility = facilities
         };
     }
-
 }
 

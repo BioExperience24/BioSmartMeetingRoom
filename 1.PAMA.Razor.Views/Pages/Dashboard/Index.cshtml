@@ -1,0 +1,229 @@
+@page "/dashboard"
+@model _1.PAMA.Razor.Views.Pages.Dashboard.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["PageName"] = "Dashboard";
+}
+
+@section Styles
+{
+    <link href="~/assets/theme/plugins/morrisjs/morris.css" rel="stylesheet" />
+    <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="~/assets/external/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <link href="~/assets/external/daterangepicker/daterangepicker.css" rel="stylesheet" />
+    <style>
+        .text{
+            /*font-weight: bold;*/
+            font-size: 20px !important;
+        }
+    </style>
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="block-header">
+            <h2>@ViewData["PageName"]</h2>
+        </div>
+        <div class="row clearfix">
+
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                <div class="info-box hover-expand-effect">
+                    <div class="icon  bg-orange ">
+                        <i class="material-icons">event</i>
+                    </div>
+                    <div class="content">
+                        <div class="text">@Model.CurrentDate</div>
+                        <div class="number count-to" id="time1">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                <div class="info-box hover-expand-effect">
+                    <div class="icon  bg-cyan">
+                        <i class="material-icons">dns</i>
+                    </div>
+                    <div class="content">
+                        <div class="text">ROOM</div>
+                        <div class="number count-to" data-from="0" data-to="0" data-speed="1000" data-fresh-interval="20">
+                            @* <?= count($room)?> *@
+                            @Model.CountRoom
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                <div class="info-box  hover-expand-effect">
+                    <div class="icon bg-light-green">
+                        <i class="material-icons">toc</i>
+                    </div>
+                    <div class="content">
+                        <div class="text">TRANSACTION</div>
+                        <div class="number count-to" data-from="0" data-to="0" data-speed="1000" data-fresh-interval="20">
+                            @* <?= count($booking)?> *@
+                            @Model.CountTransaction
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                <div class="info-box  hover-expand-effect">
+                    <div class="icon bg-orange">
+                        <i class="material-icons">person_add</i>
+                    </div>
+                    <div class="content">
+                        <div class="text">EMPLOYEE/USER</div>
+                        <div class="number count-to" data-from="0" data-to="0" data-speed="1000" data-fresh-interval="20">
+                            @* <?= count($employee)?> *@
+                            @Model.CountEmployee                    
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="row clearfix">
+            <!-- Line Booking -->
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="header">
+                        <div class="row clearfix">
+                            <div class="col-xs-12 col-sm-6">
+                                <h2>TRANSACTION CHART</h2>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 align-right">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-default btn-lg dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <b id="id_select_years_transaction"></b> <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" style="z-index: 2000 !important;left:-105px;">
+                                        <div id="id_datepicker_transaction" style="width: 200px;"></div>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <canvas id="line_chart_transaction" height="150"></canvas>
+                        <!-- <div id="line_chart" class="graph"></div> -->
+                    </div>
+                </div>
+            </div>
+            <!-- BAR Booking -->
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="header">
+                        <div class="row clearfix">
+                            <div class="col-xs-12 col-sm-6">
+                                <h2>TOP 5 MOST ROOM CHART</h2>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 align-right">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-default btn-lg dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <b id="id_select_years_top_room"></b> <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" style="z-index: 2000 !important;left:-105px;">
+                                        <div id="id_datepicker_top_room" style="width: 200px;"></div>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="body">
+                        <canvas id="line_chart_top_room" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- #END# BAR Booking -->
+            <!-- LINE Booking -->
+            <!-- <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="header">
+                        <div class="row clearfix">
+                            <div class="col-xs-6 col-sm-8">
+                                <h2>THE MOST OFTEN RESERVE ON</h2>
+                            </div>
+                            <div class="col-xs-6 col-sm-4 align-right">
+                                <div class="btn-group">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="body">
+                    </div>
+                </div>
+            </div> -->
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="header">
+                        <div class="row clearfix">
+                            <div class="col-xs-12 col-sm-6">
+                                <h2>ONGOING MEETING</h2>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="body" class="reponsive table-reponsive" >
+                        <div class="row clearfix">
+                            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
+                                
+                            </div>
+                            <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <i class="material-icons">date_range</i>
+                                    </span>
+                                    <div class="form-line">
+                                        <input id="daterangepicker" type="text" class="form-control " >
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2">
+                                
+                            </div>
+
+                        </div>
+                        <table id="id_tbl_ongoing" class="table table-hover table-bordered">
+                            <thead>
+                                <th>Time</th>
+                                <th>Title of meeting</th>
+                                <th>Room</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                            </thead>    
+                            <tbody></tbody>  
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+            <!-- #END# Line Booking -->
+        </div>
+    </div>
+</section>
+
+<input type="hidden" id="id_baseurl" value="@Model.ApiUrl">
+
+@section Scripts
+{
+    <script>
+        const ajax = {
+            url : {
+                get_booking_charts : "@Model.GetListChart",
+                get_ongoing_bookings : "@Model.GetOngoingBookings",
+                get_room_top_charts : "@Model.GetChartTopRoom"
+            }
+        }
+    </script>
+    <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+    <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
+    <script src="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
+    <!-- Bootstrap Material Datetime Picker Plugin Js -->
+    <script src="~/assets/external/daterangepicker/daterangepicker.js"></script>
+    <script src="~/assets/external/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/assets/theme/plugins/chartjs/Chart.bundle.js"></script>
+    <script src="~/assets/process/dashboard/index.js"></script>
+}

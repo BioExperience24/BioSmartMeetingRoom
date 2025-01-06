@@ -245,7 +245,8 @@
         $(function() {
             init();
         })
-        var data_content = `@Html.Raw(Model.ContentBuilding)`;
+        @* var data_content = `@Html.Raw(Model.ContentBuilding)`; *@
+        var data_content = `@await Html.PartialAsync("Building/content")`;
 
         function clickSubmit(id) {
             $('#' + id).click();

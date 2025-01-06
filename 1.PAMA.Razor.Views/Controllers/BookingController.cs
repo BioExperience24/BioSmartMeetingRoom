@@ -2,6 +2,7 @@ using System.Text.Json;
 using _3.BusinessLogic.Services.Implementation;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
+using _5.Helpers.Consumer._Common;
 using _5.Helpers.Consumer._Response;
 using _7.Entities.Models;
 using Controllers;
@@ -13,9 +14,46 @@ namespace _1.PAMA.Razor.Views.Controllers
     [ApiController]
     [Route("api/[controller]/[action]")]
     public class BookingController(IBookingService service, IHttpContextAccessor httpContextAccessor) 
-    : BaseLongController<BookingViewModel>(service)
+        : BaseLongController<BookingViewModel>(service)
     {
         private readonly _Json _jsonResponse = new(httpContextAccessor.HttpContext);
+
+        [HttpGet("{year}")]
+        public async Task<IActionResult> GetTransactionChartItems(int year)
+        {
+            ReturnalModel ret = new();
+
+            ret.Message = "Get success";
+
+            ret.Collection = await service.GetItemChartsAsync(year);
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet("{startDate}/{endDate}")]
+        public async Task<IActionResult> GetOngoingItems(string startDate, string endDate)
+        {
+            DateOnly sDate = _String.ToDateOnly(startDate);
+            DateOnly eDate = _String.ToDateOnly(endDate);
+            
+            ReturnalModel ret = new();
+            
+            ret.Message = "Get success";
+            
+
+            // Kondisi jika session levelid-nya == 1
+            ret.Collection = await service.GetItemOngoingAsync(sDate, eDate);
+
+            // NOTE: Buat ketika data auth (session) sudah ada 
+            // TODO: Kondisi jika session levelid-nya == 2
+            // On progress
+            
+            // NOTE: Buat ketika data auth (session) sudah ada 
+            // TODO: Kondisi jika session levelid-nya != 1 & 2
+            // Error return
+
+            return StatusCode(ret.StatusCode, ret);
+        }
 
         [HttpGet]
         public async Task<ActionResult> GetDataByDate(DateTime start, DateTime end)
@@ -42,6 +80,5 @@ namespace _1.PAMA.Razor.Views.Controllers
             //    return _jsonResponse.Set("fail", "You don't have any access", new List<BookingViewModel>()).Generate();
             //}
         }
-
     }
 }

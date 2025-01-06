@@ -14,7 +14,7 @@ namespace _6.Repositories.Repository
         {
             var query = from roomDisplay in _dbContext.RoomDisplays
                         from room in _dbContext.Rooms
-                                .Where(q => q.RadId == roomDisplay.RoomId)
+                                .Where(q => q.Radid == roomDisplay.RoomId)
                         where roomDisplay.IsDeleted == 0 && room.IsDeleted == 0
                         orderby room.Id ascending
                         select new {

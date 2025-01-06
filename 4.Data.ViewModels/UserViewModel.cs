@@ -47,7 +47,7 @@ namespace _4.Data.ViewModels
 
         [JsonPropertyName("is_approval")]
         public int? IsApproval { get; set; }
-    
+
         [JsonPropertyName("group_name")]
         public string? GroupName { get; set; }
 
@@ -59,18 +59,18 @@ namespace _4.Data.ViewModels
     {
         [BindProperty(Name = "username")]
         public string Username { get; set; } = string.Empty;
-        
+
         [BindProperty(Name = "password")]
         public string Password { get; set; } = string.Empty;
-        
+
         [BindProperty(Name = "level_id")]
         public int LevelId { get; set; }
-        
+
         [BindProperty(Name = "is_disactived")]
         public int IsDisactived { get; set; }
-        
+
         [BindProperty(Name = "access_id")]
-        public string[] AccessId { get; set; } = new string[] {};
+        public string[] AccessId { get; set; } = new string[] { };
     }
 
     public class UserVMCreateFR : UserVMDefaultFR
@@ -101,5 +101,11 @@ namespace _4.Data.ViewModels
     {
         [BindProperty(Name = "id")]
         public long Id { get; set; }
+    }
+    public class LoginModel
+    {
+        public required string Username { get; set; }
+
+        public required string Password { get; set; }
     }
 }

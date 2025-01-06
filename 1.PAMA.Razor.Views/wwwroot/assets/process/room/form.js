@@ -174,16 +174,24 @@ function submitFrmModuleUpdate() {
 
 
     // Merge the `formAdv` FormData object into `form`
+
+    var room_usage_detail = []; // Initialize an empty array
+
     for (const [key, value] of formAdv.entries()) {
-        if (key == "room_usage_detail") {
-            form.append("room_usage_detail", JSON.stringify(gRoomForUsageGenerate))
-            continue
+        if (key === "room_usage_detail") {
+            if (room_usage_detail.length === 0) {
+                // If the room_usage_detail array is empty, append the generated data
+                form.append("room_usage_detail", JSON.stringify(gRoomForUsageGenerate));
+                room_usage_detail = gRoomForUsageGenerate
+            }
+            continue; // Skip appending this key-value pair
         }
-        form.append(key, value);
+        form.append(key, value); // Append other key-value pairs
     }
 
+
     // Get the third form element using jQuery
-    var formCheckinElement = $("#frm_crt_checkin")[0]; // Get the raw DOM element
+    var formCheckinElement = $("#frm_adv_checkin_update")[0]; // Get the raw DOM element
     var formCheckin = new FormData(formCheckinElement);
 
     // Merge the `formCheckin` FormData object into `form`

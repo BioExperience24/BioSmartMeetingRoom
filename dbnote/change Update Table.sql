@@ -56,13 +56,25 @@ ALTER TABLE smart_meeting_room.access_controller_falco DROP CONSTRAINT PK_access
 ALTER TABLE smart_meeting_room.access_controller_falco ALTER COLUMN id bigint;
 ALTER TABLE smart_meeting_room.access_controller_falco ADD CONSTRAINT PK_access_controller_falco_id PRIMARY KEY (id);
 
+--
+ALTER TABLE smart_meeting_room.room DROP CONSTRAINT PK_room_id;
+ALTER TABLE smart_meeting_room.room ALTER COLUMN id bigint;
+ALTER TABLE smart_meeting_room.room ADD CONSTRAINT PK_room_id PRIMARY KEY (id);
+
+--
 -- Step 1: Alter the column type (without default)
 ALTER TABLE smart_meeting_room.smart_meeting_room.room 
 ALTER COLUMN is_beacon INT;
-
 -- Step 2: Add a default constraint
 ALTER TABLE smart_meeting_room.smart_meeting_room.room 
 ADD CONSTRAINT DF_is_beacon DEFAULT 0 FOR is_beacon;
+
+--
+ALTER TABLE smart_meeting_room.smart_meeting_room.room ALTER COLUMN work_end nvarchar(5) NOT NULL;
+ALTER TABLE smart_meeting_room.smart_meeting_room.room ALTER COLUMN work_start nvarchar(5) NOT NULL;
+
+ALTER TABLE smart_meeting_room.smart_meeting_room.room ALTER COLUMN work_end nvarchar(255) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL;
+ALTER TABLE smart_meeting_room.smart_meeting_room.room ALTER COLUMN work_start nvarchar(255) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL;
 
 -- smart_meeting_room.smart_meeting_room.room_detail definition
 
@@ -109,13 +121,6 @@ ALTER TABLE smart_meeting_room.smart_meeting_room.room_for_usage_detail
 ALTER COLUMN room_id BIGINT NULL;
 
 ALTER TABLE smart_meeting_room.smart_meeting_room.room_merge_detail ALTER COLUMN room_id bigint NOT NULL;
-
-ALTER TABLE smart_meeting_room.smart_meeting_room.room ALTER COLUMN work_end nvarchar(5) NOT NULL;
-ALTER TABLE smart_meeting_room.smart_meeting_room.room ALTER COLUMN work_start nvarchar(5) NOT NULL;
-
-ALTER TABLE smart_meeting_room.smart_meeting_room.room ALTER COLUMN work_end nvarchar(255) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL;
-ALTER TABLE smart_meeting_room.smart_meeting_room.room ALTER COLUMN work_start nvarchar(255) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL;
-
 
 -- 
 ALTER TABLE smart_meeting_room.kiosk_display DROP CONSTRAINT PK_kiosk_display_id;

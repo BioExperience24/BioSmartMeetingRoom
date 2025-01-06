@@ -1,0 +1,18 @@
+﻿@page
+@model   _1.PAMA.Razor.Views.Pages.AccessDeniedModel
+@{
+    Layout = "_Layout"; // Pastikan pakai layout yang sesuai jika ada
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="alert alert-danger" role="alert">
+                <h2><strong>Access Denied!</strong></h2>
+                <p class="lead">You do not have permission to view this page.</p>
+                <p>If you believe this is an error, please contact the system administrator.</p>
+            </div>
+            <a href="@Url.Page("/Index")" class="btn btn-primary">Go Back to Home</a>
+        </div>
+    </div>
+</div>

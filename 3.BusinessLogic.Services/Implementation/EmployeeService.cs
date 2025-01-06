@@ -26,7 +26,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
         AlocationMatrixRepository alocationMatrixRepo,
         UserRepository userRepo,
         IAttachmentListService attachmentListService,
-        IConfiguration config) 
+        IConfiguration config)
         : base(repo, mapper)
     {
         _repo = repo;
@@ -50,6 +50,11 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
         return __mapper.Map<List<EmployeeVMResp>>(employees);
     }
 
+    public async Task<int> GetCountAsync()
+    {
+        return await _repo.GetCountAsync();
+    }
+
     public async Task<IEnumerable<EmployeeViewModel>> GetItemsWithoutUserAsync()
     {
         var employees = await _repo.GetItemsWithoutUserAsync();
@@ -59,7 +64,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
 
     public async Task<EmployeeViewModel?> CreateAsync(EmployeeVMCreateFR request)
     {
-        
+
         using (var scope = new TransactionScope(
             TransactionScopeOption.Required,
             new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },

@@ -11,4 +11,8 @@
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Activities.Extensions" Version="2.0.6.9" />
+	</ItemGroup>
+
 </Project>

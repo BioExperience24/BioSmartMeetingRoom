@@ -31,7 +31,7 @@ namespace _6.Repositories.Repository
                                 from room in _dbContext.Rooms
                                 where room.IsDeleted == 0
                                 && room.BuildingId == building.Id
-                                select new { room.RadId }
+                                select new { room.Radid }
                             ).Count(),
                             CountFloor = (
                                 from beaconFloor in _dbContext.BeaconFloors
@@ -72,7 +72,7 @@ namespace _6.Repositories.Repository
                                 from room in _dbContext.Rooms
                                 where room.IsDeleted == 0
                                 && room.BuildingId == building.Id
-                                select new { room.RadId }
+                                select new { room.Radid }
                             ).Count(),
                             CountFloor = (
                                 from beaconFloor in _dbContext.BeaconFloors

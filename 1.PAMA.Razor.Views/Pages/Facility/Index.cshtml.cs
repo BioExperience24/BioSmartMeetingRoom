@@ -1,21 +1,23 @@
 using _3.BusinessLogic.Services.Implementation;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.Facility;
 
+[Authorize]
 public class IndexModel : PageModel
 {
     private readonly HttpContext _httpContext;
 
     private readonly IConfiguration _config;
-    
+
     private readonly IFacilityService _service;
-    
+
     public IndexModel(
-        IHttpContextAccessor httpContextAccessor, 
+        IHttpContextAccessor httpContextAccessor,
         IConfiguration config,
         IFacilityService service)
     {
@@ -38,7 +40,7 @@ public class IndexModel : PageModel
         Facility = (await _service.GetAll()).ToList();
     } */
 
-   
+
     //public async Task<IActionResult> OnPostAsync()
     //{
     //    //if (!ModelState.IsValid)

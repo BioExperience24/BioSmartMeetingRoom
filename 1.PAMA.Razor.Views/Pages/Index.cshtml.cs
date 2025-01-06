@@ -3,18 +3,14 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace PAMA1.Pages
 {
-    public class IndexModel : PageModel
+    public class IndexModel(IConfiguration config) : PageModel
     {
-        private readonly ILogger<IndexModel> _logger;
+        public string AppUrl { get; set; } = config["App:BaseUrl"] ?? string.Empty;
 
-        public IndexModel(ILogger<IndexModel> logger)
+        public IActionResult OnGet()
         {
-            _logger = logger;
-        }
-
-        public void OnGet()
-        {
-
+            // return Redirect($"{AppUrl}company");
+            return Redirect($"{AppUrl}dashboard");
         }
     }
 }

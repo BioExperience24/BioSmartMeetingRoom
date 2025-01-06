@@ -35,7 +35,7 @@
         <ul class="list" style="overflow: hidden; width: auto; height: 656px;">
             <li class="header">MAIN NAVIGATION</li>
             <li class="">
-                <a href="#" class=" waves-effect waves-block">
+                <a href="@($"{Model.AppUrl}dashboard")" class=" waves-effect waves-block">
                     <i class="material-icons">home</i>
                     <span>Dashboard</span>
                 </a>
@@ -102,13 +102,13 @@
             </a>
             <ul class="ml-menu">
                 <li>
-                    <a href="@Model.AppUrl/booking" class=" waves-effect waves-block">Room Schedule</a>
+                    <a href="@($"{Model.AppUrl}booking")" class=" waves-effect waves-block">Room Schedule</a>
                 </li>
                 <li>
-                    <a href="@Model.AppUrl/room" class=" waves-effect waves-block">Room Management</a>
+                    <a href="@($"{Model.AppUrl}room")" class=" waves-effect waves-block">Room Management</a>
                 </li>
                 <li>
-                    <a href="@Model.AppUrl/report-usage" class=" waves-effect waves-block">Room Usage</a>
+                    <a href="@($"{Model.AppUrl}report-usage")" class=" waves-effect waves-block">Room Usage</a>
                 </li>
             </ul>
 
@@ -119,9 +119,6 @@
             <ul class="ml-menu">
                 <li>
                     <a href="/Pantry" class=" waves-effect waves-block">Master Snack &amp; Pantry</a>
-                </li>
-                <li>
-                    <a href="/Pantry-menu" class=" waves-effect waves-block">Menu Order</a>
                 </li>
                 <li>
                     <a href="/Pantry-package" class=" waves-effect waves-block">Menu Package</a>
@@ -144,7 +141,7 @@
             </a>
             <ul class="ml-menu">
                 <li>
-                    <a href="@Model.AppUrl/setting/general" class=" waves-effect waves-block">General</a>
+                    <a href="@($"{Model.AppUrl}setting/general")" class=" waves-effect waves-block">General</a>
                 </li>
                 <li>
                     <a href="#" class=" waves-effect waves-block">SMTP &amp; Email</a>
@@ -153,7 +150,12 @@
                     <a href="#" class=" waves-effect waves-block">License</a>
                 </li>
             </ul>
-                            
+            <li class="">
+                <a href="/Logout" class=" waves-effect waves-block">
+                    <i class="material-icons"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
         </ul>
     </div>
     <!-- #Menu -->

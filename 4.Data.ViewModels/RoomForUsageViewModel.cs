@@ -5,7 +5,7 @@ public class RoomForUsageViewModel
 {
 
     [JsonPropertyName("id")]
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     [JsonPropertyName("name")]
     public string? Name { get; set; }

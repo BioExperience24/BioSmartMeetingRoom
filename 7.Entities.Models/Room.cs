@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Numerics;
 using System.Text.Json.Serialization;
 
 namespace _7.Entities.Models;
@@ -10,7 +7,7 @@ namespace _7.Entities.Models;
 public partial class Room : BaseLongEntity
 {
     [JsonPropertyName("radid")]
-    public string RadId { get; set; } = null!;
+    public string Radid { get; set; } = null!;
 
     [JsonPropertyName("building_id")]
     public long? BuildingId { get; set; }
@@ -20,6 +17,9 @@ public partial class Room : BaseLongEntity
 
     [JsonPropertyName("type_room")]
     public string? TypeRoom { get; set; }
+
+    [JsonPropertyName("kind_room")]
+    public string? KindRoom { get; set; }
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = null!;

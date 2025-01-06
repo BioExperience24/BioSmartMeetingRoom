@@ -1,12 +1,14 @@
 using System.Text.Json;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.Access
 {
+    [Authorize]
     public class IndexModel(
-        IConfiguration config, 
+        IConfiguration config,
         IModuleBackendService moduleBackendService,
         IAccessControllerTypeService accessControllerTypeService)
         : PageModel
@@ -16,7 +18,7 @@ namespace _1.PAMA.Razor.Views.Pages.Access
 
         public string AppUrl { get; set; } = config["App:BaseUrl"] ?? string.Empty;
         public string ApiUrl { get; set; } = config["ApiUrls:BaseUrl"] ?? string.Empty;
-        
+
         public string GetAccessControls { get; set; } = config["ApiUrls:Endpoints:Access:GetAccessControls"] ?? string.Empty;
         public string GetAccessControlById { get; set; } = config["ApiUrls:Endpoints:Access:GetAccessControlById"] ?? string.Empty;
         public string GetRooms { get; set; } = config["ApiUrls:Endpoints:Access:GetRooms"] ?? string.Empty;
@@ -32,7 +34,8 @@ namespace _1.PAMA.Razor.Views.Pages.Access
 
         public async Task OnGetAsync()
         {
-            ModuleBackendViewModel vm = new ModuleBackendViewModel {
+            ModuleBackendViewModel vm = new ModuleBackendViewModel
+            {
                 ModuleText = "module_access_door"
             };
             var moduleAccessDoor = await _moduleBackendService.GetItemAsync(vm);

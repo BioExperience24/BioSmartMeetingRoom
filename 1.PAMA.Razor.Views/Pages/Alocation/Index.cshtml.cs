@@ -2,11 +2,13 @@ using System.Text.Json;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.Alocation
 {
+    [Authorize]
     public class IndexModel : PageModel
     {
 
@@ -23,7 +25,7 @@ namespace _1.PAMA.Razor.Views.Pages.Alocation
         // private readonly IEmployeeService _employeeService;
 
         public IndexModel(
-            IHttpContextAccessor httpContextAccessor, 
+            IHttpContextAccessor httpContextAccessor,
             IConfiguration config,
             IAlocationService alocationService,
             IAlocationTypeService alocationTypeService,
@@ -32,7 +34,7 @@ namespace _1.PAMA.Razor.Views.Pages.Alocation
             _httpContext = httpContextAccessor.HttpContext ?? throw new("HttpContext is not available.");
             // _jsonResponse = new _Json(_httpContext);
             _config = config;
-            
+
             // _alocationService = alocationService;
             // _alocationTypeService = alocationTypeService;
             // _employeeService = employeeService;

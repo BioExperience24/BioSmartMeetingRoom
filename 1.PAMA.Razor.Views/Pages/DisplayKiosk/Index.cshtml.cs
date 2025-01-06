@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.DisplayKiosk
 {
+    [Authorize]
     public class IndexModel(
         IConfiguration config
     )

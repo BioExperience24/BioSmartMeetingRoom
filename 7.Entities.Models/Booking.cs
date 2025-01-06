@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace _7.Entities.Models;
 
@@ -19,7 +17,7 @@ public partial class Booking : BaseLongEntity
 
     public string Title { get; set; } = null!;
 
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
 
     public string RoomId { get; set; } = null!;
 
@@ -196,6 +194,13 @@ public partial class Booking : BaseLongEntity
     public DateTime? ServerEnd { get; set; }
 }
 
+public class BookingChart
+{
+    public string Month { get; set; } = string.Empty;
+    public string Md { get; set; } = string.Empty;
+    public int Total { get; set; }
+    public int Tahun { get; set; }
+}
 
 public class BookingMenuDto
 {
@@ -203,28 +208,28 @@ public class BookingMenuDto
     public long? LevelId { get; set; }
 
     [JsonPropertyName("level_name")]
-    public string LevelName { get; set; }
+    public string LevelName { get; set; } = null!;
 
     [JsonPropertyName("menu_group_id")]
     public long? MenuGroupId { get; set; }
 
     [JsonPropertyName("g_menu_name")]
-    public string GMenuName { get; set; }
+    public string GMenuName { get; set; } = null!;
 
     [JsonPropertyName("g_menu_id")]
     public long? GMenuId { get; set; }
 
     [JsonPropertyName("mg_icon")]
-    public string MgIcon { get; set; }
+    public string MgIcon { get; set; } = null!;
 
     [JsonPropertyName("menu_name")]
-    public string MenuName { get; set; }
+    public string MenuName { get; set; } = null!;
 
     [JsonPropertyName("url")]
-    public string Url { get; set; }
+    public string Url { get; set; } = null!;
 
     [JsonPropertyName("icon")]
-    public string Icon { get; set; }
+    public string Icon { get; set; } = null!;
 
     [JsonPropertyName("is_child")]
     public int? IsChild { get; set; }

@@ -57,7 +57,8 @@ namespace _3.BusinessLogic.Services.Implementation
                         ? request.Id
                         : gen;
 
-                    request.Id = $"{gen}{_String.RandomAlNum(4)}";
+                    // request.Id = $"{gen}{_String.RandomAlNum(4)}";
+                    request.Id = $"{gen}{_Random.AlphabetNumeric(4)}";
 
                     item.DepartmentCode = kode;
                     item.CreatedAt = now;

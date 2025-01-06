@@ -3,6 +3,8 @@ using _5.Helpers.Consumer._Response;
 using _5.Helpers.Consumer.EnumType;
 using Microsoft.AspNetCore.Hosting;
 using SkiaSharp;
+using System.Buffers.Text;
+using System.Net.Mail;
 
 namespace _3.BusinessLogic.Services.Implementation;
 
@@ -119,12 +121,18 @@ public class AttachmentListService : IAttachmentListService
         return new FileReady() { FileStream = null, FileName = "ContohFile" };
     }
 
-    public async Task<string> NoImageBase64(string filename = "no-image.jpg", int sizeh = 60)
+    public async Task<string> NoImageBase64(string filename = "no-image.jpg", int sizeh = 100)
     {
         var sepp = _helper.separator();
         var folder = $"{_env.WebRootPath}{sepp}assets{sepp}images";
         var memoryStream = await _helper.GetMemoryStreamFile(folder, filename);
         return ChangeImageSize(sizeh, memoryStream);
+    }
+    public async Task<FileReady> ViewNoImage()
+    {
+        var base64 = await NoImageBase64();
+        MemoryStream dataStream = ConvertBase64ToMemoryStream(base64);
+        return new FileReady() { FileStream = dataStream, FileName = "Preview No Image" };
     }
 
     public async Task<string> GenerateThumbnailBase64(string? fileName, int sizeh = 60)
@@ -220,8 +228,8 @@ public class AttachmentListService : IAttachmentListService
     {
         var fileExtension = Path.GetExtension(file.FileName);
         var newGuid = Guid.NewGuid();
-        
-        fileName = string.IsNullOrEmpty(fileName) ? 
+
+        fileName = string.IsNullOrEmpty(fileName) ?
                     $"{newGuid.ToString()}{fileExtension}" :
                     $"{fileName}{fileExtension}";
 

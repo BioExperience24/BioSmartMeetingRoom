@@ -138,22 +138,15 @@
                                         @* Uncomment if needed *@
                                         @* <th>Work Day</th> *@
 
-                                        @if (Model.RoomDetails.Modules.Automation.IsEnabled == 1)
-
-                                        {
-                                            <th>Automation Active</th>
-                                            <th>Automation</th>
-                                        }
-
                                         @if (Model.RoomDetails.Modules.Price.IsEnabled == 1)
                                         {
                                             <th>Price</th>
                                         }
 
-                                        @if (Model.RoomDetails.Modules.Int365.IsEnabled == 1 || Model.RoomDetails.Modules.IntGoogle.IsEnabled == 1)
+                                        @* @if (Model.RoomDetails.Modules.Int365.IsEnabled == 1 || Model.RoomDetails.Modules.IntGoogle.IsEnabled == 1)
                                         {
                                             <th>Integration</th>
-                                        }
+                                        } *@
 
                                         <th>Status</th>
                                         <th style="width:320px"></th>
@@ -185,7 +178,6 @@
 
                     {
                         <li role="presentation"><a href="#room-advanced-create" data-toggle="tab">Advanced Setting</a></li>
-                        <li role="presentation" id="id_panel_checkin" style="display:none;"><a href="#room-checkin-create" data-toggle="tab">Check In Setting</a></li>
                     }
                 </ul>
                 <br>
@@ -233,6 +225,17 @@
                                                 <select title="Choose the type..." onchange="initTypeRoom('','id_crt_type_room','id_crt_merge_room','')" name="type_room" id="id_crt_type_room" class="form-control show-tick">
                                                     <option value="single">Single Room</option>
                                                     <option value="merge">Merge Room</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-6" id="id_kind_room_add">
+                                            <label for="">Kind Room</label>
+                                            <div class="form-group">
+                                                <select title="Choose the kind room..." name="kind_room" id="id_crt_kind_room" class="form-control show-tick" data-actions-box="true">
+                                                    <option value="room" selected>Room</option>
+                                                    <option value="trainingroom">Training Room</option>
+                                                    <option value="noroom">No Room</option>
+                                                    <option value="specialroom">Special Room</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -350,20 +353,6 @@
                                     </div>
                                 </div>
                             </div>
-                            @if (Model.RoomDetails.Modules.Automation.IsEnabled == 1)
-                            {
-                                <label for="">Automation Active</label>
-                                <div class="form-group">
-                                    <select title="Enable the Automation..." name="is_automation" id="id_crt_automation_active" class="form-control show-tick">
-                                        <option value="0">Off</option>
-                                        <option value="1">On</option>
-                                    </select>
-                                </div>
-                                <label for="">Automation List</label>
-                                <div class="form-group">
-                                    <select title="Choose the Automations List..." name="automation_id" id="id_crt_automation" class="form-control show-tick"></select>
-                                </div>
-                            }
                             <br>
                             <button type="submit" style="display: none;" id="id_btn_crt_submit" class="btn btn-primary m-t-15 waves-effect">Save</button>
                         </form>
@@ -397,29 +386,6 @@
                                                 <select data-size="5" onchange="ocCrtRoomForUsage()" title="Choose the usage..." data-selected-text-format="count > 3" data-actions-box="true" disabled name="config_room_for_usage[]" id="id_crt_adv_room_for_usage" class="form-control show-tick" multiple>
                                                 </select>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="row clearfix">
-                                        <div class="col-xs-12">
-                                            <label for="">
-                                                List Room for Usage <a data-toggle="tooltip" data-placement="bottom" title=" This room can be limited to a minimum booking time
-                                    "> (?) </a>
-                                        </div>
-                                        <div class="col-xs-12" style="max-height: 200px; overflow-y: scroll;">
-                                            <table class="table table-striped" id="id_crt_adv_tbl_room_for_usage">
-                                                <thead>
-                                                <th>No.</th>
-                                                <th>Usage</th>
-                                                <th>Minimum Capacity</th>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <td></td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
                                         </div>
                                     </div>
                                     <div class="row clearfix">
@@ -522,75 +488,6 @@
                             <!-- <button type="submit" style="display: none;" id="id_btn_edt_adv_submit" class="btn btn-primary m-t-15 waves-effect">Update</button> -->
                         </form>
                     </div>
-                    <div role="tabpanel" class="tab-pane fade in" id="room-checkin-create">
-                        <form id="frm_crt_checkin">
-                            <div class="row clearfix">
-                                <div class="col-xs-6">
-                                    <div class="row">
-                                        <div class="col-xs-12">
-                                            <div class="row">
-                                                <div class="col-xs-8 align-left">
-                                                    <label for="id_crt_adv_is_enable_checkin">
-                                                        Needs Room Check IN <a data-toggle="tooltip" data-placement="bottom" title=" If this feature is activated, the room that has been booked will need to be checked in after the room is active
-                                                            "> (?) </a>
-                                                    </label>
-                                                </div>
-                                                <div class="col-xs-4 align-right">
-                                                    <div class="switch">
-                                                        <label><input id="id_crt_adv_is_enable_checkin" name="is_enable_checkin" type="checkbox"><span class="lever switch-col-red"></span></label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <br>
-                                    <div class="row">
-                                        <div class="col-xs-12">
-                                            <label for="">Permission to Check in</label>
-                                            <div class="form-group">
-                                                <select title="Choose the permission..." disabled name="config_permission_checkin" id="id_crt_adv_config_permission_checkin" class="form-control show-tick" disabled>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-xs-6">
-                                    <div class="row">
-                                        <div class="col-xs-12">
-                                            <label for="">Permission to End Meeting</label>
-                                            <div class="form-group">
-                                                <select title="Choose the permission..." name="config_permission_end" id="id_crt_adv_config_permission_end" class="form-control show-tick" disabled>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-xs-12">
-                                            <div class="row">
-                                                <div class="col-xs-4 align-left">
-                                                    <label for="id_crt_adv_is_realease_checkin_timeout">
-                                                        Release a Meeting Room <a data-toggle="tooltip" data-placement="bottom" title=" If this feature is activated, rooms that have the check-in feature activated will be able to be released automatically if the room is not checked in within the specified time
-                                                            "> (?) </a>
-                                                    </label>
-                                                </div>
-                                                <div class="col-xs-2 align-right">
-                                                    <div class="switch">
-                                                        <label><input id="id_crt_adv_is_realease_checkin_timeout" name="is_realease_checkin_timeout" type="checkbox"><span class="lever switch-col-red"></span></label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-xs-6 align-right">
-                                                    <div class="form-group">
-                                                        <select data-size="5" title="Choose the time..." disabled name="config_release_room_checkin_timeout" id="id_crt_adv_config_release_room_checkin_timeout" class="form-control show-tick">
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -661,6 +558,13 @@
                                             <label for="">Merger Room</label>
                                             <div class="form-group">
                                                 <select title="Choose the any room..." name="merge_room[]" id="id_edt_merge_room" class="form-control show-tick" multiple data-actions-box="true">
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <label for="">Kind Room</label>
+                                            <div class="form-group">
+                                                <select title="Choose the kind room..." name="kind_room" id="id_edt_kind_room" class="form-control show-tick">
                                                 </select>
                                             </div>
                                         </div>
@@ -760,7 +664,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- <div class="row">
+                                    <div class="row">
                                                     <div class="col-xs-4">
                                                         <label for="">Old Image 1 </label>
                                                         <a href="javascript:void(0);" class="thumbnail">
@@ -802,25 +706,11 @@
                                                             />
                                                         </div>
                                                     </div>
-                                                </div> -->
+                                                </div>
                                 </div>
                                 <!-- Split -->
                             </div>
                             
-                            @if (Model.RoomDetails.Modules.Automation.IsEnabled == 1)
-                            {
-                                <label for="">Automation Active</label>
-                                <div class="form-group">
-                                    <select title="Enable the automation..." name="is_automation" id="id_edt_automation_active" class="form-control show-tick">
-                                        <option value="0">Off</option>
-                                        <option value="1">On</option>
-                                    </select>
-                                </div>
-                                <label for="">Automation List</label>
-                                <div class="form-group">
-                                    <select title="Enable the automation list..." name="automation_id" id="id_edt_automation" class="form-control show-tick"></select>
-                                </div>
-                            }
                             <button type="button" style="display: none;" id="id_btn_edt_submit" class="btn btn-primary m-t-15 waves-effect" onclick="submitFrmUpdate()">Update</button>
                         </form>
                     </div>

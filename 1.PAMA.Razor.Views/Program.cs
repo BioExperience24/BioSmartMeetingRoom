@@ -43,6 +43,17 @@ public class Program
         builder.Services.AddCustomRepository();
         builder.Services.AddAutoMapper(typeof(AutoMapConfig));
 
+        // Tambahin authentication dan authorization services
+        builder.Services.AddAuthentication("CookieAuth")
+            .AddCookie("CookieAuth", options =>
+            {
+                options.Cookie.Name = "AuthCookie";
+                options.LoginPath = "/Authentication"; // Redirect ke sini kalau belum login
+                options.AccessDeniedPath = "/AccessDenied";
+            });
+
+        builder.Services.AddAuthorization();
+
         #region SWAGGER
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -104,6 +115,9 @@ public class Program
         #endregion
 
         app.UseRouting();
+
+        // Pakai authentication & authorization middleware
+        app.UseAuthentication();
         app.UseAuthorization();
         app.MapRazorPages();
         app.Run();

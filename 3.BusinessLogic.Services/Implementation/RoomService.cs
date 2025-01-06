@@ -1,20 +1,8 @@
-using System.Diagnostics.Metrics;
-using System.Drawing;
 using System.Net;
-using System.Net.Mail;
-using System.Text.Json;
 using System.Transactions;
 using _2.BusinessLogic.Services.Interface;
-using _3.BusinessLogic.Services.Interface;
-using _4.Data.ViewModels;
-using _5.Helpers.Consumer._Encryption;
 using _5.Helpers.Consumer.EnumType;
-using _6.Repositories.Repository;
-using _7.Entities.Models;
-using AutoMapper;
-using Azure.Core;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 
 namespace _3.BusinessLogic.Services.Implementation
 {
@@ -22,18 +10,13 @@ namespace _3.BusinessLogic.Services.Implementation
     {
         private readonly RoomRepository _repo;
         private readonly ModuleBackendRepository _repoModuleBackend;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IMapper __mapper;
-
         private readonly IAttachmentListService _attachmentListService;
 
         public RoomService(RoomRepository repo, IMapper mapper,
-        IConfiguration config, IAttachmentListService attachmentListService, ModuleBackendRepository repoModuleBackend, IHttpContextAccessor httpContextAccessor) : base(repo, mapper)
+        IConfiguration config, IAttachmentListService attachmentListService, ModuleBackendRepository repoModuleBackend) : base(repo, mapper)
         {
             _repo = repo;
-            __mapper = mapper;
             _repoModuleBackend = repoModuleBackend;
-            _httpContextAccessor = httpContextAccessor;
 
             attachmentListService.SetTableFolder(
                 config["UploadFileSetting:tableFolder:room"] ?? "room");
@@ -41,6 +24,53 @@ namespace _3.BusinessLogic.Services.Implementation
             attachmentListService.SetTypeAllowed(config["UploadFileSetting:imageContentTypeAllowed"]!);
             attachmentListService.SetSizeLimit(Convert.ToInt32(config["UploadFileSetting:imageSizeLimit"] ?? "8")); // MB
             _attachmentListService = attachmentListService;
+        }
+
+        public async Task<IEnumerable<RoomVMChartTopRoom>> GetAllChartTopFiveRoomAsync(int year)
+        {
+            var result = new List<RoomVMChartTopRoom>();
+
+            var items = await _repo.GetAllChartTopFiveRoom3rdAltAsync(year);
+
+            //Console.WriteLine("-----------------------------------------------------");
+            //Console.WriteLine($"items: {JsonSerializer.Serialize(items)}");
+
+            if (items.Any())
+            {
+                Console.WriteLine("Ada data");
+                _mapper.Map(items, result);
+            }
+
+            // return _mapper.Map<List<RoomVMChartTopRoom>>(items);
+            return result;
+        }
+
+        public async Task<IEnumerable<RoomViewModel>> GetAllRoomItemAsync(bool withIsDisabled = true)
+        {
+            var items = await _repo.GetAllRoomItemAsync(false);
+
+            return _mapper.Map<List<RoomViewModel>>(items);
+        }
+
+        public async Task<int> GetCountRoomItemAsync(bool withIsDisabled = true)
+        {
+            var countItem = await _repo.GetCountRoomItemAsync(false);
+
+            return countItem;
+        }
+
+        public async Task<IEnumerable<RoomViewModel>> GetAllRoomRoomDisplayItemAsync()
+        {
+            var items = await _repo.GetAllRoomRoomDisplayItemAsync();
+
+            return _mapper.Map<List<RoomViewModel>>(items);
+        }
+
+        public async Task<IEnumerable<RoomViewModel>> GetAllRoomWithRadidsItemAsycn(string[] radIds)
+        {
+            var items = await _repo.GetAllRoomWithRadidsItemAsycn(radIds);
+
+            return _mapper.Map<List<RoomViewModel>>(items);
         }
 
         public virtual async Task<IEnumerable<RoomDataViewModel>> GetRoomData()
@@ -97,19 +127,18 @@ namespace _3.BusinessLogic.Services.Implementation
             return data;
         }
 
-        public async Task<List<RoomForUsageDetailViewModel>> GetConfigRoomForUsageByIdRoom(long id)
+        public async Task<List<RoomForUsageDetailListViewModel>> GetConfigRoomForUsageByIdRoom(long id)
         {
             // Get the room from the repository (this returns a Room entity)
             var entity = await _repoModuleBackend.GetRoomForUsageDetail(id);
 
-            var data = _mapper.Map<List<RoomForUsageDetailViewModel>>(entity);
+            var data = _mapper.Map<List<RoomForUsageDetailListViewModel>>(entity);
 
             return data;
         }
 
-        public async Task<RoomDetailsViewModel> GetRoomDetailsAsync()
+        public async Task<RoomDetailsViewModel> GetRoomDetailsAsync(string pagename = "Room")
         {
-            var pagename = "Room";
 
             // Assuming session ID is provided or defaults to 1
             var sessionId = 1;
@@ -467,7 +496,7 @@ namespace _3.BusinessLogic.Services.Implementation
             return ret;
         }
 
-        public async Task<ReturnalModel?> UpdateRoom(RoomVMUpdateFRViewModel request, long id)
+        public async Task<ReturnalModel> UpdateRoom(RoomVMUpdateFRViewModel request, long id)
         {
             using (var scope = new TransactionScope(
                 TransactionScopeOption.Required,
@@ -482,6 +511,8 @@ namespace _3.BusinessLogic.Services.Implementation
                 try
                 {
                     DateTime now = DateTime.Now;
+
+                    var old_data = await GetById(id);
 
                     var item = _mapper.Map<Room>(viewModel);
                     item.IsDeleted = 0;
@@ -558,51 +589,125 @@ namespace _3.BusinessLogic.Services.Implementation
                             item.Image = fileName;
                         }
                     }
-
-                    // Handle additional images
-                    string combinedImageNames = string.Empty;
-
-                    if (request.Image2 != null && request.Image2.Count > 0)
+                    else
                     {
-                        // Use StringBuilder for better performance in concatenation
-                        var imageBuilder = new StringBuilder();
+                        item.Image = old_data.Image;
+                    }
 
-                        for (int index = 0; index < request.Image2.Count; index++)
+                    var imageBuilder = new StringBuilder();
+
+                    // Split the old image data into an array
+                    var oldImages = old_data.Image2?.Split("##") ?? new string[3]; // Default to an array of 3 empty strings if null
+
+                    if (request.Image2_1 != null)
+                    {
+                        // Handle the primary image upload
+                        var (fileName, errMsg) = await DoUploadAsync(request.Image2_1);
+                        if (errMsg != null)
                         {
-                            var data = request.Image2[index];
-
-                            // Attempt to upload the image
-                            var (fileName2, errMsg2) = await DoUploadAsync(data);
-                            if (errMsg2 != null)
-                            {
-                                ret.Status = ReturnalType.Failed;
-                                ret.Message = errMsg2; // Return specific error message for secondary image
-                                return ret;
-                            }
-
-                            // Append the file name
-                            imageBuilder.Append(fileName2);
-
-                            // Add separator except for the last item
-                            if (index < request.Image2.Count - 1)
-                            {
-                                imageBuilder.Append("##");
-                            }
+                            ret.Status = ReturnalType.Failed;
+                            ret.Message = errMsg; // Return specific error message
+                            return ret;
                         }
 
-                        combinedImageNames = imageBuilder.ToString();
+                        // Update the first image
+                        oldImages[0] = fileName;
                     }
 
-                    // Assign combined image names if needed
-                    if (!string.IsNullOrEmpty(combinedImageNames))
+                    if (request.Image2_2 != null)
                     {
-                        item.Image2 = combinedImageNames; // Or assign to the appropriate field
+                        // Handle the secondary image upload
+                        var (fileName, errMsg) = await DoUploadAsync(request.Image2_2);
+                        if (errMsg != null)
+                        {
+                            ret.Status = ReturnalType.Failed;
+                            ret.Message = errMsg; // Return specific error message
+                            return ret;
+                        }
+
+                        // Update the second image
+                        oldImages[1] = fileName;
                     }
+
+                    if (request.Image2_3 != null)
+                    {
+                        // Handle the tertiary image upload
+                        var (fileName, errMsg) = await DoUploadAsync(request.Image2_3);
+                        if (errMsg != null)
+                        {
+                            ret.Status = ReturnalType.Failed;
+                            ret.Message = errMsg; // Return specific error message
+                            return ret;
+                        }
+
+                        // Update the third image
+                        oldImages[2] = fileName;
+                    }
+
+                    // Rebuild the string with updated values
+                    imageBuilder.Append(string.Join("##", oldImages));
+
+                    // The final updated image data
+                    var updatedImage2 = imageBuilder.ToString();
+
+                    // Use `updatedImage2` as needed
+
+                    item.Image2 = imageBuilder.ToString();
 
                     if (string.IsNullOrEmpty(request.WorkDay?.ToString()))
                     {
                         item.WorkDay = [];
                     }
+
+                    if(item.IsConfigSettingEnable == 1 && request.ConfigRoomForUsage.Count > 0)
+                    {
+
+                        // Delete existing data
+                        await _repoModuleBackend.DeleteOldRoomForUsageDetailAsync(id);
+
+                        try
+                        {
+                            // Deserialize the JSON data
+                            var dataRoomForUsageDetail = JsonConvert.DeserializeObject<List<RoomForUsageDetailViewModel>>(request?.RoomUsageDetail);
+
+                            var mapper_room_for_usage_detail = _mapper.Map<List<RoomForUsageDetail>>(dataRoomForUsageDetail);
+
+                            // Check if the list has any elements
+                            if (dataRoomForUsageDetail != null && dataRoomForUsageDetail.Count > 0)
+                            {
+                                // Insert the new data in batch
+                                _repoModuleBackend.CreateBulkRoomForUsageDetail(mapper_room_for_usage_detail);
+                            }
+                        }
+                        catch (Exception error)
+                        {
+                            throw error;
+                        }
+                    }
+
+
+                    if (request.TypeRoom == "merge")
+                    {
+                        //await _repoModuleBackend.RemoveRoomMergeDetail(radid);
+
+                        var colInsertMerge = new List<RoomMergeDetail>();
+
+                        foreach (var mergeRoomId in request?.MergeRoom)
+                        {
+                            var postMerge = new RoomMergeDetail
+                            {
+                                RoomId = id,
+                                MergeRoomId = mergeRoomId
+                            };
+                            colInsertMerge.Add(postMerge);
+                        }
+
+                        if (colInsertMerge.Count > 0)
+                        {
+                            await _repoModuleBackend.CreateBulkRoomMergeDetail(colInsertMerge);
+                        }
+                    }
+
 
                     // Handle work_time
                     item.WorkTime = request.WorkStart + "-" + request.WorkEnd;

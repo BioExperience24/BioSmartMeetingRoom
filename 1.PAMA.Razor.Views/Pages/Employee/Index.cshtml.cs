@@ -3,11 +3,13 @@ using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Response;
 using _7.Entities.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.Employee;
 
+[Authorize]
 public class IndexModel : PageModel
 {
     private readonly HttpContext _httpContext;
@@ -27,11 +29,11 @@ public class IndexModel : PageModel
         IEmployeeService service,
         IAlocationService alocationSvc,
         IAlocationTypeService alocationTypeService)
-    {   
+    {
         _httpContext = httpContextAccessor.HttpContext ?? throw new("HttpContext is not available.");
 
         _config = config;
-        
+
         _jsonResponse = new _Json(_httpContext);
 
         _service = service;
@@ -44,7 +46,7 @@ public class IndexModel : PageModel
     public string AlocationTypes { get; set; } = default!;
 
     public string GetEmployees { get; private set; } = string.Empty;
-    
+
     public string GetEmployeeById { get; private set; } = string.Empty;
     public string CreateEmployee { get; private set; } = string.Empty;
 

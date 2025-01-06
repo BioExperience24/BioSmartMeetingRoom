@@ -1,7 +1,6 @@
 ﻿using _4.Data.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
@@ -9,7 +8,7 @@ using System.Text.Json.Serialization;
 public class RoomViewModel : BaseLongViewModel
 {
     [JsonPropertyName("radid")]
-    public string Radid { get; set; }
+    public string Radid { get; set; } = string.Empty;
 
     [JsonPropertyName("building_id")]
     public long? BuildingId { get; set; }
@@ -19,6 +18,9 @@ public class RoomViewModel : BaseLongViewModel
 
     [JsonPropertyName("type_room")]
     public string? TypeRoom { get; set; }
+
+    [JsonPropertyName("kind_room")]
+    public string? KindRoom { get; set; }
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
@@ -39,10 +41,10 @@ public class RoomViewModel : BaseLongViewModel
     public int AutomationId { get; set; }
 
     [JsonPropertyName("facility_room")]
-    public List<string> FacilityRoom { get; set; }
+    public List<string> FacilityRoom { get; set; } = new List<string>();
 
     [JsonPropertyName("work_day")]
-    public List<string> WorkDay { get; set; }
+    public List<string>? WorkDay { get; set; }
 
     [JsonPropertyName("work_time")]
     public string WorkTime { get; set; } = string.Empty;
@@ -56,7 +58,6 @@ public class RoomViewModel : BaseLongViewModel
     [JsonPropertyName("image")]
     public string? Image { get; set; }
 
-    [JsonPropertyName("image2")]
     public string? Image2 { get; set; }
 
     [JsonPropertyName("multiple_image")]
@@ -78,16 +79,15 @@ public class RoomViewModel : BaseLongViewModel
     public int? CreatedBy { get; set; }
 
     [JsonPropertyName("created_at")]
-    public string CreatedAt { get; set; }
+    public string? CreatedAt { get; set; }
 
     [JsonPropertyName("updated_at")]
-    public string UpdatedAt { get; set; }
+    public string? UpdatedAt { get; set; }
 
     [JsonPropertyName("is_config_setting_enable")]
     public int? IsConfigSettingEnable { get; set; }
 
     [JsonPropertyName("config_room_for_usage")]
-
     public List<string>? ConfigRoomForUsage { get; set; }
 
     [JsonPropertyName("is_enable_approval")]
@@ -143,9 +143,71 @@ public class RoomViewModel : BaseLongViewModel
 
     [JsonPropertyName("config_microsoft")]
     public string? ConfigMicrosoft { get; set; }
-    //public RoomAutomationViewModel RoomAutomation { get; set; }
-    //public BuildingViewModel Building { get; set; }
+
+
+
+
+    [JsonPropertyName("ra_name")]
+    public string RaName { get; set; } = string.Empty;
+
+    [JsonPropertyName("ra_id")]
+    public long RaId { get; set; }
+
+    [JsonPropertyName("building_name")]
+    public string BuildingName { get; set; } = string.Empty;
+    
+    [JsonPropertyName("building_detail")]
+    public string BuildingDetail { get; set; } = string.Empty;
+    
+    [JsonPropertyName("building_google_map")]
+    public string BuildingGoogleMap { get; set; } = string.Empty;
+
+    [JsonPropertyName("room_display_background")]
+    public string RoomDisplayBackground { get; set; } = string.Empty;
 }
+
+public class RoomVMChartTopRoom
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("january")]
+    public int January { get; set; } 
+
+    [JsonPropertyName("february")]
+    public int February { get; set; } 
+
+    [JsonPropertyName("maret")]
+    public int Maret { get; set; } 
+
+    [JsonPropertyName("april")]
+    public int April { get; set; } 
+
+    [JsonPropertyName("may")]
+    public int May { get; set; } 
+
+    [JsonPropertyName("june")]
+    public int June { get; set; } 
+
+    [JsonPropertyName("july")]
+    public int July { get; set; } 
+
+    [JsonPropertyName("august")]
+    public int August { get; set; } 
+
+    [JsonPropertyName("september")]
+    public int September { get; set; } 
+
+    [JsonPropertyName("october")]
+    public int October { get; set; } 
+
+    [JsonPropertyName("november")]
+    public int November { get; set; } 
+
+    [JsonPropertyName("december")]
+    public int December { get; set; } 
+}
+
 public class ModuleDetailsViewModel
 {
     [JsonPropertyName("module_id")]
@@ -163,8 +225,6 @@ public class ModuleDetailsViewModel
     [JsonPropertyName("is_enabled")]
     public int IsEnabled { get; set; }
 }
-
-
 
 public class RoomModulesViewModel
 {
@@ -216,8 +276,6 @@ public class RoomDetailsViewModel
     [JsonPropertyName("modules")]
     public RoomModulesViewModel Modules { get; set; }
 }
-
-
 
 public class FacilityRoom2
 {
@@ -325,6 +383,9 @@ public class RoomVMDefaultFR
 
     [BindProperty(Name = "type_room")]
     public string? TypeRoom { get; set; }
+
+    [BindProperty(Name = "kind_room")]
+    public string? KindRoom { get; set; }
 
     [BindProperty(Name = "merge_room")]
     public List<string>? MergeRoom { get; set; }
@@ -458,6 +519,9 @@ public class RoomVMUResponseFRViewModel
     [JsonPropertyName("type_room")]
     public string? TypeRoom { get; set; }
 
+    [JsonPropertyName("kind_room")]
+    public string? KindRoom { get; set; }
+
     [JsonPropertyName("capacity")]
     public int? Capacity { get; set; }
 
@@ -499,6 +563,9 @@ public class RoomVMUResponseFRViewModel
 
     [JsonPropertyName("is_config_setting_enable")]
     public int? IsConfigSettingEnable { get; set; }
+
+    [JsonPropertyName("config_room_for_usage")]
+    public List<string>? ConfigRoomForUsage { get; set; }
 
     [JsonPropertyName("config_min_duration")]
     public int? ConfigMinDuration { get; set; }
@@ -575,6 +642,9 @@ public class RoomVMUpdateFRViewModel
     [FromForm(Name = "type_room")]
     public string? TypeRoom { get; set; }
 
+    [FromForm(Name = "kind_room")]
+    public string? KindRoom { get; set; }
+
     [FromForm(Name = "capacity")]
     public int? Capacity { get; set; }
 
@@ -602,14 +672,26 @@ public class RoomVMUpdateFRViewModel
     [FromForm(Name = "image")]
     public IFormFile? Image { get; set; }
 
-    [FromForm(Name = "image2[]")]
-    public List<IFormFile>? Image2 { get; set; }
+    [FromForm(Name = "image2_1")]
+    public IFormFile? Image2_1 { get; set; }
+
+    [FromForm(Name = "image2_2")]
+    public IFormFile? Image2_2 { get; set; }
+
+    [FromForm(Name = "image2_3")]
+    public IFormFile? Image2_3 { get; set; }
 
     [FromForm(Name = "facility_room_name")]
     public List<string>? FacilityRoomName { get; set; }
 
     [FromForm(Name = "is_automation")]
     public short IsAutomation { get; set; }
+
+    [FromForm(Name = "config_room_for_usage")]
+    public List<string>? ConfigRoomForUsage { get; set; }
+
+    [FromForm(Name = "room_usage_detail")]
+    public string? RoomUsageDetail { get; set; }
 
     [FromForm(Name = "automation_id")]
     public int AutomationId { get; set; }

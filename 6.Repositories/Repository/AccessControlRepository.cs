@@ -25,7 +25,7 @@ public class AccessControlRepository : BaseRepository<AccessControl>
                         Room = (
                             from accessIntegrated in _dbContext.AccessIntegrateds
                             from room in _dbContext.Rooms
-                                .Where(q => q.RadId == accessIntegrated.RoomId)
+                                .Where(q => q.Radid == accessIntegrated.RoomId)
                             where accessIntegrated.AccessId == accessControl.Id
                             && accessIntegrated.IsDeleted == 0
                             && room.IsDeleted == 0
@@ -98,7 +98,7 @@ public class AccessControlRepository : BaseRepository<AccessControl>
     {
         var query = from room in _dbContext.Rooms
                     from roomDisplay in _dbContext.RoomDisplays
-                            .Where(q => q.RoomId == room.RadId).DefaultIfEmpty()
+                            .Where(q => q.RoomId == room.Radid).DefaultIfEmpty()
                     from building in _dbContext.Buildings
                             .Where(q => q.Id == room.BuildingId).DefaultIfEmpty()
                     where room.IsDeleted == 0
@@ -115,7 +115,7 @@ public class AccessControlRepository : BaseRepository<AccessControl>
                     };
 
         var list = await query
-                            .GroupBy(q => q.room.RadId)
+                            .GroupBy(q => q.room.Radid)
                             .Select(q => q.FirstOrDefault())
                             .ToListAsync();
         
@@ -128,8 +128,8 @@ public class AccessControlRepository : BaseRepository<AccessControl>
     {
         var query = from room in _dbContext.Rooms
                     where room.IsDeleted == 0
-                    // && radIds.Any(radId => room.Radid.Contains(radId))
-                    && radIds.Contains(room.RadId)
+                    // && radIds.Any(radid => room.Radid.Contains(radid))
+                    && radIds.Contains(room.Radid)
                     orderby room.Name ascending
                     select room;
 
