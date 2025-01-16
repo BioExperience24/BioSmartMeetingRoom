@@ -12,5 +12,6 @@ namespace _3.BusinessLogic.Services.Interface
         Task<int?> UpdateSettingRuleBookingAsync(SettingRuleBookingUpdateViewModelFR request);
         //Task<SettingRuleBooking?> DeleteSettingRuleBookingAsync(SettingRuleBookingDeleteViewModelFR request);
         Task<int?> DeleteSettingRuleBookingAsync(SettingRuleBookingDeleteViewModelFR request);
+        Task<SettingRuleBookingViewModel?> GetSettingRuleBookingTopOne();
     }
 }

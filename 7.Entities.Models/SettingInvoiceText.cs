@@ -5,7 +5,7 @@ namespace _7.Entities.Models;
 
 public partial class SettingInvoiceText : BaseEntity
 {
-    public string Id { get; set; } = null!;
+    // public string Id { get; set; } = null!;
 
     public string? Name { get; set; }
 
@@ -17,5 +17,5 @@ public partial class SettingInvoiceText : BaseEntity
 
     public DateTime? UpdatedAt { get; set; }
 
-    public int? IsDeleted { get; set; }
+    // public int? IsDeleted { get; set; }
 }

@@ -6,14 +6,19 @@ namespace _4.Data.ViewModels;
 
 public class FacilityViewModel : BaseLongViewModel
 {
+    [JsonPropertyName("name")]
     public string Name { get; set; } = null!;
 
+    [JsonPropertyName("google_icon")]
     public string GoogleIcon { get; set; } = null!;
 
+    [JsonPropertyName("created_by")]
     public int? CreatedBy { get; set; }
 
+    [JsonPropertyName("created_at")]
     public DateTime? CreatedAt { get; set; }
 
+    [JsonPropertyName("updated_at")]
     public DateTime? UpdatedAt { get; set; }
 }
 public class FacilityVMResponse

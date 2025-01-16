@@ -5,10 +5,19 @@ namespace _4.Data.ViewModels
 {
     public class SettingInvoiceTextViewModel : BaseViewModel
     {
+        [JsonPropertyName("name")]
         public string? Name { get; set; }
+        
+        [JsonPropertyName("created_by")]
         public string? CreatedBy { get; set; }
+        
+        [JsonPropertyName("created_at")]
         public DateTime? CreatedAt { get; set; }
+        
+        [JsonPropertyName("updated_by")]
         public string? UpdatedBy { get; set; }
+        
+        [JsonPropertyName("updated_at")]
         public DateTime? UpdatedAt { get; set; }
     }
 

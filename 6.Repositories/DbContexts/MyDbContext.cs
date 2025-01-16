@@ -744,6 +744,13 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(255)
                 .HasDefaultValue("")
                 .HasColumnName("vip_user");
+            entity.Property(e => e.BookingType)
+                .HasMaxLength(20)
+                .HasDefaultValue("general")
+                .HasColumnName("booking_type");
+            entity.Property(e => e.IsPrivate)
+                .HasDefaultValue(0)
+                .HasColumnName("is_private");
         });
 
         modelBuilder.Entity<BookingAlive>(entity =>
@@ -3157,8 +3164,10 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(30)
                 .HasColumnName("config_room_for_usage");
             entity.Property(e => e.KindRoom)
+                .HasMaxLength(20)
                 .HasDefaultValue("room")
                 .HasColumnName("kind_room");
+
 
         });
 
@@ -3391,6 +3400,11 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(20)
                 .HasDefaultValue("")
                 .HasColumnName("updated_by");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .HasColumnName("name");
+            entity.Property(e => e.Description)
+                .HasColumnName("description");
         });
 
         modelBuilder.Entity<RoomForUsage>(entity =>

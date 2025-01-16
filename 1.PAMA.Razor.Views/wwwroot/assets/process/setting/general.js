@@ -272,7 +272,8 @@ var uploadimageCrt = false;
                         $('#id_booking_max_dur').html(html_maxdur);
                         var html_ext_max = '';
                         for(var x in variableSetting['time_extend']){
-                            html_ext_max += '<option value="'+variableSetting['time_extend'][x]['time']+'">'+variableSetting['time_extend'][x]['time']+'min</option>';
+                            var sel = variableSetting['time_extend'][x]['time'] == input[0].extend_meeting_max? "selected" : "";
+                            html_ext_max += '<option '+sel+' value="'+variableSetting['time_extend'][x]['time']+'">'+variableSetting['time_extend'][x]['time']+'min</option>';
                         }
                         $('#id_booking_extend_max').html(html_ext_max);
 

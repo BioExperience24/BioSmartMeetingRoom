@@ -119,4 +119,53 @@ namespace _4.Data.ViewModels
         [BindProperty(Name = "name")]
         public string? Name { get; set; }
     }
+
+    public class SettingSmtpVMPreview
+    {
+        [BindProperty(Name = "is_enabled")]
+        public int IsEnabled { get; set; }
+
+        [BindProperty(Name = "title_of_text")]
+        public string TitleOfText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "to_text")]
+        public string ToText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "title_agenda_text")]
+        public string TitleAgendaText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "date_text")]
+        public string DateText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "room")]
+        public string Room { get; set; } = string.Empty;
+
+        [BindProperty(Name = "detail_location")]
+        public string DetailLocation { get; set; } = string.Empty;
+
+        [BindProperty(Name = "greeting_text")]
+        public string GreetingText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "content_text")]
+        public string ContentText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "attendance_text")]
+        public string AttendanceText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "attendance_no_text")]
+        public string AttendanceNoText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "close_text")]
+        public string CloseText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "support_text")]
+        public string SupportText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "foot_text")]
+        public string FootText { get; set; } = string.Empty;
+
+        [BindProperty(Name = "link")]
+        public string Link { get; set; } = string.Empty;
+
+    }
 }

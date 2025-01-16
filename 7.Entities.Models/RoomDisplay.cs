@@ -50,4 +50,8 @@ public partial class RoomDisplay : BaseLongEntity
     public string? RoomSelect { get; set; }
 
     public string? DisableMsg { get; set; }
+
+    public string? Name { get; set; }
+    
+    public string? Description { get; set; }
 }

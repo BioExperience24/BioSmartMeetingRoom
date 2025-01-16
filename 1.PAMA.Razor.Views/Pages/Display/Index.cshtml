@@ -183,18 +183,13 @@
                                 </div>
                             </div>
                             <div class="row clearfix">
-                                <div class="col-xs-6">
-                                        <a href="javascript:void(0);" class="thumbnail">
-                                        <img src="<?= base_url('assets/file/display/pair/pair.jpeg')?>" class="img-responsive">
-                                    </a>
-                                </div>
-                                <div class="col-xs-6">
-                                        <label for="">Display Type</label>
-                                        <div class="form-group">
-                                                <select 
-                                                title="Choose the type..."
-                                                onchange="ocDisplayType('crt')" required=""  name="type" id="id_crt_type" class="form-control show-tick"></select>
-                                        </div>
+                                <div class="col-xs-12">
+                                    <label for="">Display Type</label>
+                                    <div class="form-group">
+                                            <select 
+                                            title="Choose the type..."
+                                            onchange="ocDisplayType('crt')" required=""  name="type" id="id_crt_type" class="form-control show-tick"></select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -226,7 +221,7 @@
                             </div>
                         </div>
                         <div class="col-xs-6">
-                                <div class="row clearfix">
+                            <div class="row clearfix">
                                 <div class="col-xs-12">
                                     <label for="">Background</label>
                                     <div class="form-group">
@@ -234,6 +229,13 @@
                                             <input required="" type="file" accept="image/x-png,image/gif,image/jpeg" name="background" id="id_crt_background" >
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="row clearfix hidden">
+                                <div class="col-xs-12">
+                                    <a href="javascript:void(0);" class="thumbnail">
+                                    <img src="<?= base_url('assets/file/display/pair/pair.jpeg')?>" class="img-responsive">
+                                    </a>
                                 </div>
                             </div>
                             <div class="row clearfix">
@@ -290,7 +292,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title" id="id_mdl_updateLabel">Update Display <b id="id_upd_name"></b> </h4>
+                <h4 class="modal-title" id="id_mdl_updateLabel">Update Display <b id="id_upd_name_text"></b> </h4>
             </div>
             <div class="modal-body " id="id_mdl_update_body">
                 <form id="frm_update">
@@ -316,7 +318,7 @@
                                 </div>
                             </div>
                             <div class="row clearfix">
-                                <div class="col-xs-6">
+                                <div class="col-xs-12">
                                         <label for="">Description </label>
                                         <div class="form-group">
                                             <div class="form-line">
@@ -326,17 +328,13 @@
                                 </div>
                             </div>
                             <div class="row clearfix">
-                                <div class="col-xs-6">
-                                        <a href="javascript:void(0);" class="thumbnail">
-                                        <img src="<?= base_url('assets/file/display/pair/pair.jpeg')?>" class="img-responsive">
-                                    </a>
-                                </div>
-                                <div class="col-xs-6">
+                                <div class="col-xs-12">
                                     <label for="">Display Type</label>
                                     <div class="form-group">
                                         <select 
-                                                title="Choose the type..."
-                                                onchange="ocDisplayType('crt')" required=""  name="type" id="id_upd_type" class="form-control show-tick"></select>
+                                            title="Choose the type..."
+                                            onchange="ocDisplayType('crt')" required=""  name="type" id="id_upd_type" class="form-control show-tick">
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -367,7 +365,7 @@
                             </div>
                         </div>
                         <div class="col-xs-6">
-                                <div class="row clearfix">
+                            <div class="row clearfix">
                                 <div class="col-xs-12">
                                     <label for="">Background</label>
                                     <div class="form-group">
@@ -375,6 +373,13 @@
                                             <input type="file" accept="image/x-png,image/gif,image/jpeg" name="background" id="id_upd_background" >
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="row clearfix">
+                                <div class="col-xs-12">
+                                    <a href="javascript:void(0);" class="thumbnail">
+                                        <img src="#" class="img-responsive" id="id_upd_background_image">
+                                    </a>
                                 </div>
                             </div>
                             

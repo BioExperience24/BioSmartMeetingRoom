@@ -110,7 +110,7 @@ public class BeaconFloorService : BaseLongService<BeaconFloorViewModel, BeaconFl
             return null;
         }
         var oldImage = item.Image;
-        __mapper.Map(viewModel, item);
+        // __mapper.Map(viewModel, item);
 
         using (var scope = new TransactionScope(
             TransactionScopeOption.Required,
@@ -122,8 +122,9 @@ public class BeaconFloorService : BaseLongService<BeaconFloorViewModel, BeaconFl
             {
                 DateTime now = DateTime.Now;
                 
+                item.Name = viewModel.Name ?? "";
+                item.Image = viewModel.Image == null ? oldImage : viewModel.Image;
                 item.IsDeleted = 0;
-                item.Image = item.Image == null ? oldImage : item.Image;
                 item.UpdatedAt = now;
                 // item.CreatedBy = // uncomment jika auth sudah ada
                 // item.UpdatedBy = // uncomment jika auth sudah ada

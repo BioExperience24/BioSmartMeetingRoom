@@ -59,6 +59,7 @@ public class FacilityService : BaseLongService<FacilityViewModel, Facility>, IFa
 
         // FacilityType.InvoiceStatus = request.InvoiceStatus;
         facility.UpdatedAt = DateTime.Now;
+        facility.IsDeleted = 0;
         // FacilityType.UpdatedBy = // uncomment jika sudah memiliki auth
 
         if (!await _repo.UpdateFacilityAsync(facility))

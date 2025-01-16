@@ -20,7 +20,7 @@
                             Profile <i class="material-icons">person</i>
                         </a></li>
                     <li>
-                        <a class="dropdown-item waves-effect waves-block" href="#">
+                        <a class="dropdown-item waves-effect waves-block" href="@($"{Model.AppUrl}logout")">
                             Sign Out <i class="material-icons">input</i>
                         </a>
                     </li>
@@ -75,9 +75,9 @@
                 <li>
                     <a href="@($"{Model.AppUrl}display")" class=" waves-effect waves-block">Display Signage</a>
                 </li>
-                <li>
+                @* <li>
                     <a href="@($"{Model.AppUrl}display-kiosk")" class=" waves-effect waves-block">Display Kiosk</a>
-                </li>
+                </li> *@
                 <li>
                     <a href="@($"{Model.AppUrl}facility")" class=" waves-effect waves-block">Facility</a>
                 </li>
@@ -128,12 +128,12 @@
                 </li>
             </ul>
 
-            <li class="">
+            @* <li class="">
                 <a href="#" class=" waves-effect waves-block">
                     <i class="material-icons">open_with</i>
                     <span>Integration</span>
                 </a>
-            </li>
+            </li> *@
 
             <a href="javascript:void(0);" class="menu-toggle waves-effect waves-block">
             <i class="material-icons">lock</i>
@@ -144,16 +144,16 @@
                     <a href="@($"{Model.AppUrl}setting/general")" class=" waves-effect waves-block">General</a>
                 </li>
                 <li>
-                    <a href="#" class=" waves-effect waves-block">SMTP &amp; Email</a>
+                    <a href="@($"{Model.AppUrl}setting/smtp")" class=" waves-effect waves-block">SMTP &amp; Email</a>
                 </li>
                 <li>
                     <a href="#" class=" waves-effect waves-block">License</a>
                 </li>
             </ul>
             <li class="">
-                <a href="/Logout" class=" waves-effect waves-block">
-                    <i class="material-icons"></i>
-                    <span>Logout</span>
+                <a href="@($"{Model.AppUrl}logout")" class=" waves-effect waves-block">
+                    <i class="material-icons">input</i>
+                    <span>Sign Out</span>
                 </a>
             </li>
         </ul>

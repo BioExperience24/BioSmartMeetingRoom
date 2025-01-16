@@ -2323,7 +2323,7 @@
     <!-- Bootstrap Material Datetime Picker Plugin Js -->
     <script src="~/assets/theme/plugins/jquery-editable/src/table-edits.js"></script>
     <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
-    @* <input type="hidden" id="id_baseurl" value="<?= base_url()?>"> *@
+    <input type="hidden" id="id_baseurl" value="@Model.BaseUrl">
     
     <script>
         var iconData = {};
@@ -2379,8 +2379,9 @@
             // var form =  $('#frm_create').serialize();
             var bs = $('#id_baseurl').val();
             $.ajax({
-                url : bs+"facility/get/data/detail/"+id,
-                type : "POST",
+                @* url : bs+"facility/get/data/detail/"+id, *@
+                url : bs+"Facility/GetById/"+id,
+                type : "GET",
                 dataType: "json",
                 // data : form,
                 beforeSend: function(){
@@ -2438,7 +2439,8 @@
             var id = $('#id_edt_id').val()
             var bs = $('#id_baseurl').val();
             $.ajax({
-                url : bs+"facility/post/update/"+id,
+                @* url : bs+"facility/post/update/"+id, *@
+                url : bs+"Facility/Update/"+id,
                 type : "POST",
                 dataType: "json",
                 data : form,

@@ -142,7 +142,14 @@ public partial class Room : BaseLongEntity
 
     [JsonPropertyName("config_microsoft")]
     public string? ConfigMicrosoft { get; set; }
+
+    [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
+    public int[] Capacities { get; set; } = new int[]{};
+
+    [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
+    public int TotalBook { get; set; }
 }
+
 public class ResponseData
 {
     public string Error { get; set; }

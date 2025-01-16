@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class PantryTransaksiD
+public partial class PantryTransaksiD : BaseLongEntity
 {
-    public int Id { get; set; }
+    // public int Id { get; set; }
 
     public string TransaksiId { get; set; } = null!;
 
@@ -27,5 +27,5 @@ public partial class PantryTransaksiD
 
     public DateTime RejectedAt { get; set; }
 
-    public int IsDeleted { get; set; }
+    // public int IsDeleted { get; set; }
 }

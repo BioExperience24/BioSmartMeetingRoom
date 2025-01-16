@@ -66,6 +66,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRoomDisplayService, RoomDisplayService>();
         services.AddScoped<IKioskDisplayService, KioskDisplayService>();
         services.AddScoped<ILicenseSettingService, LicenseSettingService>();
+        services.AddScoped<IRoomForUsageService, RoomForUsageService>();
+        services.AddScoped<IBookingProcessService, BookingProcessService>();
+        services.AddScoped<IDashboardService, DashboardService>();
     }
     public static void AddCustomRepository(this IServiceCollection services)
     {
@@ -114,6 +117,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RoomDisplayRepository>();
         services.AddScoped<KioskDisplayRepository>();
         services.AddScoped<LicenseSettingRepository>();
+        services.AddScoped<RoomForUsageRepository>();
+        services.AddScoped<BookingInvitationRepository>();
+        services.AddScoped<PantryTransaksiDRepository>();
     }
 
     /// <summary>
@@ -290,8 +296,6 @@ public static class ServiceCollectionExtensions
             CreateMap<AccessIntegrated, AccessIntegratedViewModel>().ReverseMap();
             CreateMap<object, AccessIntegratedViewModel>().MapNestedProperties();
 
-            CreateMap<RoomForUsage, RoomForUsageViewModel>().ReverseMap();
-
             CreateMap<EmployeeWithAccessInfo, EmployeeWithAccessInfoViewModel>().ReverseMap();
 
             //CreateMap<Room, RoomVMUpdateFRViewModel>().ReverseMap();
@@ -335,7 +339,7 @@ public static class ServiceCollectionExtensions
             CreateMap<BookingChart, BookingVMChart>().MapNestedProperties();
 
             CreateMap<Room, RoomViewModel>().ReverseMap();
-            CreateMap<object, RoomViewModel>().MapNestedProperties();
+            CreateMap<object, RoomViewModelAlt>().MapNestedProperties();
             CreateMap<RoomVMDefaultFR, RoomViewModel>().ReverseMap();
             CreateMap<RoomVMUpdateFRViewModel, RoomViewModel>().ReverseMap();
             
@@ -346,6 +350,8 @@ public static class ServiceCollectionExtensions
             //        opt => opt.MapFrom(src => src.WorkDay != null
             //            ? string.Join(",", src.WorkDay)
             //            : string.Empty));
+
+            CreateMap<RoomForUsage, RoomForUsageViewModel>().ReverseMap();
         }
     }
 

@@ -2,6 +2,7 @@ using System.Net;
 using System.Transactions;
 using _2.BusinessLogic.Services.Interface;
 using _5.Helpers.Consumer.EnumType;
+using _7.Entities.Models;
 using Newtonsoft.Json;
 
 namespace _3.BusinessLogic.Services.Implementation
@@ -26,30 +27,11 @@ namespace _3.BusinessLogic.Services.Implementation
             _attachmentListService = attachmentListService;
         }
 
-        public async Task<IEnumerable<RoomVMChartTopRoom>> GetAllChartTopFiveRoomAsync(int year)
+        public async Task<IEnumerable<RoomViewModelAlt>> GetAllRoomItemAsync(bool withIsDisabled = true)
         {
-            var result = new List<RoomVMChartTopRoom>();
+            var items = await _repo.GetAllRoomItemAsync(withIsDisabled);
 
-            var items = await _repo.GetAllChartTopFiveRoom3rdAltAsync(year);
-
-            //Console.WriteLine("-----------------------------------------------------");
-            //Console.WriteLine($"items: {JsonSerializer.Serialize(items)}");
-
-            if (items.Any())
-            {
-                Console.WriteLine("Ada data");
-                _mapper.Map(items, result);
-            }
-
-            // return _mapper.Map<List<RoomVMChartTopRoom>>(items);
-            return result;
-        }
-
-        public async Task<IEnumerable<RoomViewModel>> GetAllRoomItemAsync(bool withIsDisabled = true)
-        {
-            var items = await _repo.GetAllRoomItemAsync(false);
-
-            return _mapper.Map<List<RoomViewModel>>(items);
+            return _mapper.Map<List<RoomViewModelAlt>>(items);
         }
 
         public async Task<int> GetCountRoomItemAsync(bool withIsDisabled = true)
@@ -59,18 +41,92 @@ namespace _3.BusinessLogic.Services.Implementation
             return countItem;
         }
 
-        public async Task<IEnumerable<RoomViewModel>> GetAllRoomRoomDisplayItemAsync()
+        public async Task<IEnumerable<RoomViewModelAlt>> GetAllRoomRoomDisplayItemAsync()
         {
             var items = await _repo.GetAllRoomRoomDisplayItemAsync();
 
-            return _mapper.Map<List<RoomViewModel>>(items);
+            return _mapper.Map<List<RoomViewModelAlt>>(items);
         }
 
-        public async Task<IEnumerable<RoomViewModel>> GetAllRoomWithRadidsItemAsycn(string[] radIds)
+        public async Task<IEnumerable<RoomViewModelAlt>> GetAllRoomWithRadidsItemAsycn(string[] radIds)
         {
             var items = await _repo.GetAllRoomWithRadidsItemAsycn(radIds);
 
-            return _mapper.Map<List<RoomViewModel>>(items);
+            return _mapper.Map<List<RoomViewModelAlt>>(items);
+        }
+
+        public async Task<IEnumerable<RoomViewModelAlt>> GetAllRoomAvailableAsync(RoomVMFindAvailable request)
+        {
+            // Console.WriteLine("-------------------GetAllRoomAvailableAsync-------------------");
+            // Console.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(request)}");
+
+            Room entity = new Room{};
+
+            entity.KindRoom = (request.RoomCategory != "")
+                    ? request.RoomCategory
+                    : "room";
+
+            if (request.Date != "")
+            {
+                entity.WorkDay = new List<string>{ _String.ToDayName(request.Date) };
+            }
+
+            if (request.BuildingId > 0)
+            {
+                entity.BuildingId = request.BuildingId;
+            }
+
+            entity.WorkStart =  (request.TimeFrom != "") 
+                    ? $"{_String.RemoveAllSpace(request.TimeFrom)}:00"
+                    : "00:00:00";
+            
+            entity.WorkEnd = (request.TimeUntil != "") 
+                    ? $"{_String.RemoveAllSpace(request.TimeUntil)}:00"
+                    : entity.WorkStart;
+
+            if (request.FacilityRoom != null)
+            {
+                entity.FacilityRoom = request.FacilityRoom.Select(number => number.ToString()).ToList();
+            }
+
+            if (request.Seat != null)
+            {
+                var capacities = request.Seat.Split("_");
+                if (capacities.Count() > 0)
+                {
+                    entity.Capacities = Array.ConvertAll(capacities, int.Parse);
+                }
+            }
+
+            // Console.WriteLine("-------------------Entity-------------------");
+            // Console.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(entity)}");
+
+            var items = await _repo.GetAllRoomAvailableAsync(entity);
+
+            var results = _mapper.Map<List<RoomViewModelAlt>>(items);
+
+            var noImage = await _attachmentListService.NoImageBase64("no-image.jpg", 100);
+
+            // List untuk task generasi thumbnail
+            var tasks = results.Select(async item =>
+            {
+                var image = noImage;
+                if (item.Image != null)
+                {
+                    var base64 = await _attachmentListService.GenerateThumbnailBase64(item.Image, 100);
+                    if (!string.IsNullOrEmpty(base64))
+                    {
+                        image = base64;
+                    }
+                
+                }
+                item.Image = image;
+            }).ToList();
+
+            // Tunggu semua task selesai
+            await Task.WhenAll(tasks);
+
+            return results;
         }
 
         public virtual async Task<IEnumerable<RoomDataViewModel>> GetRoomData()
@@ -87,12 +143,71 @@ namespace _3.BusinessLogic.Services.Implementation
             return result;
         }
 
+        public async Task<List<SettingInvoiceTextViewModel>> GetInvoiceStatus()
+        {
+            var entities = await _repoModuleBackend.GetInvoiceStatus();
+            var result = _mapper.Map<List<SettingInvoiceTextViewModel>>(entities);
+            return result;
+        }
+
         public async Task<List<RoomMergeDetailViewModel>> GetRoomMerge(long id)
         {
             var entities = await _repoModuleBackend.GetRoomMerge(id);
             var result = _mapper.Map<List<RoomMergeDetailViewModel>>(entities);
             return result;
         }
+
+        public async Task<List<RoomMergeDetailViewModel>> GetStatusInvoice(long id)
+        {
+            var entities = await _repoModuleBackend.GetRoomMerge(id);
+            var result = _mapper.Map<List<RoomMergeDetailViewModel>>(entities);
+            return result;
+        }
+
+        //public async Task<List<SearchCriteriaViewModel>> GetReportusage(SearchCriteriaViewModel viewModel)
+        //{
+        //    var wreport = string.Empty;
+
+        //    if (!string.IsNullOrEmpty(viewModel.BuildingSearch))
+        //    {
+        //        wreport += $" AND bu.id={viewModel.BuildingSearch} ";
+        //    }
+
+        //    if (!string.IsNullOrEmpty(viewModel.RoomSearch))
+        //    {
+        //        wreport += $" AND r.radid={viewModel.RoomSearch} ";
+        //    }
+
+        //    if (!string.IsNullOrEmpty(viewModel.DepartmentSearch))
+        //    {
+        //        wreport += $" AND a.id='{viewModel.DepartmentSearch}' ";
+        //    }
+
+        //    var wdate = $" AND b.date >= '{viewModel.Date1Search}' AND b.date <= '{viewModel.Date2Search}' ";
+
+
+        //    //jika sudah ada autentikasi, tambahkan:
+        //    //$userg = $this->session->userdata('levelid-nya');
+        //    //var userg = 0;
+
+        //    //switch (userg)
+        //    //{
+        //    //    case 1:
+        //    //        // Admin
+        //    //        wreport += " AND bi.is_pic = 1 ";
+        //    //        break;
+        //    //    case 2:
+        //    //        wreport += " AND bi.nik ";
+        //    //        break;
+        //    //    default:
+        //    //        // Optionally handle other cases if needed
+        //    //        break;
+        //    //}
+
+        //    var entities = await _repoModuleBackend.GetReportusage(wreport, wdate);
+        //    var result = _mapper.Map<List<SearchCriteriaViewModel>>(entities);
+        //    return result;
+        //}
 
         public virtual async Task<List<RoomViewModel>> GetSingleRoomData()
         {

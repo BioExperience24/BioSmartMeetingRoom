@@ -143,6 +143,8 @@ namespace _3.BusinessLogic.Services.Implementation
                     item.RoomSelect = viewModel.RoomSelect;
                     item.StatusSync = 2;
                     item.UpdatedAt = now;
+                    item.Name = viewModel.Name;
+                    item.Description = viewModel.Description;
                     // item.UpdatedBy = ""; // uncomment jika data auth sudah ada
 
                     await _repo.Update(item);

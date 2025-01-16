@@ -1,3 +1,4 @@
+using System.Text.Json;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer.EnumType;
@@ -9,8 +10,10 @@ namespace _1.PAMA.Razor.Views.Controllers
 {
     [ApiController]
     [Route("api/[controller]/[action]")]
-    public class RoomController(IRoomService service) : BaseLongController<RoomViewModel>(service)
+    public class RoomController(IRoomService service, IDashboardService dashboardService) 
+        : BaseLongController<RoomViewModel>(service)
     {
+        private readonly IDashboardService _dashboardService = dashboardService;
         
         [HttpGet("{year}")]
         public async Task<IActionResult> GetChartTopRoom(int year)
@@ -18,7 +21,7 @@ namespace _1.PAMA.Razor.Views.Controllers
             ReturnalModel ret = new();
 
             ret.Message = "Get success";
-            ret.Collection = await service.GetAllChartTopFiveRoomAsync(year);
+            ret.Collection = await _dashboardService.GetAllChartTopFiveRoomAsync(year);
 
             return StatusCode(ret.StatusCode, ret);
         }
@@ -41,6 +44,17 @@ namespace _1.PAMA.Razor.Views.Controllers
             ret.Message = "Get success";
 
             ret.Collection = await service.GetAllRoomRoomDisplayItemAsync();
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableItems([FromQuery] RoomVMFindAvailable request)
+        {
+            ReturnalModel ret = new();
+
+            ret.Message = "Get success";
+            ret.Collection = await service.GetAllRoomAvailableAsync(request);
 
             return StatusCode(ret.StatusCode, ret);
         }
@@ -74,6 +88,26 @@ namespace _1.PAMA.Razor.Views.Controllers
             };
             return Ok(ret);
         }
+
+        [HttpGet]
+        public async Task<ActionResult> GetInvoiceStatus()
+        {
+            ReturnalModel ret = new()
+            {
+                Collection = await service.GetInvoiceStatus()
+            };
+            return Ok(ret);
+        }
+
+        //[HttpPost]
+        //public async Task<ActionResult> GetReportusage(SearchCriteriaViewModel viewModel)
+        //{
+        //    ReturnalModel ret = new()
+        //    {
+        //        Collection = await service.GetReportusage(viewModel)
+        //    };
+        //    return Ok(ret);
+        //}
 
         [HttpPost]
         [Consumes("multipart/form-data")]

@@ -13,5 +13,5 @@ public partial class Facility : BaseLongEntity
 
     public DateTime? UpdatedAt { get; set; }
 
-    public int IsDeleted { get; set; }
+    // public int IsDeleted { get; set; }
 }

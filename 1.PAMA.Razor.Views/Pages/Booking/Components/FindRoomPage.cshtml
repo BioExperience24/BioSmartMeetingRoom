@@ -1,0 +1,197 @@
+<div class="col-xs-12 col-sm-12 col-md-3 col-lg-3">
+    <div class="card">
+        <div class="header">
+            <div class="row clearfix">
+                <div class="col-xs-12">
+                    <h2>Find & Reserve a Room </h2>
+                </div>
+            </div>
+        </div>
+        <div class="body">
+            <form action="#" method="GET" id="form-find-reserve">
+                <div class="row clearfix">
+                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6 hidden">
+                        <input 
+                            type="text" 
+                            name="book_filter_room_category"
+                            id="id_book_filter_room_category"
+                            class="btn btn-noshadow btn-block waves-effect"
+                            style="font-size: 16px;position: relative;left: -1px; top: 0px;padding: 0px 10px;text-align: left;"
+                            value="room" 
+                            readonly/>
+                    </div>
+                    
+                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
+                        <b class="lbl_text">When</b> <b style="color:red">*</b>
+                        <br>
+                        <br>
+                        <div class="form-group-filter">
+                            <div class="form-group-filter-icon">
+                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">date_range</i>
+                            </div>
+                            <div class="form-group-filter-form">
+                                @* <button id="id_book_filter_when" style="font-size: 16px;position: relative;left: -1px; top: 0px;" type="button" class="btn btn-noshadow btn-block waves-effect">Today, 28 Aug 2024</button> *@
+                                <input 
+                                    type="text" 
+                                    name="book_filter_date"
+                                    id="id_book_filter_when"
+                                    class="btn btn-noshadow btn-block waves-effect"
+                                    style="font-size: 16px;position: relative;left: -1px; top: 0px;padding: 0px 10px;text-align: left;"
+                                    value="" 
+                                    readonly/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
+                        <b class="lbl_text">Location</b> <b style="color:red">*</b>
+                        <br>
+                        <br>
+                        <div class="form-group-filter">
+                            <div class="form-group-filter-icon">
+                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">place</i>
+                            </div>
+                            <div class="form-group-filter-form">
+                                <div class="form-group" style="width: 100%; margin-bottom: 0px !important;">
+                                    <select
+                                        name="book_filter_location"
+                                        data-live-search="true" class="form-control" id="id_book_filter_location">
+                                        <option value="">Load Data...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
+                        <b class="lbl_text">From</b> <b style="color:red">*</b>
+                        <br>
+                        <br>
+                        <div class="form-group-filter">
+                            <div class="form-group-filter-icon">
+                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">access_time</i>
+                            </div>
+                            <div class="form-group-filter-form">
+                                <input  
+                                    type="text" 
+                                    name="book_filter_time_from" 
+                                    id="id_book_filter_from" 
+                                    class="timepicker form-control"
+                                    readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
+                        <b class="lbl_text">Until</b> <b style="color:red">*</b>
+                        <br>
+                        <br>
+                        <div class="form-group-filter">
+                            <div class="form-group-filter-icon">
+                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">access_time</i>
+                            </div>
+
+                            <div class="form-group-filter-form">
+                                <input 
+                                    readonly 
+                                    type="text"
+                                    name="book_filter_time_until" id="id_book_filter_until" 
+                                    class="timepicker form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <input 
+                            type="checkbox" 
+                            name="book_filter_time_allday"
+                            id="id_book_filter_allday" 
+                            class="filled-in chk-col-red"  />
+                        <label for="id_book_filter_allday">All Day</label>
+                    </div>
+                    
+                    @* Comment subject and make private *@
+                    @* <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
+                        <b class="lbl_text">Subject</b> <b style="color:red">*</b>
+                        <br>
+                        <br>
+                        <div class="form-group-filter">
+                            <div class="form-group-filter-form">
+                                <input onkeyup="onKeyUpFilterSubject($(this))" autocomplete="off" type="text" class="form-control" id="id_book_filter_subject" placeholder="Subject">
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="col-xs-12 form-group-filter-flex" >
+                        <input onclick="onChangeFilterPrivate($(this))" type="checkbox" id="id_book_filter_private" class="filled-in chk-col-red"  />
+                        <label for="id_book_filter_private">
+                            Make Private
+                        </label> 
+                        <div class="form-group-filter-icon">
+                            <a style="cursor: pointer;" data-toggle="tooltip" data-placement="top" title="" data-original-title="If activated, the meeting subject on the display will be hidden to become Private Meeting.">
+                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">info_outline</i>
+                            </a>
+                        </div>
+                    </div> *@
+                    
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <button type="button" id="id_book_filter_capabilities" class="btn btn-default dropdown-toggle form-group-filter-flex btn-block" 
+                        data-toggle="dropdown" role="button" aria-expanded="true" >
+                        <label for="id_book_filter_capabilities">
+                        <i style="font-size: 24px;position: relative;left: -1px; top: 4px;" class="material-icons">accessibility</i> Capabilities
+                        </label>
+                        </button>
+                    </div>
+
+                </div>
+                <div class="row clearfix">
+                    <div class="col-xs-12">
+                        <button id="id_book_filter_findroom" style="font-size: 16px;position: relative;left: -1px; top: 0px;" type="submit" class="btn btn-primary btn-block btn-lg waves-effect">Find Room</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
+    <div class="card">
+        <div class="header">
+            <div class="row clearfix">
+                <div class="col-xs-12">
+                    <h2>Available Room </h2>
+                </div>
+            </div>
+        </div>
+        <div class="body">
+            <!-- div row room -->
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="row clearfix" id="id_area_booking_ad_room">
+                        
+                    </div>
+                    <div class="row clearfix hidden" id="id_area_skeleton_loading">
+                        @for (int i = 0; i < 4; i++)
+                        {
+                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                <div class="media">
+                                    <div class="media-left media-middle">
+                                        <div class="skeleton skeleton-line" style="--l-h: 100px;--c-w: 120px;"></div>
+                                    </div>
+                                    <div class="media-body">
+                                        <div class="row clearfix">
+                                            <div class="skeleton skeleton-line" style="--c-w: 75%;--lines: 1;--l-h: 24px;"></div>
+                                            <div class="skeleton skeleton-line" style="--c-w: 75%;--lines: 2;--l-h: 24px;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-12">
+                                            <div class="skeleton skeleton-line" style="--c-w: 101%;--l-h: 31px;--bg: #2b982b;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <!-- div row room -->
+        </div>
+    </div>
+</div>

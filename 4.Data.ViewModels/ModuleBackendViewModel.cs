@@ -1,6 +1,7 @@
 
 
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace _4.Data.ViewModels
 {
@@ -20,5 +21,11 @@ namespace _4.Data.ViewModels
 
         [JsonPropertyName("is_enabled")]
         public int IsEnabled { get; set; }
+    }
+
+    public class ModuleBackendVMList
+    {
+        [FromQuery(Name = "module_text")]
+        public string ModuleText { get; set; } = string.Empty;
     }
 }

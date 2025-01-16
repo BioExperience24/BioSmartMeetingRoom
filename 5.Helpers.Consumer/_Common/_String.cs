@@ -1,6 +1,7 @@
 
 
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace _5.Helpers.Consumer._Common
 {
@@ -49,6 +50,43 @@ namespace _5.Helpers.Consumer._Common
                 
                 throw;
             }
+        }
+
+        public static string ToDayName(string dateString, string dateFormat = "yyyy-MM-dd")
+        {
+            try
+            {
+                DateTime date;
+                if (DateTime.TryParseExact(dateString, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+                {
+                    // Get the name of the day
+                    string dayName = date.ToString("dddd", CultureInfo.InvariantCulture);
+                    return dayName;
+                }
+                else
+                {
+                    throw new FormatException("Invalid date format.");
+                }
+            }
+            catch (Exception)
+            {
+                
+                throw;
+            }
+        }
+
+        public static string RemoveAllSpace(string input)
+        {
+            string replacement = string.Empty;
+            
+            Regex sWhitespace = new Regex(@"\s+");
+
+            return sWhitespace.Replace(input, replacement);
+        }
+
+        public static string DecodeUnicode(string input)
+        {
+            return System.Text.RegularExpressions.Regex.Unescape(input);
         }
     }
 }

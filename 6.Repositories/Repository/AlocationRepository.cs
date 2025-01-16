@@ -45,6 +45,27 @@ namespace _6.Repositories.Repository
 
             return list;
         }
+
+        public async Task<object?> GetItemByIdAsync(string id)
+        {
+            var query = from alocation in _dbContext.Alocations
+                        from alocationType in _dbContext.AlocationTypes
+                            .Where(at => alocation.Type == at.Id).DefaultIfEmpty()
+                        where alocation.IsDeleted == 0 
+                        && alocation.Id == id
+                        orderby alocation.Id ascending
+                        select new { 
+                            alocation, 
+                            alocationType = new { 
+                                TypeName = alocationType.Name,
+                                Invoice = alocationType.InvoiceStatus 
+                            } 
+                        };
+
+            var item = await query.FirstOrDefaultAsync();
+
+            return item;
+        }
         
         public override async Task<int> UpdateAsync(Alocation item)
         {

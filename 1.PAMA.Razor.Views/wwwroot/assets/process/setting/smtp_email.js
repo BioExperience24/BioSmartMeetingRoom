@@ -331,7 +331,8 @@
             var form =  $('#'+formid).serialize();
             var bs = $('#id_baseurl').val();
             $.ajax({
-                url : bs+"setting/email-template/preview",
+                // url : bs+"setting/email-template/preview",
+                url : location.origin + "/setting/email-template/preview",
                 type : "POST",
                 // dataType: "json",
                 data:  form,

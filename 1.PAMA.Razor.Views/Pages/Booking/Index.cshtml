@@ -5,227 +5,218 @@
     ViewData["PageName"] = "Booking";
 }
 
-@section Styles {
-
-    <style>
-    .form-group-filter {
-        border-radius: 5px;
-        transition: 0.3s;
-        border: 1px solid #d5cfe0;
-        padding: 5px;
-        display: table;
-        table-layout: fixed;
-        width: 100%;
-        min-height: 45px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .form-group-filter-flex {
-        display: flex;
-    }
-
-    .form-group-filter-icon {
-        padding-left: 5px;
-        display: table-cell;
-        vertical-align: middle;
-        width: 14%;
-    }
-
-    .form-group-filter-form {
-        display: table-cell;
-        vertical-align: middle;
-    }
-
-        .form-group-filter-form > .form-control {
-            border: 0px solid #ccc !important;
-        }
-
-
-    .btn-noshadow {
-        background: #fff;
-        box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.16), 0 0px 0px rgba(0, 0, 0, 0.0) !important;
-    }
-
-    .formpantry-witdh {
-        width: 100px;
-    }
-
-
-    .media:hover {
-        border: 2px solid #bf104b !important;
-        cursor: pointer;
-    }
-
-    .media {
-        padding: 5px;
-        border-radius: 5px;
-        transition: 0.3s;
-        border: 2px solid transparent;
-    }
-
-    .media, .media-body {
-        overflow: visible;
-    }
-
-    .label-bordered {
-        border: 1px solid #333 !important;
-        color: #333 !important;
-        border-radius: 4px;
-    }
-
-    .selectedRoom {
-        border: 2px solid blue;
-    }
-
-    .btn.active {
-        background: #bf104b !important;
-    }
-
-    .img-booking {
-        width: 100%;
-        height: 200px;
-    }
-
-    .img-booking2 {
-        width: 100%;
-        height: 250px;
-    }
-
-    .caption {
-        padding: 5px !important;
-    }
-
-    td.day.disabled {
-        color: white !important;
-        background: #B2DFDB !important;
-    }
-
-    .timedisabled {
-        font-weight: bold !important;
-        /* color: #fff !important;
-              background: #bc0000 !important;
-              text-transform: uppercase;*/
-        color: white !important;
-        background: #B2DFDB !important;
-    }
-
-    .select tbody tr.disabled {
-        color: white !important;
-        background: #B2DFDB !important;
-    }
-
-    .input-group {
-        margin-bottom: 0px !important;
-    }
-
-    .lbl_text {
-        font-size: 14px;
-    }
-
-    .lbl_text_location {
-        font-size: 12px;
-    }
-
-    .popover {
-        max-width: 500px;
-    }
-
-    hr {
-        margin: none;
-        border: none;
-        height: 2px;
-        background-image: -webkit-linear-gradient(left, rgba(255,2,5,.5), rgba(137,11,138,.5), rgba(27,123,187,.5), rgba(47,195,44,.5), rgba(253,201,1,.5), rgba(255,91,2,.5), #ccc 15%, #ccc 85%, rgba(255,91,2,.5), rgba(253,201,1,.5), rgba(47,195,44,.5), rgba(27,123,187,.5), rgba(137,11,138,.5), rgba(255,2,5,.5));
-        background-image: -moz-linear-gradient(left, rgba(255,2,5,.5), rgba(137,11,138,.5), rgba(27,123,187,.5), rgba(47,195,44,.5), rgba(253,201,1,.5), rgba(255,91,2,.5), #ccc 15%, #ccc 85%, rgba(255,91,2,.5), rgba(253,201,1,.5), rgba(47,195,44,.5), rgba(27,123,187,.5), rgba(137,11,138,.5), rgba(255,2,5,.5));
-        background-image: -ms-linear-gradient(left, rgba(255,2,5,.5), rgba(137,11,138,.5), rgba(27,123,187,.5), rgba(47,195,44,.5), rgba(253,201,1,.5), rgba(255,91,2,.5), #ccc 15%, #ccc 85%, rgba(255,91,2,.5), rgba(253,201,1,.5), rgba(47,195,44,.5), rgba(27,123,187,.5), rgba(137,11,138,.5), rgba(255,2,5,.5));
-        background-image: -o-linear-gradient(left, rgba(255,2,5,.5), rgba(137,11,138,.5), rgba(27,123,187,.5), rgba(47,195,44,.5), rgba(253,201,1,.5), rgba(255,91,2,.5), #ccc 15%, #ccc 85%, rgba(255,91,2,.5), rgba(253,201,1,.5), rgba(47,195,44,.5), rgba(27,123,187,.5), rgba(137,11,138,.5), rgba(255,2,5,.5));
-    }
-
-    .lbl_text_cost {
-        font-size: 22px;
-        font-style: italic;
-    }
-
-    @@media screen and (min-width: 480px) {
-        .img-booking {
-            height: 200px;
-        }
-
-        .formpantry-witdh {
-            width: 40px;
-        }
-    }
-
-    @@media screen and (min-width: 240px) {
-        .img-booking {
-            height: 180px;
-        }
-
-        .formpantry-witdh {
-            width: 40px;
-        }
-    }
-
-    .modal-dialog {
-        position: absolute;
-        top: 50% !important;
-        transform: translate(0, -50%) !important;
-        -ms-transform: translate(0, -50%) !important;
-        -webkit-transform: translate(0, -50%) !important;
-        margin: auto 5%;
-        width: 90%;
-        height: 80%;
-    }
-
-    .modal-content {
-        min-height: 100%;
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-    }
-
-    .modal-body {
-        position: absolute;
-        top: 45px;
-        bottom: 45px;
-        left: 0;
-        right: 0;
-        overflow-y: auto;
-    }
-
-    .modal-footer {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-    }
-</style>
-
+@section Styles
+{
+    <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
     <link href="~/assets/theme/plugins/jquery-datatable/select.dataTables.min.css" rel="stylesheet">
     <link href="~/assets/theme/plugins/jquery-datatable/fixedColumns.dataTables.min.css" rel="stylesheet">
     <link href="~/assets/external/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet" />
     <link href="~/assets/external/daterangepicker/daterangepicker.css" rel="stylesheet" />
     <link href="~/assets/external/jquery-timepicker/jquery.timepicker.min.css" rel="stylesheet" />
     <link href="~/assets/external/tippy-theme-light.min.css" rel="stylesheet" />
+    <style>
+        .form-group-filter{
 
+            border-radius: 5px;
+            transition: 0.3s;
+            border: 1px solid #d5cfe0;
+            padding: 5px;
+            display: table;
+            table-layout: fixed;
+            width: 100%;
+            min-height: 45px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
 
+        .form-group-filter-flex{
+            display: flex;
+        }
+        .form-group-filter-icon{
+            padding-left: 5px;
+            display: table-cell;
+            vertical-align: middle;
+            width: 14%;
+        }
+        .form-group-filter-form{
+            display: table-cell;
+            vertical-align: middle;
+        }
+        .form-group-filter-form>.form-control{
+            border: 0px solid #ccc !important;
+        }
+
+        
+        .btn-noshadow{
+            background: #fff;
+            box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.16), 0 0px 0px rgba(0, 0, 0, 0.0) !important;
+    
+        }
+        .formpantry-witdh{
+            width: 100px;
+        }
+
+        .media:hover{
+            /* background-color: #f4ecec;*/
+            border: 2px solid #bf104b !important;
+            cursor: pointer;
+        }
+        .media{
+            padding: 5px;
+            border-radius: 5px;
+            transition: 0.3s;
+            border: 2px solid transparent;
+
+        }
+        .media, .media-body{
+            overflow: visible;
+        }
+        .label-bordered {
+            border: 1px solid #333 !important;
+            color : #333 !important;
+            border-radius: 4px;
+        }
+        .selectedRoom{
+            border:2px solid blue;
+        }
+        .btn.active{
+            background: #bf104b !important;
+        }
+        .img-booking{
+            width: 100%;
+            height: 200px;
+        }
+        .img-booking2{
+            width: 100%;
+            height: 250px;
+        }
+        .caption{
+            padding:5px !important; 
+        }
+        td.day.disabled {
+            color: white !important;
+            background: #B2DFDB !important;
+        }
+        .timedisabled {
+            font-weight: bold !important;
+            /* color: #fff !important;
+            background: #bc0000 !important;
+            text-transform: uppercase;*/
+            color: white !important;
+            background: #B2DFDB !important;
+        }
+
+        .select tbody tr.disabled {
+            color: white !important;
+            background: #B2DFDB !important;
+        }
+        .input-group{
+            margin-bottom : 0px !important;
+        }
+        .lbl_text{
+            font-size: 14px;
+        }
+        .lbl_text_location{
+            font-size: 12px;
+        }
+        .popover{
+            max-width: 500px;
+            
+        }
+        hr {
+            margin: none;
+            border: none;
+            height: 2px;
+            background-image: -webkit-linear-gradient(left, rgba(255,2,5,.5), rgba(137,11,138,.5), rgba(27,123,187,.5), rgba(47,195,44,.5), rgba(253,201,1,.5), rgba(255,91,2,.5), #ccc 15%, #ccc 85%, rgba(255,91,2,.5), rgba(253,201,1,.5), rgba(47,195,44,.5), rgba(27,123,187,.5), rgba(137,11,138,.5), rgba(255,2,5,.5));
+                background-image: -moz-linear-gradient(left, rgba(255,2,5,.5), rgba(137,11,138,.5), rgba(27,123,187,.5), rgba(47,195,44,.5), rgba(253,201,1,.5), rgba(255,91,2,.5), #ccc 15%, #ccc 85%, rgba(255,91,2,.5), rgba(253,201,1,.5), rgba(47,195,44,.5), rgba(27,123,187,.5), rgba(137,11,138,.5), rgba(255,2,5,.5)); 
+                background-image: -ms-linear-gradient(left, rgba(255,2,5,.5), rgba(137,11,138,.5), rgba(27,123,187,.5), rgba(47,195,44,.5), rgba(253,201,1,.5), rgba(255,91,2,.5), #ccc 15%, #ccc 85%, rgba(255,91,2,.5), rgba(253,201,1,.5), rgba(47,195,44,.5), rgba(27,123,187,.5), rgba(137,11,138,.5), rgba(255,2,5,.5));
+                background-image: -o-linear-gradient(left, rgba(255,2,5,.5), rgba(137,11,138,.5), rgba(27,123,187,.5), rgba(47,195,44,.5), rgba(253,201,1,.5), rgba(255,91,2,.5), #ccc 15%, #ccc 85%, rgba(255,91,2,.5), rgba(253,201,1,.5), rgba(47,195,44,.5), rgba(27,123,187,.5), rgba(137,11,138,.5), rgba(255,2,5,.5));
+            } 
+        .lbl_text_cost{
+            font-size: 22px;
+            font-style: italic;
+        }
+        @@media screen and (min-width: 480px) {
+            .img-booking{
+                height: 200px;
+            }
+            .formpantry-witdh{
+                width: 40px;
+            }
+        }
+        @@media screen and (min-width: 240px) {
+            .img-booking{
+                height: 180px;
+            }
+            .formpantry-witdh{
+                width: 40px;
+            }
+        }
+
+        .modal-dialog {
+            position:absolute;
+            top:50% !important;
+            transform: translate(0, -50%) !important;
+            -ms-transform: translate(0, -50%) !important;
+            -webkit-transform: translate(0, -50%) !important;
+            margin:auto 5%;
+            width:90%;
+            height:80%;
+        }
+        .modal-content {
+            min-height:100%;
+            position:absolute;
+            top:0;
+            bottom:0;
+            left:0;
+            right:0; 
+        }
+        .modal-body {
+            position:absolute;
+            top:45px; /** height of header **/
+            bottom:45px;  /** height of footer **/
+            left:0;
+            right:0;
+            overflow-y:auto;
+        }
+        .modal-footer {
+            position:absolute;
+            bottom:0;
+            left:0;
+            right:0;
+        }
+
+        .ui-timepicker-container{ 
+            z-index:999 !important; 
+        }
+
+        /* Chrome, Safari, Edge, Opera */
+        input.number-without-arrow::-webkit-outer-spin-button,
+        input.number-without-arrow::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+        }
+
+        /* Firefox */
+        input.number-without-arrow[type=number] {
+        -moz-appearance: textfield;
+        }
+    </style>
 }
 
 <section class="content">
     <div class="container-fluid">
         <div class="block-header">
             <h2>
-                BOOKING
+                @ViewData["PageName"]
             </h2>
         </div>
         <div class="row clearfix">
             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                 <ul class="nav nav-tabs tab-nav-right" role="tablist">
-                    <li role="presentation"><a href="#homepage" data-toggle="tab"><b>Booking List</b></a></li>
-                    <li role="presentation" class="active"><a href="#booknowpage" data-toggle="tab"><b>Book Now</b></a></li>
-                    <li role="presentation" class="active"><a href="#booknowpage" data-toggle="tab"><b>Training Room</b></a></li>
-                    <li role="presentation" class="active"><a href="#booknowpage" data-toggle="tab"><b>No Room</b></a></li>
+                    <li role="presentation" ><a href="#homepage" data-toggle="tab"><b>Booking List</b></a></li>
+                    <li role="presentation" class="active"><a href="#booknowpage" data-toggle="tab" data-room-category="room"><b>Book Now</b></a></li>
+                    <li role="presentation"><a href="#booknowpage" data-toggle="tab" data-room-category="trainingroom"><b>Training Room</b></a></li>
+                    <li role="presentation"><a href="#booknowpage" data-toggle="tab" data-room-category="noroom"><b>No Room</b></a></li>
                 </ul>
             </div>
         </div>
@@ -251,7 +242,7 @@
                                             <i class="material-icons">people</i>
                                         </span>
                                         <select class="form-control" id="id_schedule_employee_search" data-live-search="true">
-                                            <option value="">All Organizer</option>
+                                            <option value="">Load Data..</option>
                                         </select>
                                     </div>
                                 </div>
@@ -260,8 +251,8 @@
                                         <span class="input-group-addon">
                                             <i class="material-icons">my_location</i>
                                         </span>
-                                        <select onchange="ocFilterBuilding()" class="form-control" id="id_schedule_building_search" data-live-search="true">
-                                            <option value="">All Building</option>
+                                        <select class="form-control" id="id_schedule_building_search" data-live-search="true">
+                                            <option value="">Load Data..</option>
                                         </select>
                                     </div>
                                 </div>
@@ -271,378 +262,62 @@
                                             <i class="material-icons">map</i>
                                         </span>
                                         <select class="form-control" id="id_schedule_room_search" data-live-search="true">
-                                            <option value="">All Room</option>
+                                            <option value="">Load Data..</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-xs-12 col-sm-12 col-md-2 col-lg-2">
-                                    <button class="btn btn-success waves-effect" onclick="init()"><b>Filter</b></button>
+                                    <button class="btn btn-success waves-effect" id="id_schedule_search"><b>Filter</b></button>
                                 </div>
                             </div>
                             <div class="row clearfix">
                                 <div class="col-xs-12">
-                                    <div class="">
-                                        <table class="table table-hover" id="tbldata">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="tbldata" style="width: 100% !important;">
                                             <thead>
-                                            <th>#</th>
-                                            <th>Status</th>
-                                            <th style="width:80px !important;">Subject</th>
-                                            <th>Room</th>
-                                            <!-- <th >Date</th> -->
-                                            <th style="width:80px !important;">Time</th>
-                                            <th>Attendees</th>
-                                            <th>Organizer</th>
-                                            <th style="width:110px !important;"></th>
+                                                <tr>
+                                                    <th>#</th>
+                                                    @* <th>Status</th> *@
+                                                    <th>Subject</th>
+                                                    <th>Room</th>
+                                                    <th >Date</th>
+                                                    <th>Time</th>
+                                                    <th>Attendees</th>
+                                                    <th>Organizer</th>
+                                                    @* <th></th> *@
+                                                </tr>
                                             </thead>
                                             <tbody>
+                                                @* <tr>
+                                                    <td>1</td>
+                                                    <td>Weekly Meeting</td>
+                                                    <td>Merger Room 1</td>
+                                                    <td>09 Jan 2025</td>
+                                                    <td>10:00 - 12:00</td>
+                                                    <td>10</td>
+                                                    <td>Dev 1</td>
+                                                </tr> *@
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
                                 <!-- <div class="table-responsive responsive">
-
+                                        
                                     </div> -->
                             </div>
                         </div>
                     </div>
                 </div>
                 <div role="tabpanel" class="tab-pane fade in active " id="booknowpage">
-                    
-<div class="row clearfix">
-    <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3">
-        <div class="card">
-            <div class="header">
-                <div class="row clearfix">
-                    <div class="col-xs-12">
-                        <h2>Find & Reserve a Room </h2>
+                    <div class="row clearfix" id="id_area_find_room">
+                        @await Html.PartialAsync("Booking/Components/FindRoomPage")
+                    </div>
+
+                    <div class="row clearfix hidden" id="id_area_reserve_room" style="padding: 0px 15px;">
+                        @await Html.PartialAsync("Booking/Components/ReserveRoomPage")
                     </div>
                 </div>
             </div>
-            <div class="body">
-                <div class="row clearfix">
-                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
-                        <b class="lbl_text">When</b> <b style="color:red">*</b>
-                        <br>
-                        <br>
-                        <div class="form-group-filter">
-                            <div class="form-group-filter-icon">
-                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">date_range</i>
-                            </div>
-                            <div class="form-group-filter-form">
-                                <button id="id_book_filter_when" style="font-size: 16px;position: relative;left: -1px; top: 0px;" type="button" class="btn btn-noshadow btn-block waves-effect">Today, 28 Aug 2024</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
-                        <b class="lbl_text">Location</b> <b style="color:red">*</b>
-                        <br>
-                        <br>
-                        <div class="form-group-filter">
-                            <div class="form-group-filter-icon">
-                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">place</i>
-                            </div>
-                            <div class="form-group-filter-form">
-                                <div class="form-group" style="width: 100%; margin-bottom: 0px !important;">
-                                    <select data-live-search="true" class="form-control" id="id_book_filter_location" onchange="onChangeFilterLocation($(this))">
-                                        <option value="1">11:52</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
-                        <b class="lbl_text">From</b> <b style="color:red">*</b>
-                        <br>
-                        <br>
-                        <div class="form-group-filter">
-                            <div class="form-group-filter-icon">
-                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">access_time</i>
-                            </div>
-                            <div class="form-group-filter-form">
-                                <input readonly type="text" name="" id="id_book_filter_from" class="timepicker form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
-                        <b class="lbl_text">Until</b> <b style="color:red">*</b>
-                        <br>
-                        <br>
-                        <div class="form-group-filter">
-                            <div class="form-group-filter-icon">
-                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">access_time</i>
-                            </div>
-
-                            <div class="form-group-filter-form">
-                                <input readonly type="text" name="" id="id_book_filter_until" class="timepicker form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xs-12">
-                        <input onclick="onChangeFilterAllday($(this))" type="checkbox" id="id_book_filter_allday" class="filled-in chk-col-red"  />
-                        <label for="id_book_filter_allday">All Day</label>
-                    </div>
-                    
-                    <div class="col-lg-12 col-md-12 col-sm-6 col-xs-6">
-                        <b class="lbl_text">Subject</b> <b style="color:red">*</b>
-                        <br>
-                        <br>
-                        <div class="form-group-filter">
-                            <div class="form-group-filter-form">
-                                <input onkeyup="onKeyUpFilterSubject($(this))" autocomplete="off" type="text" class="form-control" id="id_book_filter_subject" placeholder="Subject">
-                            </div>
-                        </div>
-                    </div>
-                    <br>
-                    <div class="col-xs-12 form-group-filter-flex" >
-                        <input onclick="onChangeFilterPrivate($(this))" type="checkbox" id="id_book_filter_private" class="filled-in chk-col-red"  />
-                        <label for="id_book_filter_private">
-                            Make Private
-                        </label> 
-                        <div class="form-group-filter-icon">
-                            <a style="cursor: pointer;" data-toggle="tooltip" data-placement="top" title="" data-original-title="If activated, the meeting subject on the display will be hidden to become Private Meeting.">
-                                <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">info_outline</i>
-                            </a>
-                        </div>
-                    </div>
-                   
-                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                        <button type="button" id="id_book_filter_capabilities" class="btn btn-default dropdown-toggle form-group-filter-flex btn-block" 
-                        data-toggle="dropdown" role="button" aria-expanded="true" >
-                        <label for="id_book_filter_capabilities">
-                        <i style="font-size: 24px;position: relative;left: -1px; top: 4px;" class="material-icons">accessibility</i> Capabilities
-                        </label>
-                        </button>
-                    </div>
-
-                </div>
-                <div class="row clearfix">
-                    <div class="col-xs-12">
-                        <button id="id_book_filter_findroom" style="font-size: 16px;position: relative;left: -1px; top: 0px;" type="button" class="btn btn-primary btn-block btn-lg waves-effect">Find Room</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
-        <div class="card">
-            <div class="header">
-                <div class="row clearfix">
-                    <div class="col-xs-12">
-                        <h2>Available Room </h2>
-                    </div>
-                </div>
-            </div>
-            <div class="body">
-                <!-- div row room -->
-                <div class="row clearfix">
-                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                        <div class="row clearfix" id="id_area_booking_ad_room">
-                            <!-- <div class="row clearfix" id="id_area_booking_ad_room__"> -->
-                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                                <div class="media">
-                                    <div class="media-left media-middle">
-                                        <a href="javascript:void(0);">
-                                            <img class="media-object" src="http://localhost/demobooking/file/room/420759.jpeg" width="100" height="100">
-                                        </a>
-                                    </div>
-                                    <div class="media-body">
-                                        <h4 class="media-heading"><a data-toggle="popover" data-placement="bottom" title="Popover title" tabindex="0" data-trigger="focus" data-content='
-                        <table class="table borderless" >
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Location">location_city</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">PUSAT / Merge Room 3</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="People/Attendees Capacity">people_outline</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">20 people</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Merge Room">domain</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">Yes</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Private">do_not_disturb</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">Yes</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Room Time">access_time</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">08:00 - 19:00</td>
-                            </tr>
-                            <tr style="padding:2px !important; border:0px; ">
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Facility" >lightbulb_outline</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <span class="label label-bordered ">Projector</span>
-                                    <span class="label label-bordered ">Light</span>
-                                    <span class="label label-bordered ">Screen</span>
-                                    <span class="label label-bordered ">LCD TV</span>
-                                    <span class="label label-bordered ">Air Conditioner</span>
-                                    <span class="label label-bordered ">High speed internet</span>
-                                    <span class="label label-bordered ">Power outlet</span>
-                                </td>
-                            </tr>
-                        </table>
-                        ' data-html="true">Room 1 </a></h4>
-                                        <div class="row clearfix">
-                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                <table class="table borderless table-borderless ">
-                                                    <tr>
-                                                        <td style="padding:2px !important; border:0px; ">
-                                                            <i class="material-icons" style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Location">location_city</i>
-                                                        </td>
-                                                        <td style="padding:2px !important; border:0px; ">Gedung Pama 1 / Room 1</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="padding:2px !important; border:0px; ">
-                                                            <i class="material-icons" style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="People/Attendees Capacity">people_outline</i>
-                                                        </td>
-                                                        <td style="padding:2px !important; border:0px; ">20 people</td>
-                                                    </tr>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                    <div class="col-xs-12">
-                                        <button type="button" class="btn btn-success btn-block" aria-haspopup="true" aria-expanded="false">
-                                                        Reserve Room <!-- <span class="caret"></span> -->
-                                        </button>
-                                    </div>
-                                </div>
-                                </div>
-                                
-                            </div>
-                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                                <div class="media">
-                                    <div class="media-left media-middle">
-                                        <a href="javascript:void(0);">
-                                            <img class="media-object" src="http://localhost/demobooking/file/room/420759.jpeg" width="80" height="80">
-                                        </a>
-                                    </div>
-                                    <div class="media-body">
-                                        <h4 class="media-heading"><a data-toggle="popover" data-placement="bottom" title="Popover title" tabindex="0" data-trigger="focus" data-content='
-                        <table class="table borderless" >
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Location">location_city</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">PUSAT / Merge Room 3</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="People/Attendees Capacity">people_outline</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">20 people</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Merge Room">domain</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">Yes</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Private">do_not_disturb</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">Yes</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Room Time">access_time</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">08:00 - 19:00</td>
-                            </tr>
-                            <tr style="padding:2px !important; border:0px; ">
-                                <td style="padding:2px !important; border:0px; ">
-                                    <i class="material-icons"  style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Facility" >lightbulb_outline</i>
-                                </td>
-                                <td style="padding:2px !important; border:0px; ">
-                                    <span class="label label-bordered ">Projector</span>
-                                    <span class="label label-bordered ">Light</span>
-                                    <span class="label label-bordered ">Screen</span>
-                                    <span class="label label-bordered ">LCD TV</span>
-                                    <span class="label label-bordered ">Air Conditioner</span>
-                                    <span class="label label-bordered ">High speed internet</span>
-                                    <span class="label label-bordered ">Power outlet</span>
-                                </td>
-                            </tr>
-                        </table>
-                        ' data-html="true">Room 2 </a></h4>
-                                        <div class="row clearfix">
-                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                                                <table class="table borderless table-borderless ">
-                                                    <tr>
-                                                        <td style="padding:2px !important; border:0px; ">
-                                                            <i class="material-icons" style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="Location">location_city</i>
-                                                        </td>
-                                                        <td style="padding:2px !important; border:0px; ">Gedung Pama 1 / Room 2</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style="padding:2px !important; border:0px; ">
-                                                            <i class="material-icons" style="" data-toggle="tooltip" data-placement="top" title="" data-original-title="People/Attendees Capacity">people_outline</i>
-                                                        </td>
-                                                        <td style="padding:2px !important; border:0px; ">20 people</td>
-                                                    </tr>
-                                                </table>
-                                            </div>
-                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                                                <div class="form-group">
-                                                    <select class="form-control" id="">
-                                                        <option value="1">11:52</option>
-                                                        <option value="2">19:15</option>
-                                                        <option value="3">19:30</option>
-                                                        <option value="4">19:30</option>
-                                                        <option value="5">19:30</option>
-                                                        <option value="6">19:10</option>
-                                                        <option value="7">19:30</option>
-                                                        <option value="8">19:30</option>
-                                                        <option value="9">19:30</option>
-                                                        <option value="10">19:30</option>
-                                                        <option value="1">19:30</option>
-                                                    </select>
-                                                </div>
-                                                <div class="btn-group">
-                                                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                        Reserve Room <!-- <span class="caret"></span> -->
-                                                    </button>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a href="javascript:void(0);" class=" waves-effect waves-block">30 mins</a></li>
-                                                        <li><a href="javascript:void(0);" class=" waves-effect waves-block">60 mins</a></li>
-                                                        <li><a href="javascript:void(0);" class=" waves-effect waves-block">90 mins</a></li>
-                                                        <li role="separator" class="divider"></li>
-                                                        <li><a href="javascript:void(0);" class=" waves-effect waves-block">120 mins</a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                                
-                        </div>
-
-                    </div>
-                </div>
-                <!-- div row room -->
-            </div>
-        </div>
-    </div>
-</div>
-                </div>
-            </div>
-
         </div>
     </div>
 </section>
@@ -719,12 +394,12 @@
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="tbldataInternal">
                                         <thead>
-                                        <th>#</th>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Phone</th>
-                                        <th>Ext No.</th>
-                                        <th>Status</th>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Ext No.</th>
+                                            <th>Status</th>
                                         </thead>
                                         <tbody>
                                         </tbody>
@@ -750,12 +425,12 @@
                                 <div class="table-responsive">
                                     <table class="table table-hover" id="tbldataEksternal">
                                         <thead>
-                                        <th>#</th>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Organization/Company</th>
-                                        <!-- <th >Position</th> -->
-                                        <th>Status</th>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Organization/Company</th>
+                                            <!-- <th >Position</th> -->
+                                            <th>Status</th>
                                         </thead>
                                         <tbody>
                                         </tbody>
@@ -779,35 +454,40 @@
     </div>
 </div>
 
+<input type="hidden" id="id_baseurl" value="@Model.ApiUrl">
 
- <textarea id="id_modules" style="display: none;">
-     @Html.Raw(Json.Serialize(Model.BookingDetails.Modules))
- </textarea>
- <textarea id="id_settinggeneral" style="display: none;">
-     @Html.Raw(Json.Serialize(Model.BookingDetails.SettingGeneral))
- </textarea>
- <textarea id="id_invoicedata" style="display: none;">
-     @Html.Raw(Json.Serialize(Model.BookingDetails.Invoice))
- </textarea>
- <textarea id="id_category" style="display: none;">
-     @Html.Raw(Json.Serialize(Model.BookingDetails.Category))
- </textarea>
- <textarea id="id_building" style="display: none;">
-     @Html.Raw(Json.Serialize(Model.BookingDetails.Building))
- </textarea>
- <textarea id="id_room" style="display: none;">
-     @Html.Raw(Json.Serialize(Model.BookingDetails.Room))
- </textarea>
- <textarea id="id_employee" style="display: none;">
-     @Html.Raw(Json.Serialize(Model.BookingDetails.Organizer))
- </textarea>
- <textarea id="id_facility" style="display: none;">
-     @Html.Raw(Json.Serialize(Model.BookingDetails.Facility))
- </textarea>
+@* <textarea id="id_modules" style="display: none;">@Html.Raw(Model.Modules)</textarea> *@
+@* <textarea id="id_building" style="display: none;">@Html.Raw(Model.Buildings)</textarea> *@
+@* <textarea id="id_employee" style="display: none;">@Html.Raw(Model.Employees)</textarea> *@
+@* <textarea id="id_room" style="display: none;">@Html.Raw(Model.Rooms)</textarea> *@
+@* <textarea id="id_facility" style="display: none;">@Html.Raw(Model.Facilities)</textarea> *@
 
+@* <textarea style="display: none;" id="id_settinggeneral" cols="30" rows="10">@Html.Raw(Model.SettingGeneral)</textarea> *@
+@* <textarea style="display: none;" id="id_invoicedata" cols="30" rows="10">@Html.Raw(Model.Invoices)</textarea> *@
+@* <textarea style="display: none;" id="id_category" cols="30" rows="10">@Html.Raw(Model.Categories)</textarea> *@
 
-@section Scripts {
+@section Scripts
+{
+    <script>
+        const ajax = {
+            url : {
+                get_employees : "@Model.GetEmployees",
+                get_buildings : "@Model.GetBuildings",
+                get_rooms : "@Model.GetRooms",
+                get_available_rooms : "@Model.GetAvailableRooms",
+                get_facilities : "@Model.GetFacilities",
+                get_departments : "@Model.GetAlocation",
+                post_create_booking : "@Model.PostCreateReserve",
+                get_pantry_packages : "@Model.PantryPackages",
+                get_pantry_details : "@Model.PantryPackageDetailById",
+                get_bookings : "@Model.GetBookingDataTables",
+            }
+        };
 
+        const roomCard = `@await Html.PartialAsync("Booking/Components/RoomCard")`;
+    </script>
+    <script src='~/assets/theme/plugins/jquery-validation/jquery.validate.js'></script>    
+    <!-- TimePicker -->
     <script src="~/assets/external/jquery-timepicker/jquery.timepicker.min.js"></script>
     <!-- end TimePicker -->
     <!-- Datatables -->
@@ -823,19 +503,17 @@
     <script src="~/assets/theme/plugins/momentjs/moment-timezone-data.min.js"></script>
     <script src="~/assets/external/numeral/numeral.min.js"></script>
     <script src="~/assets/external/numeral/locale.id.js"></script>
-    <!-- Tippy -->
+    <!--Tippy -->
     <script src="~/assets/external/popper.min.js"></script>
     <script src="~/assets/external/tippy-bundle.umd.min.js"></script>
     <!-- end Tippy -->
+
 
     <!-- Bootstrap Material Datetime Picker Plugin Js -->
     <!-- <script src="~/assets/theme/plugins/jquery-editable/src/table-edits.js"></script> -->
     <script src="~/assets/external/daterangepicker/daterangepicker.js"></script>
     <script src="~/assets/external/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
     <script src="~/assets/theme/plugins/jquery-steps/jquery.steps.js"></script>
-    <script src="~/assets/process/booking/index.js?datetime=@DateTime.Now.ToString("yyyyMMddHHmmss")"></script>
-    <script src="~/assets/process/booking/booking_adv.js?datetime=@DateTime.Now.ToString("yyyyMMddHHmmss")"></script>
+    <script src="~/assets/process/booking/index.js" asp-append-version="true"></script>
+    @* <script src="~/assets/process/booking/booking_adv.js"></script> *@
 }
-
-
-

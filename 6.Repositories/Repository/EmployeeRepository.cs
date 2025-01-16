@@ -71,5 +71,34 @@ public class EmployeeRepository : BaseRepository<Employee>
 
         return await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<Employee?> GetItemByIdAsync(string id)
+    {
+        var query = from employee in _dbContext.Employees
+                    where employee.Id == id
+                    select employee;
+
+        return await query.FirstOrDefaultAsync();
+    }
+
+    public async Task<IEnumerable<object>> GetAllItemByIdsAsync(string[] ids)
+    {
+        if (ids.Length == 0)
+        {
+            return new List<object>();
+        }
+
+        var query = from employee in _dbContext.Employees
+                    from alocationType in _dbContext.AlocationTypes
+                        .Where(at => employee.CompanyId == at.Id).DefaultIfEmpty()
+                    from alocation in _dbContext.Alocations
+                        .Where(a => employee.DepartmentId == a.Id).DefaultIfEmpty()
+                    where ids.Contains(employee.Id)
+                    select new { employee, alocationType = new { CompanyName = alocationType.Name }, alocation = new { DepartmentName = alocation.Name } };
+
+        var result = await query.ToListAsync();
+
+        return result;
+    }
 }
 

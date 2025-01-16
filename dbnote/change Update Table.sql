@@ -126,3 +126,36 @@ ALTER TABLE smart_meeting_room.smart_meeting_room.room_merge_detail ALTER COLUMN
 ALTER TABLE smart_meeting_room.kiosk_display DROP CONSTRAINT PK_kiosk_display_id;
 ALTER TABLE smart_meeting_room.kiosk_display ALTER COLUMN id bigint;
 ALTER TABLE smart_meeting_room.kiosk_display ADD CONSTRAINT PK_kiosk_display_id PRIMARY KEY (id);
+
+--
+ALTER TABLE smart_meeting_room.booking ADD booking_type VARCHAR(20) CHECK (booking_type IN ('general', 'trainingroom', 'noroom', 'specialroom')) DEFAULT 'general';
+ALTER TABLE smart_meeting_room.booking ADD is_private INT DEFAULT 0;
+
+--
+ALTER TABLE smart_meeting_room.room ADD kind_room VARCHAR(20) CHECK (kind_room IN ('room', 'trainingroom', 'noroom', 'specialroom')) DEFAULT 'room';
+
+--
+ALTER TABLE smart_meeting_room.room_for_usage DROP CONSTRAINT PK_room_for_usage_id;
+ALTER TABLE smart_meeting_room.room_for_usage ALTER COLUMN id bigint;
+ALTER TABLE smart_meeting_room.room_for_usage ADD CONSTRAINT PK_room_for_usage_id PRIMARY KEY (id);
+
+--
+ALTER TABLE smart_meeting_room.booking_invitation DROP CONSTRAINT PK_booking_invitation_id;
+ALTER TABLE smart_meeting_room.booking_invitation ALTER COLUMN id bigint;
+ALTER TABLE smart_meeting_room.booking_invitation ADD CONSTRAINT PK_booking_invitation_id PRIMARY KEY (id);
+
+--
+ALTER TABLE smart_meeting_room.pantry_transaksi_d DROP CONSTRAINT PK_pantry_transaksi_d_id;
+ALTER TABLE smart_meeting_room.pantry_transaksi_d ALTER COLUMN id bigint;
+ALTER TABLE smart_meeting_room.pantry_transaksi_d ADD CONSTRAINT PK_pantry_transaksi_d_id PRIMARY KEY (id);
+
+-- 
+ALTER TABLE smart_meeting_room.booking DROP CONSTRAINT [DF__booking__is_dele__43A1090D];
+ALTER TABLE smart_meeting_room.booking ALTER COLUMN is_deleted int NOT NULL;
+ALTER TABLE smart_meeting_room.booking ADD CONSTRAINT DF_booking_is_deleted DEFAULT 0 FOR is_deleted;
+
+-- 
+ALTER TABLE smart_meeting_room.room_display  
+ADD   
+    name VARCHAR(100) NULL,  
+    description VARCHAR(MAX) NULL;

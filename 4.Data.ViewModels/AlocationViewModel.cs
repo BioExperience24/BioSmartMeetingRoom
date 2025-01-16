@@ -40,6 +40,9 @@ namespace _4.Data.ViewModels
 
         [JsonPropertyName("type_name")]
         public string? TypeName { get; set; }
+
+        [JsonPropertyName("invoice")]
+        public int? Invoice { get; set; }
     }
 
     public class AlocationVMDefaultFR {

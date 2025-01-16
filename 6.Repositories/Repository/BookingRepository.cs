@@ -112,11 +112,123 @@ public class BookingRepository : BaseLongRepository<Booking>
         return count;
     }
     
-    // public async Task<IEnumerable<Booking>> GetAllAsync()
-    // {
-    //     return await _context.Bookings.Where(b => b.IsDeleted == 0).ToListAsync();
-    // }
+    public async Task<IEnumerable<Booking>> GetAllAvailableItemAsync(Booking? entity = null)
+    {
+        var query = from booking in _dbContext.Bookings
+                    where booking.IsDeleted == 0
+                    select booking;
 
+        if (entity != null)
+        {
+            if (entity.RoomId != string.Empty)
+            {
+                query = query.Where(q => q.RoomId == entity.RoomId);
+            }
+
+            if (entity.Date != DateOnly.MinValue)
+            {
+                query = query.Where(q => q.Date == entity.Date);
+            }
+
+            if (entity.Start != DateTime.MinValue && entity.End != DateTime.MinValue)
+            {
+                /* query = query.Where(q => 
+                    q.Start <= entity.Start
+                    && q.End >= entity.End
+                ); */
+
+                query = query.Where(q => 
+                    q.Start <= entity.End
+                    && q.End >= entity.Start
+                );
+            }
+        }
+
+        var list = await query.ToListAsync();
+
+        return list;
+    }
+
+    public async Task<(IEnumerable<object>, int, int)> GetAllItemWithEntityAsync(Booking? entity = null, int limit = 0, int offset = 0)
+    {
+        var participants = (from bookInvitation in _dbContext.BookingInvitations
+                            where bookInvitation.IsDeleted == 0
+                            select new {
+                                BookingId = bookInvitation.BookingId,
+                                Total = (
+                                    from bi in _dbContext.BookingInvitations
+                                    where bi.BookingId == bookInvitation.BookingId
+                                    select bi
+                                ).Count()
+                            }).Distinct();
+
+        var query = from booking in _dbContext.Bookings
+                    from participant in participants
+                        .Where(bi => bi.BookingId == booking.BookingId).DefaultIfEmpty()
+                    where booking.IsExpired == 0 && booking.IsDeleted == 0
+                    orderby booking.Start descending
+                    select new { booking, Attendees = participant.Total };
+
+        if (entity?.DateStart != null && entity?.DateEnd != null)
+        {
+            query = query.Where(q => 
+                q.booking.Date >= entity.DateStart
+                && q.booking.Date <= entity.DateEnd
+            );
+        }
+
+        if (entity?.Pic != null)
+        {
+            query = query.Where(q => q.booking.Pic.Contains(entity.Pic));
+        }
+
+        if (entity?.BuildingId > 0)
+        {
+            query = from q in query
+                    from room in _dbContext.Rooms
+                        .Where(r => q.booking.RoomId == r.Radid).DefaultIfEmpty()
+                    from building in _dbContext.Buildings
+                        .Where(b => room.BuildingId == b.Id).DefaultIfEmpty()
+                    where building.Id == entity.BuildingId
+                    select q;
+        }
+
+        if (entity?.RoomId != null)
+        {
+            query = query.Where(q => q.booking.RoomId == entity.RoomId);
+        }
+
+        var recordsTotal = await query.CountAsync();
+
+        if (limit > 0)
+        {
+            query = query
+                    .Skip(offset)
+                    .Take(limit);
+        }
+
+        var recordsFiltered = query.Count();
+
+        var result = await query.ToListAsync();
+        
+        return (result, recordsTotal, recordsFiltered);
+    }
+
+    public async Task<IEnumerable<Booking>> GetBookingsByRoomIdsAndYearAsync(string[] roomId, int year)
+    {
+        var query = from booking in _dbContext.Bookings
+                    where booking.IsDeleted == 0
+                    && roomId.Contains(booking.RoomId)
+                    && booking.Date.Year == year
+                    select new Booking {
+                        RoomId = booking.RoomId,
+                        Date = booking.Date
+                    };
+
+        var result = await query.ToListAsync();
+        return result;
+    }
+    
     public async Task<Booking?> GetByIdAsync(long id)
     {
         return await _context.Bookings.FindAsync(id);

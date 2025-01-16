@@ -253,11 +253,12 @@ var _URL = window.URL || window.webkitURL;
 
                         $('#id_edt_building_id').html(html);
                         $('#id_edt_name').val(row.name);
-                        $('#id_edt_pixel').val(row.pixel);
-                        $('#id_edt_floor_length').val(row.floor_length);
-                        $('#id_edt_floor_width').val(row.floor_width);
-                        $('#id_edt_meter_per_px').val(row.meter_per_px);
+                        // $('#id_edt_pixel').val(row.pixel);
+                        // $('#id_edt_floor_length').val(row.floor_length);
+                        // $('#id_edt_floor_width').val(row.floor_width);
+                        // $('#id_edt_meter_per_px').val(row.meter_per_px);
                         $('#id_mdl_update').modal('show');
+                        select_enable();
                     }else{
                         var msg = "Your session is expired, login again !!!";
                         swalShowNotification('alert-danger', msg,'top','center')

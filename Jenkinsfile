@@ -41,10 +41,11 @@ pipeline {
             steps {
                 dir('/var/www/pama-source/1.PAMA.Razor.Views') {
                     sh 'rm -rf /var/www/pama-source/1.PAMA.Razor.Views/appsettings.json'
-                    sh 'cp /var/www/environment/appsettings.json /var/www/pama-source/1.PAMA.Razor.View'
+                    sh 'rm -rf /var/www/pama-source/1.PAMA.Razor.Views/appsettings.Development.json'
+                    sh 'rm -rf /var/www/pama-source/1.PAMA.Razor.Views/appsettings.Production.json'
+                    sh 'mv appsettings.self-deployment.json appsettings.json'
                     sh 'dotnet restore'  // Add restore step if not done earlier
                     sh 'dotnet publish -c Release -o /var/www/pama'
-                    sh 'cp /var/www/environment/appsettings.json /var/www/pama-source/1.PAMA.Razor.View'
                 }
             }
         }

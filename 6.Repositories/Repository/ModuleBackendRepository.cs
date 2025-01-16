@@ -7,6 +7,7 @@ using System.Security.AccessControl;
 using System.Transactions;
 using _6.Repositories.DB;
 using _6.Repositories.Extension;
+using _7.Entities.Models;
 
 namespace _6.Repositories.Repository;
 
@@ -52,6 +53,25 @@ public class ModuleBackendRepository
         return item;
     }
 
+    public async Task<IEnumerable<ModuleBackend>> GetItemsByModuleTextAsync(string[] moduleTexts)
+    {
+        /* var query = from moduleText in _dbContext.ModuleBackends
+                    where moduleTexts.Contains(moduleText.ModuleText)
+                    select moduleText; */
+                    
+        var query = from moduleText in _dbContext.ModuleBackends
+                    select moduleText;
+
+        if (moduleTexts.Any())
+        {
+            query = from moduleText in query
+                    where moduleTexts.Contains(moduleText.ModuleText)
+                    select moduleText;
+        }
+
+        return await query.ToListAsync();
+    }
+
 
     /// <summary>
     /// Get records from ModuleBackend table based on a dynamic condition.
@@ -90,6 +110,13 @@ public class ModuleBackendRepository
             .ToListAsync();
     }
 
+    public async Task<List<SettingInvoiceText>> GetInvoiceStatus()
+    {
+        return await _dbContext.SettingInvoiceTexts
+            .Where(m => m.IsDeleted == 0)
+            .ToListAsync();
+    }
+
     public async Task DeleteOldRoomForUsageDetailAsync(long id)
     {
         // Use ExecuteDelete for efficient deletion
@@ -99,6 +126,12 @@ public class ModuleBackendRepository
     }
 
 
+
+    //public async Task<List<BookingDto>> GetReportusage(string wreport, string wdate)
+    ////{
+      
+
+    ////}
 
 
     public async Task RemoveRoomMergeDetail(long? roomId)
@@ -264,28 +297,7 @@ public class ModuleBackendRepository
 
         // Execute and return the query asynchronously
         return await query.ToListAsync();
-
-    // Step 3: Calculate counts
-    //var countOld = roomData.Count;
-    //var countNew = countOld + 1;
-
-    // Step 4: Check license status
-    //if (licenseInfo.Status == "1" || licenseInfo.Status.ToString() == "1")
-    //{
-    //    var licenseQuantity = licenseInfo.Qty;
-
-    //    if (countNew > licenseQuantity)
-    //    {
-    //        return ("fail", "Failed: Room has reached the max limit. Please check your license.");
-    //    }
-    //}
-    //else
-    //{
-    //    return ("fail", "Failed: Room has limited access. Please check your license.");
-    //}
-
-    //return ("success", "Room data retrieved successfully");
-}
+    }
 
 public async Task<(string Error, List<RoomData> Data)> GetRoomDataAsync()
     {
@@ -356,25 +368,6 @@ public async Task<(string Error, List<RoomData> Data)> GetRoomDataAsync()
                                   RoomDetail = new List<RoomDetail>()
                               }).ToListAsync();
 
-            // Now, populate the facility_room2 for each room
-// After the query completes, populate the RoomDetail for each room
-//foreach (var roomData in data)
-//{
-//    // Query the RoomDetail table based on the RoomId (or RadId in this case)
-//    var roomDetails = await _dbContext.RoomDetails
-//                                      .Where(rd => rd.RoomId == roomData.Id)
-//                                      .ToListAsync();
-
-//    // Now populate the RoomDetail field with the fetched details
-//    roomData.RoomDetail = roomDetails.Select(rd => new RoomDetail
-//    {
-//        Id = rd.Id,
-//        RoomId = rd.RoomId,
-//        FacilityId = rd.FacilityId,
-//        Datetime = rd.Datetime,
-//    }).ToList();
-//}
-
             return (null, data);
         }
         catch (Exception ex)
@@ -389,26 +382,6 @@ public async Task<(string Error, List<RoomData> Data)> GetRoomDataAsync()
     {
         return await _dbContext.RoomDetails.FromSqlRaw(query).ToListAsync();
     }
-
-    /// <summary>
-    /// Get records from ModuleBackend table based on a dynamic condition.
-    /// </summary>
-    /// <param name="condition">The condition to filter the records.</param>
-    /// <param name="fields">An optional list of fields to select.</param>
-    /// <param name="result">Specify "row" to get a single record, "result" to get a list.</param>
-    /// <returns>A list of ModuleBackend records matching the condition.</returns>
-    //public async Task<IEnumerable<RoomForUsage>> SelectAllRoomForUsageAsync(
-    //    Dictionary<string, object> condition,
-    //    string[] fields = null,
-    //    string result = "result")
-    //{
-    //    var moduleBackendRepository = new _BaseModuleRepository<RoomForUsage>(_dbContext);
-    //    var data = await moduleBackendRepository.SelectAllDataAsync(condition, fields, result);
-    //    return data;
-
-    //}
-
-
 
     // Get All
     public async Task<IEnumerable<RoomForUsage>> SelectAllRoomForUsageAsync()

@@ -248,26 +248,26 @@
                             <input type="text" autocomplete="off" name="name" id="id_edt_name" required=""  class="form-control" placeholder="Name">
                         </div>
                     </div>
-                    <label for="">Pixel</label>
+                    @* <label for="">Pixel</label>
                     <div class="form-group">
                         <div class="form-line">
                             <input type="text" readonly autocomplete="off" name="pixel" id="id_edt_pixel" required=""  class="form-control" placeholder="Image Pixel">
                         </div>
-                    </div>
+                    </div> *@
                     
-                    <label for="">Floor Length(meter)</label>
+                    @* <label for="">Floor Length(meter)</label>
                     <div class="form-group">
                         <div class="form-line">
                             <input type="number" name="floor_length" id="id_edt_floor_length"   class="form-control" placeholder="Floor Length">
                         </div>
-                    </div>
-                    <label for="">Floor Width(meter)</label>
+                    </div> *@
+                    @* <label for="">Floor Width(meter)</label>
                     <div class="form-group">
                         <div class="form-line">
                             <input type="number" name="floor_width" id="id_edt_floor_width"   class="form-control" placeholder="Floor Width">
                         </div>
-                    </div>
-                    <div id="id_crt_controller_area_custid" > 
+                    </div> *@
+                    @* <div id="id_crt_controller_area_custid" > 
                         <label for="">Meter per pixel</label>
                         <div class="input-group">
                             
@@ -278,7 +278,7 @@
                                 <button onclick="calcPixelEdt()" class="btn btn-sm btn-info waves-effect" type="button">Calculate</button>
                             </span>
                         </div>
-                    </div>
+                    </div> *@
                     <br>
                     <button type="submit" id="id_btn_edt_submit" style="display: none;" class="btn btn-primary m-t-15 waves-effect">Save</button>
                 </form>
@@ -298,14 +298,7 @@
     </div>
 </div>
 
-@* <textarea id="id_modules" style="display: none;"> 
-    <?= json_encode($modules)?>
-</textarea> 
-<input type="hidden" id="id_baseurl" value="<?= base_url()?>">
-<textarea id="id_building_json" style="display: none;"><?= $data['building']?></textarea> *@
-
 <textarea id="id_modules" style="display: none;">{"beacon":{"module_id":"18","module_text":"module_beacon","name":"Module Beacon","module_serial":null,"is_enabled":"1"}}</textarea> 
-@* <textarea id="id_building_json" style="display: none;">[{"id":"1","generate":"4","name":"PUSAT","image":"061237.jpeg","description":"KANTOR PUSAT","timezone":"Asia\/Jakarta","detail_address":"Jl. Buni No.19, RT.9\/RW.5, Mangga Besar, Kec. Taman Sari, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11180\n","google_map":"https:\/\/maps.app.goo.gl\/woummfg6Zit5vb9n9","koordinate":"-6.1449754,106.8191852","is_deleted":"0","created_at":"2023-06-30 23:22:52","created_by":null,"updated_at":"2023-06-30 23:22:52","updated_by":null},{"id":"3","generate":"6","name":"CAFE","image":"5973201648.jpeg","description":"CAFE","timezone":"Asia\/Jakarta","detail_address":"CAFE","google_map":"","koordinate":null,"is_deleted":"0","created_at":"2023-06-30 23:22:54","created_by":null,"updated_at":"2023-06-30 23:22:54","updated_by":null},{"id":"2147483647","generate":"7","name":"Test data","image":"3754120896.png","description":"Test data","timezone":"Asia\/Jakarta","detail_address":"Test data","google_map":"","koordinate":null,"is_deleted":"0","created_at":"2024-12-04 11:17:00","created_by":null,"updated_at":"2024-12-04 11:17:00","updated_by":null}]</textarea> *@
 <textarea id="id_building_json" style="display: none;">@Html.Raw(Model.Buildings)</textarea>
 
 @section Scripts {

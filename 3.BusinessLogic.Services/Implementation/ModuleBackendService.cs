@@ -16,5 +16,12 @@ namespace _3.BusinessLogic.Services.Implementation
             return item != null ?
                     _mapper.Map<ModuleBackendViewModel>(item) : null;
         }
+
+        public async Task<IEnumerable<ModuleBackendViewModel>> GetItemsByModuleTextAsync(string[] moduleTexts)
+        {
+            var items = await _repo.GetItemsByModuleTextAsync(moduleTexts);
+
+            return _mapper.Map<List<ModuleBackendViewModel>>(items);
+        }
     }
 }

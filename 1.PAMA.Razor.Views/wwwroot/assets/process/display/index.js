@@ -436,6 +436,10 @@
             $('#id_upd_color_occupied').val(display.color_occupied)
             $('#id_upd_color_available').val(display.color_available)
             $('#id_upd_display_serial').val(display.display_serial)
+            $('#id_upd_name_text').text(display.name)
+            $('#id_upd_name').val(display.name)
+            $('#id_upd_description').val(display.description)
+            $('#id_upd_background_image').attr("src", display.background)
             var room_select = display.room_select == null ? "":  display.room_select;
             var sp_room_select = room_select.split(",");
             var gehtml =generateRoom(display.room_id);

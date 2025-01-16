@@ -98,5 +98,12 @@ namespace _3.BusinessLogic.Services.Implementation
 
             return 1;
         }
+
+        public async Task<SettingRuleBookingViewModel?> GetSettingRuleBookingTopOne()
+        {
+            var item = await _repo.GetSettingRuleBookingTopOne();
+
+            return item != null ? _mapper.Map<SettingRuleBookingViewModel>(item) : null;
+        }
     }
 }

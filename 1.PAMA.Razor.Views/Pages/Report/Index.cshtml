@@ -361,7 +361,6 @@
 <input type="hidden" id="id_default_timezone" value="Asia/Jakarta">
 <textarea id="id_modules" style="display: none;"></textarea>
 <textarea id="id_statusInvoice" style="display: none;"></textarea>
-<textarea id="id_listtimezone" style="display:none;"></textarea>
 <textarea id="id_building" style="display: none;"></textarea>
 <textarea id="id_room" style="display: none;"></textarea>
 <textarea id="id_employee" style="display: none;"></textarea>
@@ -379,56 +378,16 @@
     <script src="~/assets/external/numeral/locale.id.js"></script>
     <script src="~/assets/external/sheetjs/xlsx.full.min.js"></script>
 
-    <script>
-        var localtimezone = moment.tz.guess();
-        var gBuilding = JSON.parse($('#id_building').val());
-        var gRoom = JSON.parse($('#id_room').val());
-        var gEmployee = JSON.parse($('#id_employee').val());
-        var initialTab =  "roomusage";
-        var gGlobalTabs = "roomusage";
-        function changeTabs(argument) {
-            console.log(argument)
-            if(gGlobalTabs != argument){
-                gGlobalTabs = argument;
-            }
-        }
-
-    </script>
 
     <script>
         // var localtimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         var globalStatusInvoice = [];
         $(function(){
             getOnLoadModules()
-            getStatus();
             // init();
             // getAutomation();
             // getFacility();
-            intrTime()
-            initGlobalData()
-            initialLoad();
         }) 
-        function initGlobalData(){
-            initBuilding();
-            initEmployee();
-            initRangeDate();
-           
-        }
-        function initialLoad(){
-            gGlobalTabs = "roomusage";
-            initGlobalData()
-            initRoom();
-            gGlobalTabs = "organizer";
-            initGlobalData();
-            filterOrganizer()
-            gGlobalTabs = "attendees";
-            initGlobalData();
-            filterAttendees()
-
-            gGlobalTabs = initialTab;
-            initGlobalData();
-
-        }
         function intrTime(){
             setInterval(
                 function(){
@@ -437,6 +396,21 @@
                 },500
             );
         }
+
+
+        var localtimezone = moment.tz.guess();
+        var gBuilding;
+        var gRoom;
+        var gEmployee;
+        var initialTab = "roomusage";
+        var gGlobalTabs = "roomusage";
+        function changeTabs(argument) {
+            console.log(argument)
+            if (gGlobalTabs != argument) {
+                gGlobalTabs = argument;
+            }
+        }
+
 
         function getModule(){
             var modules = $('#id_modules').val();
@@ -481,6 +455,7 @@
             select_enable();
         }
         function initEmployee(){
+
             var html = '<option selected value="">All Employee</option>';
             var s = gEmployee.length == 1?"selected":"";
             for(var x in gEmployee){
@@ -507,9 +482,9 @@
             }
             return frm;
         }
+
         function getOnLoadModules(){
             allModules = [];
-            var bs = $('#id_baseurl').val();
             $.ajax({
                 url: "api/Room/GetOnLoadModules?pagename=Room%20Usage",
                 type : "GET",
@@ -520,9 +495,16 @@
                 success:function(data){
                     if(data.status == "success"){
                         allModules = data.collection;
+                        gBuilding = JSON.parse(JSON.stringify(allModules.building))
+                        gEmployee = JSON.parse(JSON.stringify(allModules.user_permission))
                         $("#id_modules").html(JSON.stringify(allModules.modules))
                         $("#id_building").html(JSON.stringify(allModules.building))
                         $("#id_employee").html(JSON.stringify(allModules.user_permission))
+
+
+                        intrTime()
+                        initGlobalData()
+                        initialLoad();
                     }else{
                         var msg = "Your session is expired, login again !!!";
                         showNotification('alert-danger', msg,'top','center')
@@ -531,12 +513,10 @@
                 },
                 error: errorAjax
             })
-        }
-        function getStatus() {
-            globalStatusInvoice = [];
-            var bs = $('#id_baseurl').val();
+
+            globalStatus2 = [];
             $.ajax({
-                url: bs + "report/get/status-invoice",
+                url: "api/Room/GetRoomData",
                 type: "GET",
                 dataType: "json",
                 beforeSend: function () {
@@ -544,9 +524,29 @@
                 },
                 success: function (data) {
                     if (data.status == "success") {
-                        globalStatusInvoice = data.collection;
-                        console.log(globalStatusInvoice);
-                        initRoom();
+                        globalStatus2 = data.collection;
+                        $("#id_room").html(JSON.stringify(globalStatus2))
+                    } else {
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg, 'top', 'center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+
+            globalStatus3 = [];
+            $.ajax({
+                url: "api/Room/GetInvoiceStatus",
+                type: "GET",
+                dataType: "json",
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    if (data.status == "success") {
+                        globalStatus3 = data.collection;
+                        $("#id_statusInvoice").html(JSON.stringify(globalStatus3))
                     } else {
                         var msg = "Your session is expired, login again !!!";
                         showNotification('alert-danger', msg, 'top', 'center')
@@ -556,7 +556,29 @@
                 error: errorAjax
             })
         }
-        
+
+
+        function initGlobalData() {
+            initBuilding();
+            initEmployee();
+            initRangeDate();
+
+        }
+        function initialLoad() {
+            gGlobalTabs = "roomusage";
+            initGlobalData()
+            initRoom();
+            gGlobalTabs = "organizer";
+            initGlobalData();
+            filterOrganizer()
+            gGlobalTabs = "attendees";
+            initGlobalData();
+            filterAttendees()
+
+            gGlobalTabs = initialTab;
+            initGlobalData();
+
+        }
 
         function initTable(selector) {
             selector.DataTable();

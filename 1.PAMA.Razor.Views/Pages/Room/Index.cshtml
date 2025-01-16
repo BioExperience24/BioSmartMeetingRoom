@@ -1,5 +1,6 @@
 ﻿@page "/room"
 @model _1.PAMA.Razor.Views.Pages.Room.IndexModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     Layout = "_LayoutAdmin";
@@ -997,9 +998,13 @@
 </div>
 
 <input type="hidden" id="id_default_timezone" value="Asia/Jakarta">
+@{
+    string baseUrl = Configuration["App:BaseUrl"]; // Access nested configuration keys using colon (:)
+}
+<input id="id_baseurl" style="display: none;" value="@baseUrl" />
 
-<input id="id_baseurl" style="display: none;"
-    value="@Html.Raw($"{Request.Scheme}://{Request.Host}{Request.PathBase}/")" />
+
+
 
 <textarea id="id_room_for_usage" style="display: none;">
     @Html.Raw(Json.Serialize(Model.RoomDetails.RoomForUsage))

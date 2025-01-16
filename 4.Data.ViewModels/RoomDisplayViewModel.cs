@@ -73,6 +73,12 @@ namespace _4.Data.ViewModels
 
         [JsonPropertyName("disable_msg")]
         public string DisableMsg { get; set; } = string.Empty;
+        
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = string.Empty;
 
 
         [JsonPropertyName("room_name")]

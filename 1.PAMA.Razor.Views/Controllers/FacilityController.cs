@@ -63,9 +63,10 @@ public class FacilityController(IFacilityService service)
         return StatusCode(ret.StatusCode, ret);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Update([FromForm] FacilityUpdateViewModelFR UReq)
+    [HttpPost("{id}")]
+    public async Task<IActionResult> Update(long id, [FromForm] FacilityUpdateViewModelFR UReq)
     {
+        UReq.Id = id;
         var type = await service.UpdateFacilityAsync(UReq);
         ReturnalModel ret = new()
         {

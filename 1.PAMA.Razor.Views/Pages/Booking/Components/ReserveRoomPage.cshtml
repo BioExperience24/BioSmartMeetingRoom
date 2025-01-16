@@ -1,0 +1,266 @@
+<div class="card">
+    <div class="header">
+        <div class="row clearfix">
+            <div class="col-xs-12">
+                <h2>Room Book Form</h2>
+            </div>
+        </div>
+    </div>
+    <div class="body">
+        <div class="row clearfix">
+            <div class="col-lg-3 col-md-4 col-sm-3 col-xs-12">
+                <button onclick="onButtonBack()" type="button" class="btn btn-block bg-red btn-lg waves-effect">
+                    BACK
+                </button>
+            </div>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 align-middle" style="line-height: 2.5;">
+                <h4 id="id_frm_crt_room_name"></h4>
+            </div>
+        </div>
+        <div class="row clearfix" style="min-height: 500px;overflow-y: scroll;background: #fff;">
+            <form method="POST" id="id_frm_crt">
+                <!--START FORM BOOKING -->
+                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    <!-- DATE -->
+                    <div class="row clearfix">
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                            <b class="lbl_text">SUBJECT MEETING</b> <b style="color:red">*</b>
+                            <div class="input-group">
+                                <div class="form-line">
+                                    <input autocomplete="off" type="hidden" name="booking_type" id="id_frm_crt_booking_type">
+                                    <input autocomplete="off" type="hidden" name="date" id="id_frm_crt_date">
+                                    <input autocomplete="off" type="hidden" name="room_id" id="id_frm_crt_room_id">
+                                    <input autocomplete="off" type="text" name="title" class="form-control" id="id_frm_crt_title" placeholder="Subject meeting" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6">
+                            <b class="lbl_text" style="color:transparent;"> *</b>
+                            <div class="input-group">
+                                @* <select data-type="" onchange="setSelectedTimeCrtBookingInside($(this))" data-size="5" title="Choose the Time..." onchange="s($(this))" id="id_frm_crt_timestart" class="form-control show-tick" data-live-search="true">
+                                    <option value=""></option>
+                                </select> *@
+                                <div class="form-line">
+                                    <input autocomplete="off" type="text" name="start" id="id_frm_crt_timestart" class="form-control timepicker" placeholder="From" readonly required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-6 align-right">
+                            <b class="lbl_text" style="color:transparent;"> *</b>
+                            <div class="input-group">
+                                @* <select data-type="end" onchange="setSelectedTimeCrtBookingInside($(this))" data-size="5" title="Choose the Time..." onchange="s($(this))" id="id_frm_crt_timeend" class="form-control show-tick" data-live-search="true">
+                                    <option value=""></option>
+                                </select> *@
+                                <div class="form-line">
+                                    <input autocomplete="off" type="text" name="end" id="id_frm_crt_timeend" class="form-control timepicker" placeholder="To" readonly required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row clearfix">
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                            <b class="lbl_text">ORGANIZER(HOST)</b> <b style="color:red">*</b>
+                            <div class="input-group">
+                                <select data-size="5" title="Choose the organizer..." name="pic" id="id_frm_crt_pic" class="form-control show-tick" data-live-search="true" required>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                            <b class="lbl_text">DEPARTMENT</b> <b style="color:red">*</b>
+                            <div class="input-group">
+                                @* <select data-size="5" title="Choose the Department..." name="alocation_id" id="id_frm_crt_alocation_id" class="form-control show-tick" data-live-search="true" required>
+                                    <option value=""></option>
+                                </select> *@
+                                <div class="form-line">
+                                    <input autocomplete="off" type="hidden" name="alocation_id" class="form-control" id="id_frm_crt_alocation_id" readonly>
+                                    <input autocomplete="off" type="text" name="alocation_name" class="form-control" id="id_frm_crt_alocation_name" readonly>
+                                </div>
+                                <!-- <p >Select pic to open the alocation in charge</p> -->
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                            <b class="lbl_text">MEETING NOTE</b>
+                            <div class="input-group">
+                                <div class="form-line">
+                                    <textarea class="form-control" name="note" id="id_frm_crt_note" rows="1"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                            <b class="lbl_text">LINK MEETING</b>
+                            <div class="input-group">
+                                <div class="form-line">
+                                    <input autocomplete="off" type="text" name="external_link" class="form-control" id="id_frm_crt_external_link" placeholder="Link Meeting, Ex. https://goo.gl/maps/XXXXXXXX ">
+                                </div>
+                                <!-- <p >Select pic to open the alocation in charge</p> -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- TIME -->
+                    <div class="row clearfix">
+                    </div>
+                    <!-- Merger & vip -->
+                    @* <div class="row clearfix">
+                        <div class="col-xs-6" id="id_area_vip" style="display :none;">
+                            <b class="lbl_text">VIP MEETING </b> <b style="color:red">*</b>
+                            <div class="input-group">
+                                <select disabled title="Choose the Meeting VIP..." id="id_frm_crt_vip_meeting" class="form-control show-tick">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-xs-6" id="id_area_category" style="display :none;">
+                            <b class="lbl_text">MEETING CATEGORY </b> <b style="color:red">*</b>
+                            <div class="input-group">
+                                <select disabled title="Choose the Category" id="id_frm_crt_category" class="form-control show-tick">
+                                </select>
+                            </div>
+                        </div>
+                    </div> *@
+                    <!-- Reservation Cost -->
+                    @* <div class="row clearfix" id="id_frm_crt_cost_area" style="display:none;">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <label for="" class="lbl_text">RESERVATION COST <u id="id_frm_crt_cost"></u></label>
+                        </div>
+                    </div> *@
+                    <!-- <hr> -->
+                    <!-- <u></u> -->
+                    <!--  -->
+                    
+                    <!-- Make Priavte -->
+                    <div class="row clearfix">
+                        <div class="col-xs-12 form-group-filter-flex">
+                            <input type="checkbox" name="is_private" id="id_frm_crt_is_private" class="filled-in chk-col-red"  />
+                            <label for="id_frm_crt_is_private">
+                                Make Private
+                            </label> 
+                            <div class="form-group-filter-icon">
+                                <a style="cursor: pointer;" data-toggle="tooltip" data-placement="top" title="" data-original-title="If activated, the meeting subject on the display will be hidden to become Private Meeting.">
+                                    <i style="font-size: 24px;position: relative;left: -1px; top: 0px;" class="material-icons">info_outline</i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Category -->
+                    <div class="row clearfix">
+                        <div class="col-xs-12">
+                            <b class="lbl_text">MEETING CATEGORY</b>
+                            <div class="input-group">
+                                <select data-size="5" title="Choose the category..." name="meeting_category" id="id_frm_crt_meeting_category" class="form-control show-tick" data-live-search="true">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-xs-12">
+                            <table class="table" id="tbl_meeting_category">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">Note</th>
+                                        <th scope="col" class="text-center" width="100">Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- END FORM BOOKING -->
+                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    @* <div class="row clearfix">
+                        <div class="col-xs-6" id="id_area_merge_room">
+                            <b class="lbl_text">MERGE ROOM </b> <b style="color:red">*</b>
+                            <div class="input-group">
+                                <select data-size="4" title="Choose the room..." data-actions-box="true" onchange="changeMergeRoom($(this))" multiple id="id_frm_crt_merge_room" class="form-control show-tick" data-live-search="true">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div> *@
+                    <!--START  ATTENDEESS  -->
+                    <div class="row clearfix">
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                            <div class="row clearfix">
+                                <div class="col-xs-12">
+                                    <b class="lbl_text">INTERNAL ATTENDEES</b>
+                                    <div class="input-group">
+                                        <select data-size="4" title="Choose the attendees..." data-actions-box="true" data-selected-text-format="count > 0" multiple id="id_frm_crt_participant" class="form-control show-tick" data-live-search="true">
+                                        </select>
+                                        <span class="input-group-addon">
+                                            <button onclick="clickPartisipantAdd($(this))" type="button" class="btn bg-blue waves-effect">
+                                                <i class="material-icons">add</i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style="height: 150px;overflow-y: scroll;;background: #fff;" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <table class="table table-bordered" style="border-collapse: collapse;border-spacing: 0;" id="id_list_tbl_participant">
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                            <div class="row clearfix">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <b class="lbl_text">EXTERNAL ATTENDEES</b>
+                                    <div class="input-group">
+                                        <button onclick="clickPartisipantManualOpen()" type="button" class="btn bg-blue  btn-lg waves-effect">
+                                            ADD MANUAL
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="height: 150px;overflow-y: scroll;background: #fff;" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <table class="table table-bordered table-hover " style="border-collapse: collapse;border-spacing: 0;" id="id_list_tbl_participant_manual">
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--END  ATTENDEESS  -->
+                    <!--START  PANTRY  -->
+                    @* <div class="row clearfix" id="id_pantry_area" >
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <b class="lbl_text">PANTRY ORDER </b>
+                            <div class="input-group">
+                                <select data-size="4" onchange="oncPantry()" id="id_frm_crt_pantry" class="form-control show-tick" data-live-search="true">
+                                    <option value="">C H O O S E</option>
+                                </select>
+                                <span class="input-group-addon">
+                                </span>
+                            </div>
+                            <hr>
+                            <div style="background: #fff;" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                <table class="table table-bordered table-hover" id="id_list_tbl_patry">
+                                    <thead>
+                                        <th>#</th>
+                                        <th style="width: 100px !important;">Name</th>
+                                        <th style="width: 100px !important;">Qty</th>
+                                        <th style="width: 100px !important;">Note</th>
+                                        <th></th>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div> *@
+                    <!--END  PANTRY  -->
+                    <!-- <img class="img-booking2" src="" alt="" id="id_frm_crt_image"> -->
+                </div>
+            </form>
+        </div>
+        <div class="row clearfix">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <button id="id_btn_crt_submit_booking" style="padding: 5px !important; font-size: 22px;font-weight: bold;" type="button" class="btn bg-red btn-block waves-effect" onclick="onSubmitReserveRoom(this)">
+                    SUBMIT BOOKING
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

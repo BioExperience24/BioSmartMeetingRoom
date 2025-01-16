@@ -179,3 +179,10 @@ public static class ReturnalType
     public const string Forbidden = "forbidden";
     public const string UnderConstruction = "under_construction";
 }
+
+public static class PantryTransaksiOrderStatus
+{
+    public const int Processing = 1;
+    public const int Completed = 2;
+    public const int Failed = 3;
+}

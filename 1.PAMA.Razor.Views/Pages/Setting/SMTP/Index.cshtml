@@ -2,7 +2,7 @@
 @model _1.PAMA.Razor.Views.Pages.Setting.SMTP.IndexModel
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Setting - SMTP";
+    ViewData["PageName"] = "SMTP & Email Setting";
 }
 @section Styles {
     <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
@@ -58,7 +58,7 @@
     <div class="container-fluid">
 
         <div class="block-header">
-            <h2><?= strtoupper($pagename) ?></h2>
+            <h2>@ViewData["PageName"]</h2>
         </div>
         <div class="row clearfix">
             <!-- END BOOKING SETTING -->

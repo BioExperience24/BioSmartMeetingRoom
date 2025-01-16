@@ -1,5 +1,10 @@
 @* @model _1.PAMA.Razor.Views.Pages.Shared._LayoutAdminModel *@
-@* @{ } *@
+@inject Microsoft.Extensions.Configuration.IConfiguration Config
+@{ 
+    var AppUrl = Config["App:BaseUrl"];
+    var ApiUrl = Config["ApiUrls:BaseUrl"];
+    var GetModules = $"{ApiUrl}{Config["ApiUrls:Endpoints:ModuleBackend:GetModuleBackends"]}";
+}
 
 
 <!DOCTYPE html>
@@ -23,6 +28,8 @@
     <link href="~/assets/theme/css/style.css" rel="stylesheet">
     <!-- AdminBSB Themes. You can choose a theme from css/themes instead of get all themes -->
     <link href="~/assets/theme/css/themes/all-themes.css" rel="stylesheet" />
+    <!-- Css Skeleton -->
+    <link href="~/assets/theme/plugins/css-skeleton/css-skeletons.min.css" rel="stylesheet" />
 
     <!-- style section -->
     @await RenderSectionAsync("Styles", required: false)
@@ -179,6 +186,17 @@
     @RenderBody()
     
     @Html.AntiForgeryToken()
+
+    <script>
+        const app = {
+            url: {
+                app: "@AppUrl",
+                api: "@ApiUrl",
+                get_modules: "@GetModules"
+            }
+        }
+    </script>
+    
     <!-- Jquery Core Js -->
     <script src="~/assets/theme/plugins/jquery/jquery.min.js"></script> 
     <!-- Bootstrap Core Js -->
@@ -192,6 +210,7 @@
     <!-- Custom Js -->
     <script src="~/assets/theme/js/admin.js" ></script>
     <script src="~/assets/theme/js/demo.js" ></script>
+    <script src="~/assets/theme/js/app.js" asp-append-version="true"></script>
     <!-- Select Plugin Js -->
     <script src="~/assets/theme/plugins/bootstrap-select/js/bootstrap-select.js"></script>
     <script src="~/assets/theme/plugins/bootstrap-notify/bootstrap-notify.js"></script>

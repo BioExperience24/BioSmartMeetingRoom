@@ -1007,7 +1007,7 @@ function init() {
                     html += '<td data-id="'+item.radid+'"></td>';
                     html += '<td>' + nn + '</td>';
                     var imgp = item.image == "" || item.image == null ? defaultImage : item.image;
-                    html += '<td> <a href="javascript:void(0);" class="thumbnail"><img src="' + bs + 'api/Room/GetRoomDetailView/' + imgp + '?h=80&noCache=false" style="height:64px;" class="img-responsive"></a></td>';
+                    html += '<td> <a href="javascript:void(0);" class="thumbnail"><img src="/api/Room/GetRoomDetailView/' + imgp + '?h=80&noCache=false" style="height:64px;" class="img-responsive"></a></td>';
                     html += '<td style="width:150px;">' + item.name + '</td>';
                     html += '<td style="width:150px;">' + item.building_name + '</td>';
                     html += '<td>' + item.capacity + '</td>';
@@ -1154,7 +1154,7 @@ function editData(t) {
                     dataR += '<option ' + sel + ' value="' + x + '">' + enabledRoom[x] + '</option>'
                 }
                 var imgp = input.image == "" || input.image == null ? defaultImage : input.image;
-                var imap = bs + 'api/Room/GetRoomDetailView/' + imgp + '?h=80&noCache=false';
+                var imap = '/api/Room/GetRoomDetailView/' + imgp + '?h=80&noCache=false';
                 $('#id_edt_image_old').attr("src", imap);
 
 
@@ -1165,7 +1165,7 @@ function editData(t) {
                     for (var x in im2) {
                         n0++;
                         var imgp2 = im2[x] == "" || im2[x] == null ? defaultImage : im2[x];
-                        var imap2 = bs + 'api/Room/GetRoomDetailView/' + imgp2 + '?h=80&noCache=false';
+                        var imap2 = '/api/Room/GetRoomDetailView/' + imgp2 + '?h=80&noCache=false';
                         $('#id_edt_image2_' + n0 + '_old').attr("src", imap2);
 
                     }

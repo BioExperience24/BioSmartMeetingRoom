@@ -1,0 +1,21 @@
+services:
+  pama-app:
+    image: my-dotnet-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:5000"  # Map container port 5000 to host port 8080
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:5000
+    restart: always
+    volumes:
+      - attachment-data:/app/attachments  # Map volume to container path
+    networks:
+      - pama-network
+networks:
+  pama-network:
+    driver: bridge
+volumes:
+  attachment-data:

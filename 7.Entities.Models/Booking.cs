@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace _7.Entities.Models;
 
@@ -192,6 +193,17 @@ public partial class Booking : BaseLongEntity
     public DateTime? ServerStart { get; set; }
 
     public DateTime? ServerEnd { get; set; }
+
+    public string BookingType { get; set; } = "general";
+    
+    public int IsPrivate { get; set; }
+
+    [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
+    public long BuildingId { get; set; }
+    [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
+    public DateOnly? DateStart { get; set; }
+    [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
+    public DateOnly? DateEnd { get; set; }
 }
 
 public class BookingChart
@@ -233,4 +245,116 @@ public class BookingMenuDto
 
     [JsonPropertyName("is_child")]
     public int? IsChild { get; set; }
+}
+
+public class BookingDto
+{
+    public string NumParticipant { get; set; }
+    public string Id { get; set; }
+    public string BookingId { get; set; } = null!;
+    public string BookingId365 { get; set; }
+    public string BookingIdGoogle { get; set; }
+    public string BookingDevices { get; set; }
+    public string NoOrder { get; set; }
+    public string Title { get; set; }
+    public string Date { get; set; }
+    public string RoomId { get; set; }
+    public string RoomName { get; set; }
+    public string IsMerge { get; set; }
+    public string MergeRoom { get; set; }
+    public string MergeRoomId { get; set; }
+    public string MergeRoomName { get; set; }
+    public string Start { get; set; }
+    public string End { get; set; }
+    public string CostTotalBooking { get; set; }
+    public string DurationPerMeeting { get; set; }
+    public string TotalDuration { get; set; }
+    public string ExtendedDuration { get; set; }
+    public string Pic { get; set; }
+    public string AlocationId { get; set; }
+    public string AlocationName { get; set; }
+    public string Note { get; set; }
+    public string CanceledNote { get; set; }
+    public string Participants { get; set; }
+    public string ExternalLink { get; set; }
+    public string ExternalLink365 { get; set; }
+    public string ExternalLinkGoogle { get; set; }
+    public string EndEarlyMeeting { get; set; }
+    public string TextEarly { get; set; }
+    public string IsDevice { get; set; }
+    public string IsMeal { get; set; }
+    public string IsEar { get; set; }
+    public string IsRescheduled { get; set; }
+    public string IsCanceled { get; set; }
+    public string IsExpired { get; set; }
+    public string CanceledBy { get; set; }
+    public string CanceledAt { get; set; }
+    public string ExpiredBy { get; set; }
+    public string ExpiredAt { get; set; }
+    public string RescheduledBy { get; set; }
+    public string RescheduledAt { get; set; }
+    public string EarlyEndedBy { get; set; }
+    public string EarlyEndedAt { get; set; }
+    public string IsAlive { get; set; }
+    public string Timezone { get; set; }
+    public string Comment { get; set; }
+    public string CreatedAt { get; set; }
+    public string CreatedBy { get; set; }
+    public string UpdatedAt { get; set; }
+    public string UpdatedBy { get; set; }
+    public string IsNotifEndMeeting { get; set; }
+    public string IsNotifBeforeEndMeeting { get; set; }
+    public string IsAccessTrigger { get; set; }
+    public string IsDeleted { get; set; }
+    public string IsConfigSettingEnable { get; set; }
+    public string IsEnableApproval { get; set; }
+    public string IsEnablePermission { get; set; }
+    public string IsEnableRecurring { get; set; }
+    public string IsEnableCheckin { get; set; }
+    public string IsRealeaseCheckinTimeout { get; set; }
+    public string IsReleased { get; set; }
+    public string IsEnableCheckinCount { get; set; }
+    public string Category { get; set; }
+    public string LastModifiedDateTime365 { get; set; }
+    public string PermissionEnd { get; set; }
+    public string PermissionCheckin { get; set; }
+    public string ReleaseRoomCheckinTime { get; set; }
+    public string CheckinCount { get; set; }
+    public string IsVip { get; set; }
+    public string IsApprove { get; set; }
+    public string VipUser { get; set; }
+    public string UserEndMeeting { get; set; }
+    public string UserCheckin { get; set; }
+    public string UserApproval { get; set; }
+    public string UserApprovalDatetime { get; set; }
+    public string RoomMeetingMove { get; set; }
+    public string RoomMeetingOld { get; set; }
+    public string IsMoved { get; set; }
+    public string IsMovedAgree { get; set; }
+    public string MovedDuration { get; set; }
+    public string MeetingEndNote { get; set; }
+    public string VipApproveBypass { get; set; }
+    public string VipLimitCapBypass { get; set; }
+    public string VipLockRoom { get; set; }
+    public string VipForceMoved { get; set; }
+    public string DurationSavedRelease { get; set; }
+    public string IsCleaningNeed { get; set; }
+    public string CleaningTime { get; set; }
+    public string CleaningStart { get; set; }
+    public string CleaningEnd { get; set; }
+    public string UserCleaning { get; set; }
+    public string ServerDate { get; set; }
+    public string ServerStart { get; set; }
+    public string ServerEnd { get; set; }
+    public string RoomLocation { get; set; }
+    public string MemoNo { get; set; }
+    public string ReferensiNo { get; set; }
+    public string InvoiceStatus { get; set; }
+    public string AlocationType { get; set; }
+    public string AlocationInvoiceStatus { get; set; }
+    public string AlcoationTypeInvoiceStatus { get; set; }
+    public string NameEmployee { get; set; }
+    public string EmailEmployee { get; set; }
+    public string PhoneEmployee { get; set; }
+    public string ExtEmployee { get; set; }
 }

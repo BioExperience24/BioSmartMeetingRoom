@@ -1,9 +1,17 @@
-﻿@page "/setting/preview"
+﻿@page "/setting/email-template/preview"
 @model _1.PAMA.Razor.Views.Pages.Setting.Preview.IndexModel;
 @{
+  Layout = null;
 }
-@section Styles {
-    <style>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=320, initial-scale=1" />
+  <title>Preview Email </title>
+  <style type="text/css">
+
     /* ----- Client Fixes ----- */
 
     /* Force Outlook to provide a "view in browser" message */
@@ -136,9 +144,9 @@
     .footer a {
       font-size: 12px;
     }
-    </style>
+  </style>
 
-<style type="text/css" media="only screen and (max-width: 650px)">
+  <style type="text/css" media="only screen and (max-width: 650px)">
     @@media only screen and (max-width: 650px) {
       * {
         font-size: 16px !important;
@@ -163,15 +171,8 @@
       }
     }
   </style>
-}
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=320, initial-scale=1" />
-  <title>Preview Email </title>
-  </head>
+</head>
 <body style="padding:0; margin:0; display:block; background:#ffffff; -webkit-text-size-adjust:none">
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
 <tr>
@@ -185,7 +186,7 @@
                 <tr>
                   <td class="header center" width="100%">
                     <a href="#">
-                      <?= $data['title_of_text']?> TITLE MEETING/AGENDA
+                      @(Model.Data.TitleOfText ?? "") TITLE MEETING/AGENDA
                     </a>
                   </td>
                 </tr>
@@ -209,11 +210,11 @@
                   </tr>
                   <tr>
                     <td class="left" style="padding-bottom:20px; text-align:left;">
-                      <b><?= $data['to_text']?> &nbsp;:</b> Jhon Doe <br>
-                      <b><?= $data['title_agenda_text']?> &nbsp;:</b> Agenda of meeting <br>
-                      <b><?= $data['date_text']?>&nbsp;&nbsp;:</b> <?= date('Y-m-d') ?> <br>
-                      <b><?= $data['room']?> &nbsp;&nbsp;&nbsp;:</b> Room Example <br>
-                      <b><?= $data['detail_location']?> &nbsp;&nbsp;&nbsp;:</b> Location <br>
+                      <b>@(Model.Data.ToText ?? "") &nbsp;:</b> Jhon Doe <br>
+                      <b>@(Model.Data.TitleAgendaText ?? "") &nbsp;:</b> Agenda of meeting <br>
+                      <b>@(Model.Data.DateText ?? "")&nbsp;&nbsp;:</b> @(DateTime.Now.ToString("yyyy-MM-dd")) <br>
+                      <b>@(Model.Data.Room ?? "") &nbsp;&nbsp;&nbsp;:</b> Room Example <br>
+                      <b>@(Model.Data.DetailLocation ?? "") &nbsp;&nbsp;&nbsp;:</b> Location <br>
                       <!-- Tanggal: %tanggal%<br> -->
                     </td>
                   </tr>
@@ -224,10 +225,10 @@
                   
                   <tr>
                     <td style="padding-bottom:20px;">
-                      <?= $data['greeting_text']?> <br>
+                      @(Model.Data.GreetingText ?? "")<br>
                       <br>
                       <p align="justify">
-                        <?= $data['content_text']?>
+                        @Html.Raw(Model.Data.ContentText ?? "")
                       </p>
                       <br>
                       <!-- <b><a class="blue-link" href="#">Track shipping</a></b> -->
@@ -242,9 +243,9 @@
                     <td class="mobile-center" align="left" style="padding:40px 0;">
                       <div class="mobile-center" align="left">
                         <a href="#"
-                        style="background-color:#41CC00;background-image:url(https://www.filepicker.io/api/file/N8GiNGsmT6mK6ORk00S7);border:1px solid #407429;border-radius:4px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:17px;font-weight:bold;text-shadow: -1px -1px #47A54B;line-height:37px;text-align:center;text-decoration:none;width:190px;-webkit-text-size-adjust:none;mso-hide:all;"><?= $data['attendance_text']?></a> 
+                        style="background-color:#41CC00;background-image:url(https://www.filepicker.io/api/file/N8GiNGsmT6mK6ORk00S7);border:1px solid #407429;border-radius:4px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:17px;font-weight:bold;text-shadow: -1px -1px #47A54B;line-height:37px;text-align:center;text-decoration:none;width:190px;-webkit-text-size-adjust:none;mso-hide:all;">@(Model.Data.AttendanceText ?? "")</a> 
                         <a href="#"
-                        style="background-color:#41CC00;background-image:url(https://www.filepicker.io/api/file/N8GiNGsmT6mK6ORk00S7);border:1px solid #407429;border-radius:4px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:17px;font-weight:bold;text-shadow: -1px -1px #47A54B;line-height:37px;text-align:center;text-decoration:none;width:190px;-webkit-text-size-adjust:none;mso-hide:all;"><?= $data['attendance_no_text']?></a>
+                        style="background-color:#41CC00;background-image:url(https://www.filepicker.io/api/file/N8GiNGsmT6mK6ORk00S7);border:1px solid #407429;border-radius:4px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:17px;font-weight:bold;text-shadow: -1px -1px #47A54B;line-height:37px;text-align:center;text-decoration:none;width:190px;-webkit-text-size-adjust:none;mso-hide:all;">@(Model.Data.AttendanceNoText ??"")</a>
                       </div>
                       
                     </td>
@@ -254,7 +255,7 @@
                 <table cellspacing="0" cellpadding="0" width="100%">
                   <tr>
                     <td class="left" style="text-align:left;">
-                      <?= $data['close_text']?>
+                      @(Model.Data.CloseText ?? "")
                     </td>
                   </tr>
                   <tr>
@@ -282,7 +283,7 @@
                   <table cellpadding="0" cellspacing="0" width="100%" bgcolor="#E5E5E5">
                     <tr>
                       <td class="center" style="padding:25px; text-align:center;">
-                        <?= $data['support_text']?> <b><a href="<?= $data['link']?>" target="__blank"><?= $data['foot_text']?></a></b> 
+                        @(Model.Data.SupportText ?? "") <b><a href="@(Model.Data.Link ?? "")" target="__blank">@(Model.Data.FootText ?? "")</a></b> 
                       </td>
                     </tr>
                   </table>

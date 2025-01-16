@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class BookingInvitation
+public partial class BookingInvitation : BaseLongEntity
 {
-    public int Id { get; set; }
+    // public int Id { get; set; }
 
     public string BookingId { get; set; } = null!;
 
@@ -43,7 +43,7 @@ public partial class BookingInvitation
 
     public string? UpdatedBy { get; set; }
 
-    public int IsDeleted { get; set; }
+    // public int IsDeleted { get; set; }
 
     public string? LastUpdate365 { get; set; }
 

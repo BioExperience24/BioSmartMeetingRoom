@@ -25,12 +25,16 @@ public class IndexModel : PageModel
         _config = config;
         _service = service;
     }
+    
+    public string BaseUrl { get; private set; } = string.Empty;
 
     public string GetFacilities { get; set; } = string.Empty;
+
 
     public void OnGet()
     {
         var baseUrl = _config["ApiUrls:BaseUrl"];
+        BaseUrl = $"{baseUrl}";
         GetFacilities = $"{baseUrl}{_config["ApiUrls:Endpoints:GetFacilities"]}";
     }
 

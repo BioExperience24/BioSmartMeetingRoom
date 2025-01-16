@@ -1,22 +1,28 @@
 using System.Text.Json;
-using _3.BusinessLogic.Services.Implementation;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Common;
-using _5.Helpers.Consumer._Response;
-using _7.Entities.Models;
-using Controllers;
-using Microsoft.AspNetCore.Http;
+using _5.Helpers.Consumer.EnumType;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _1.PAMA.Razor.Views.Controllers
 {
     [ApiController]
     [Route("api/[controller]/[action]")]
-    public class BookingController(IBookingService service, IHttpContextAccessor httpContextAccessor) 
-        : BaseLongController<BookingViewModel>(service)
+    public class BookingController : ControllerBase
     {
-        private readonly _Json _jsonResponse = new(httpContextAccessor.HttpContext);
+        private readonly IBookingService _service;
+
+        private readonly IBookingProcessService _processService;
+
+        private readonly IDashboardService _dashboardService;
+
+        public BookingController(IBookingService service, IBookingProcessService processService, IDashboardService dashboardService)
+        {
+            _service = service;
+            _processService = processService;
+            _dashboardService = dashboardService;
+        }
 
         [HttpGet("{year}")]
         public async Task<IActionResult> GetTransactionChartItems(int year)
@@ -25,7 +31,8 @@ namespace _1.PAMA.Razor.Views.Controllers
 
             ret.Message = "Get success";
 
-            ret.Collection = await service.GetItemChartsAsync(year);
+            // ret.Collection = await _service.GetItemChartsAsync(year);
+            ret.Collection = await _dashboardService.GetAllChartBookingAsync(year);
 
             return StatusCode(ret.StatusCode, ret);
         }
@@ -42,7 +49,8 @@ namespace _1.PAMA.Razor.Views.Controllers
             
 
             // Kondisi jika session levelid-nya == 1
-            ret.Collection = await service.GetItemOngoingAsync(sDate, eDate);
+            // ret.Collection = await _service.GetItemOngoingAsync(sDate, eDate);
+            ret.Collection = await _dashboardService.GetAllOngoingBookingAsync(sDate, eDate);
 
             // NOTE: Buat ketika data auth (session) sudah ada 
             // TODO: Kondisi jika session levelid-nya == 2
@@ -55,30 +63,38 @@ namespace _1.PAMA.Razor.Views.Controllers
             return StatusCode(ret.StatusCode, ret);
         }
 
-        [HttpGet]
-        public async Task<ActionResult> GetDataByDate(DateTime start, DateTime end)
+        [HttpPost]
+        public async Task<IActionResult> CreateReserve([FromForm] BookingVMCreateReserveFR request)
         {
-            var userLevel = httpContextAccessor.HttpContext?.User.FindFirst("levelid-nya")?.Value;
-            var nik = httpContextAccessor.HttpContext?.User.FindFirst("user-nya")?.Value;
-            
-            //sebelum ada autentikasi, pakai ini dulu
-            var data = await service.GetDataBookingAsync(start, end);
-            return _jsonResponse.Set("success", "Get success", data).Generate();
+            ReturnalModel ret = new();
 
-            //if (userLevel == "1")
-            //{
-            //    var data = await service.GetDataBookingAsync(start, end);
-            //    return _jsonResponse.Set("success", "Get success", data).Generate();
-            //}
-            //else if (userLevel == "2" && nik != null)
-            //{
-            //    var data = await service.GetDataBookingByNikAsync(start, end, nik);
-            //    return _jsonResponse.Set("success", "Get success", data).Generate();
-            //}
-            //else
-            //{
-            //    return _jsonResponse.Set("fail", "You don't have any access", new List<BookingViewModel>()).Generate();
-            //}
+            var (collcetion, msg) = await _processService.CreateBookingAsync(request);
+
+            if (collcetion != null)
+            {
+                ret.Collection = collcetion;
+            } else {
+                ret.Status = ReturnalType.Failed;
+            }
+            ret.Message = msg ?? "Get success";
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDataTables([FromQuery] BookingVMDataTableFR request)
+        {
+            ReturnalModel ret = new();
+
+            var (collection, recordsTotal, recordsFiltered) = await _service.GetAllItemDataTablesAsync(request);
+
+            ret.Collection = new DataTableResponse {
+                Draw = request.Draw,
+                RecordsTotal = recordsTotal,
+                RecordsFiltered = recordsFiltered,
+                Data = collection
+            };
+
+            return StatusCode(ret.StatusCode, ret);
         }
     }
 }

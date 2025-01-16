@@ -346,7 +346,7 @@
                         init();
                         $('#id_mdl_create').modal('hide');
                         swalShowNotification('alert-success', data.msg, 'top', 'center')
-                        initDrop()
+                        //initDrop()
                     } else {
                         swalShowNotification('alert-danger', data.msg, 'top', 'center')
                     }
@@ -381,7 +381,8 @@
                         $('#frm_update')[0].reset();
                         $('#id_mdl_update').modal('hide');
                         init();
-                        initDrop();
+                        //initDrop();
+                        $('#id_edt_image').parent().find(".dropify-clear").trigger('click');
                         swalShowNotification('alert-success', data.msg, 'top', 'center')
                     } else {
                         swalShowNotification('alert-danger', data.msg, 'top', 'center')

@@ -111,7 +111,7 @@ function checkInvoiceStatus(enabled_stt, stt) {
 
 
 function initRoom(date1 = "", date2 = "") {
-    var modules = getModule();
+    var modules = $('#id_modules').val();
     var daterange = $("#id_roomusage_daterange_search").val();
     var daterangesp = daterange.split("-");
     var spp1 = daterangesp[0].split("/");

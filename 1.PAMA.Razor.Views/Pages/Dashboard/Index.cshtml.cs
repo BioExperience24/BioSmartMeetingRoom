@@ -1,7 +1,7 @@
 using _3.BusinessLogic.Services.Implementation;
 using _3.BusinessLogic.Services.Interface;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.Dashboard
 {
