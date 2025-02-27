@@ -1,5 +1,87 @@
 var tblOrganizer;
-var dataOrganizer = {};
+var tblOrganizerUsage;
+
+$("#id_organizer_search").click(function (e) { 
+    e.preventDefault();
+    reloadOrganizerTable();
+});
+
+function initOrganizerUsageTable() {
+    let module = getModule();
+    
+    let columns = [
+        {data:"no", name:"no", searchable:false, orderable:false},
+        {data:"name", name:"name", searchable:false, orderable:false},
+        {data:"company_department_name", name:"company_department_name", searchable:false, orderable:false,render: function(_, _, item) {return `${item.company_name} <br> <b>${item.department_name}</b>`}},
+        {data:"total_meeting", name:"total_meeting", searchable:false, orderable:false},
+        {data:"total_reschedule", name:"total_reschedule", searchable:false, orderable:false},
+        {data:"total_cancel", name:"total_cancel", searchable:false, orderable:false},
+        {data:"total_duration", name:"total_duration", searchable:false, orderable:false, render: function(_, _, item) { return getTimeFromMins(item.total_duration); }},
+        {data:"total_attendees", name:"total_attendees", searchable:false, orderable:false},
+    ];
+
+    if (module.room_adv.is_enabled == 1) {
+        columns.push(
+            {data:"total_attendees_checkin", name:"total_attendees_checkin", searchable:false, orderable:false},
+            {data:"total_approve", name:"total_approve", searchable:false, orderable:false},
+        );
+    }
+
+    tblOrganizerUsage = $("#id_tbl_organizer").DataTable({
+        searching: false,
+        bLengthChange: false,
+        bInfo: true,
+        ordering: false,
+        columns: columns,
+        // "order": [[ 0, 'asc' ]],
+        ajax: {
+            url: bs + ajax.url.get_organizer_usage_datatable,
+            contentType: 'application/json',
+            beforeSend: function() {
+                if (typeof tblOrganizerUsage != "undefined" && tblOrganizerUsage.hasOwnProperty('settings') && tblOrganizerUsage.settings()[0].jqXHR != null) {
+                    tblOrganizerUsage.settings()[0].jqXHR.abort();
+                }
+            },
+            data: function (param) {
+                delete param.columns;
+                param.date = $("#id_organizer_daterange_search").val();
+                param.nik = $("#id_organizer_employee_search").val();
+                param.building_id = $("#id_organizer_building_search").val();
+                param.room_id = $("#id_organizer_room_search").val();
+            },
+            dataSrc: function (json) {
+                // Map properties to the expected structure
+                json.draw = json.collection.draw;
+                json.recordsFiltered = json.collection.recordsFiltered;
+                json.recordsTotal = json.collection.recordsTotal;
+
+                $("#id_count_total_organizer").text(json.collection.recordsTotal);
+
+                return json.collection.data;
+            } 
+        },
+        processing: true,
+        serverSide: true,
+        createdRow: function( row, data, dataIndex ) {
+            // console.log("--------createdRow--------");
+            // console.log(row);
+            // console.log(data);
+            // console.log(dataIndex);
+            $(row).attr('id', `organizer-${data.nik}`);
+            $(row).data("organizerData", data);
+        },
+        drawCallback: function (settings) {
+            // console.log("--------drawCallback--------");
+            // console.log(settings);
+        },
+    });
+}
+
+function reloadOrganizerTable() {
+    if (typeof tblOrganizerUsage != "undefined") {
+        tblOrganizerUsage.ajax.reload();
+    }
+};
 
 function clearTableOrganizer() {
     if (tblOrganizer != null) {

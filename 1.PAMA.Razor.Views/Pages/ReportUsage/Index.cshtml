@@ -1,0 +1,172 @@
+@page "/report-usage"
+@model _1.PAMA.Razor.Views.Pages.ReportUsage.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["PageName"] = "Room Usage";
+}
+
+@section Styles
+{
+    <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="~/assets/external/daterangepicker/daterangepicker.css" rel="stylesheet" />
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="block-header">
+            <h2>@ViewData["PageName"]</h2>
+        </div>
+        <!-- DIV  -->
+        <div class="row clearfix">
+
+            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                <div class="info-box hover-expand-effect">
+                    <div class="icon  bg-orange ">
+                        <i class="material-icons">event</i>
+                    </div>
+                    <div class="content">
+                        <div class="text">@DateTime.Now.ToString("dd MMM yyyy").ToUpper()</div>
+                        <div class="number count-to" id="time1">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                <div class="info-box  hover-expand-effect">
+                    <div class="icon bg-light-green">
+                        <i class="material-icons">toc</i>
+                    </div>
+                    <div class="content">
+                        <div class="text">TOTAL MEETING</div>
+                        <div class="number count-to" data-from="0" data-to="0" data-speed="1000" data-fresh-interval="20" id="id_count_total_meeting">
+                            0
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                <div class="info-box  hover-expand-effect">
+                    <div class="icon bg-light-green">
+                        <i class="material-icons">toc</i>
+                    </div>
+                    <div class="content">
+                        <div class="text">TOTAL ORGANIZER</div>
+                        <div class="number count-to" data-from="0" data-to="0" data-speed="1000" data-fresh-interval="20" id="id_count_total_organizer">
+                            0
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                <div class="info-box  hover-expand-effect">
+                    <div class="icon bg-light-green">
+                        <i class="material-icons">toc</i>
+                    </div>
+                    <div class="content">
+                        <div class="text">TOTAL ATTENDEES</div>
+                        <div class="number count-to" data-from="0" data-to="0" data-speed="1000" data-fresh-interval="20" id="id_count_total_attendees">
+                            0
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row clearfix">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="card">
+                    <!-- <div class="header">
+                        <div class="row clearfix">
+                            <div class="col-xs-12 col-sm-6">
+                                <h2>Room Report</h2>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 align-right">
+                
+                            </div>
+                        </div>
+                    </div> -->
+                    <div class="body">
+                        <ul class="nav nav-tabs tab-nav-right" role="tablist">
+                            <li onclick="changeTabs('roomusage')" role="presentation" class="active" ><a href="#roomusage" data-toggle="tab" >ROOM USAGE</a></li>
+                            <li  onclick="changeTabs('organizer')"  role="presentation"><a href="#organizer" data-toggle="tab">ORGANIZER USAGE</a></li>
+                            <li  onclick="changeTabs('attendees')"  role="presentation" ><a href="#attendees" data-toggle="tab">ATTENDEES</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane fade  in active" id="roomusage">
+                                @await Html.PartialAsync("ReportUsage/Components/TabRoomUsage")
+                            </div>
+                            <div role="tabpanel" class="tab-pane fade " id="organizer">
+                                @await Html.PartialAsync("ReportUsage/Components/TabOrganizer")
+                            </div>
+                            <div role="tabpanel" class="tab-pane fade" id="attendees">
+                                @await Html.PartialAsync("ReportUsage/Components/TabAttendees")
+                            </div>
+                            <div role="tabpanel" class="tab-pane fade" id="settings">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* <textarea  id="id_modules" style="display: none;"> <?= json_encode($modules)?></textarea> 
+<textarea  id="id_statusInvoice" style="display: none;"><?= $statusInvoiceJson?></textarea>
+<textarea  id="id_building" style="display: none;"><?= $building?></textarea>
+<textarea  id="id_room" style="display: none;"><?= $room?></textarea>
+<textarea  id="id_employee" style="display: none;"><?= $employee?></textarea> *@
+<textarea  id="id_modules" style="display: none;"> </textarea> 
+<textarea  id="id_statusInvoice" style="display: none;"></textarea>
+<textarea  id="id_building" style="display: none;"></textarea>
+<textarea  id="id_room" style="display: none;"></textarea>
+<textarea  id="id_employee" style="display: none;"></textarea>
+<!-- base url -->
+<input type="hidden" id="id_baseurl" value="@Model.ApiUrl">
+
+
+@section Scripts
+{
+    <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
+    <script src="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
+    <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.min.js"></script>
+    <!-- Moment Plugin Js -->
+    <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+    <script src="~/assets/theme/plugins/momentjs/moment-timezone.js"></script>
+    <script src="~/assets/theme/plugins/momentjs/moment-timezone-data.min.js"></script>
+    <!-- Bootstrap Material Datetime Picker Plugin Js -->
+    <!-- <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script> -->
+    <script src="~/assets/external/daterangepicker/daterangepicker.js"></script>
+    <script src="~/assets/external/numeral/numeral.min.js"></script>
+    <script src="~/assets/external/numeral/locale.id.js"></script>
+    <script src="~/assets/external/sheetjs/xlsx.full.min.js"></script>
+
+    <script type="text/javascript">
+        let localtimezone = moment.tz.guess();
+        let initialTab =  "roomusage";
+        let gGlobalTabs = "roomusage";
+        let modules = [];
+        let gBuilding = [];
+        let gRoom = [];
+        let gDepartment = [];
+        let gEmployee = [];
+        let globalStatusInvoice = [];
+        const bs = $("#id_baseurl").val();
+        const ajax = {
+            url : {
+                get_employees : "@Model.GetEmployees",
+                get_buildings : "@Model.GetBuildings",
+                get_rooms : "@Model.GetRooms",
+                get_departments : "@Model.GetAlocation",
+                get_setting_invoice_texts : "@Model.GetSettingInvoiceTexts",
+                get_room_usage_datatable: "@Model.GetRoomUsageDataTables",
+                get_organizer_usage_datatable: "@Model.GetOrganizerUsageReport",
+                get_attendance_datatable: "@Model.GetAttendanceDataTables"
+            }
+        };
+    </script>
+    <script src="~/assets/process/report/room.general.js" asp-append-version="true"></script>
+    <script src="~/assets/process/report/room.room_usage.js" asp-append-version="true"></script>
+    <script src="~/assets/process/report/room.organizer.js" asp-append-version="true"></script>
+    <script src="~/assets/process/report/room.attendees.js" asp-append-version="true"></script>
+}

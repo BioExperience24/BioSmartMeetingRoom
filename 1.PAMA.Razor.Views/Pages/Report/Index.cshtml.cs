@@ -3,11 +3,13 @@ using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Response;
 using _7.Entities.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.Report;
 
+[Authorize]
 public class IndexModel : PageModel
 {
     private readonly HttpContext _httpContext;

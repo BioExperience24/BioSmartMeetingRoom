@@ -2,7 +2,7 @@
 @model _1.PAMA.Razor.Views.Pages.Pantry.PantryPackageModel
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Pantry Package";
+    ViewData["PageName"] = "Pantry Package";
 }
 
 @section Styles {
@@ -269,6 +269,8 @@
     <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
 
     <script>
+        var authToken = "@Model.AuthToken";
+
         $(function () {
             init();
             pantrySatuan();
@@ -567,6 +569,9 @@
                 url: bs + "@Model.CreateSatuan",
                 type: "POST",
                 dataType: "json",
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
                 data: form,
                 beforeSend: function () {
                     $('#id_loader').html('<div class="linePreloader"></div>');
@@ -811,6 +816,9 @@
                 url: bs + "@Model.GetAllSatuan",
                 type: "GET",
                 dataType: "json",
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
                 beforeSend: function () {
                     $('#id_loader').html('<div class="linePreloader"></div>');
                 },
@@ -848,8 +856,14 @@
                                     .html('mode_edit')
                                     .attr('title', 'Edit');
                                 var id = $(this).data('id');
-                                $.post(bs + '@Model.UpdateSatuan' + id, values);
-
+                                $.ajax({
+                                    url: bs + '@Model.UpdateSatuan' + id,
+                                    type: "POST",
+                                    data: values,
+                                    headers: {
+                                        Authorization: `Bearer ${authToken}` // Sisipkan token
+                                    },
+                                });
                             },
                             cancel: function (values) {
                                 $(".edit i", this)
@@ -941,6 +955,9 @@
                     $.ajax({
                         url: bs + "@Model.DeleteSatuan",
                         type: "POST",
+                        headers: {
+                            Authorization: `Bearer ${authToken}`
+                        },
                         data: form,
                         processData: false,
                         contentType: false,

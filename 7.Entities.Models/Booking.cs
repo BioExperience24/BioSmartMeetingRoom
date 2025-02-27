@@ -214,6 +214,38 @@ public class BookingChart
     public int Tahun { get; set; }
 }
 
+public class BookingReportUsage
+{
+    public Booking? Booking { get; set; }
+    public Building? Building { get; set; }
+    public int? Attendees { get; set; }
+    public string? RoomName { get; set; }
+    public string? RoomLocation { get; set; }
+    public string? MemoNo { get; set; }
+    public string? ReferensiNo { get; set; }
+    public string? InvoiceStatus { get; set; }
+    public string? AlocationName { get; set; }
+    public string? AlocationType { get; set; }
+    public int? AlocationInvoiceStatus { get; set; }
+    public int? AlocationTypeInvoiceStatus { get; set; }
+    public string? NameEmployee { get; set; }
+    public string? EmailEmployee { get; set; }
+    public string? PhoneEmployee { get; set; }
+    public string? ExtEmployee { get; set; }
+}
+
+public class BookingDataTable
+{
+    public IEnumerable<BookingReportUsage>? Collection { get; set; }
+    public int RecordsTotal { get; set; } 
+    public int RecordsFiltered { get; set; }
+}
+
+public class BookingFilter : Booking
+{
+    public string? Nik { get; set; }
+}
+
 public class BookingMenuDto
 {
     [JsonPropertyName("level_id")]

@@ -51,3 +51,11 @@ public partial class BookingInvitation : BaseLongEntity
 
     public int? EndMeeting { get; set; }
 }
+
+public class BookingInvitationFilter : BookingInvitation
+{
+    public DateOnly? DateStart { get; set; }
+    public DateOnly? DateEnd { get; set; }
+    public long BuildingId { get; set; }
+    public string? RoomId { get; set; }
+}

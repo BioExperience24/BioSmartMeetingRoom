@@ -2,7 +2,7 @@
 @model _1.PAMA.Razor.Views.Pages.Setting.License.IndexModel
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Setting - License";
+    ViewData["PageName"] = "License";
 }
 
 @section Styles {
@@ -30,7 +30,7 @@
 
         .wrapper-div {
             display: table-cell;
-          vertical-align: middle
+            vertical-align: middle
         }
 
     </style>
@@ -40,7 +40,7 @@
     <div class="container-fluid">
 
         <div class="block-header">
-            <h2><?= strtoupper($pagename) ?></h2>
+            <h2>@ViewData["PageName"]</h2>
         </div>
         <div class="row clearfix">
             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
@@ -58,7 +58,7 @@
                     <div class="body">
                         <div class="row">
                             <div class="col-xs-12">
-                                <form id="frm_set_license" style="display: none;">
+                                @* <form id="frm_set_license" style="display: none;">
                                     <label for="">Upload License </label>
                                     <div class="form-group">
                                         <div class="form-line">
@@ -66,7 +66,7 @@
                                         </div>
                                     </div>
                                     <button id="uploadBtn" type="button" class="btn btn-primary waves-effect">UPLOAD NEW LICENSE</button>
-                                </form>
+                                </form> *@
                                 <div id="licenseInfo" style="display: none;">
                                     <label for="">Serial </label>
                                     <div class="form-group">
@@ -115,7 +115,7 @@
 
     </div>
 </section>
-<div class="modal fade" id="id_mdl_set_alarm" tabindex="-1" role="dialog">
+@* <div class="modal fade" id="id_mdl_set_alarm" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -162,7 +162,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> *@
 <!-- # END MODAL CREATE  -->
 
 @section Scripts {
@@ -174,14 +174,22 @@
     <!-- Bootstrap Material Datetime Picker Plugin Js -->
     <script src="~/assets/theme/plugins/jquery-editable/src/table-edits.js"></script>
     <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
-    <input type="hidden" id="id_baseurl" value="~/">
-    <textarea style="display:none;" id="id_alarm"><?= $alarm_integration?></textarea>
+    <input type="hidden" id="id_baseurl" value="@Model.ApiUrl">
+    @* <textarea style="display:none;" id="id_alarm"><?= $alarm_integration?></textarea>
     <textarea style="display:none;" id="id_module_alarm"><?= $alarm_integration?></textarea>
-    <textarea style="display:none;" id="id_feedback_collection"></textarea>
+    <textarea style="display:none;" id="id_feedback_collection"></textarea> *@
     <script>
+        const bs = $('#id_baseurl').val();
+        const ajax = {
+            url: {
+                "get_license_list": "@Model.GetLicenseList",
+                "get_license_settings": "@Model.GetLicenseSettings"
+            }
+        };
         $(document).ready(function () {
             $.ajax({
-                url: location.origin + '/api/LicenseList/GetAllLicenseLists', // Adjust the URL to your API endpoint
+                @* url: bs + 'LicenseList/GetAllLicenseLists', // Adjust the URL to your API endpoint *@
+                url: bs + ajax.url.get_license_list, // Adjust the URL to your API endpoint
                 method: 'GET',
                 success: function (response) {
                     var licenseList = response.collection;
@@ -211,7 +219,8 @@
             // Function to fetch license settings
             function fetchLicenseSettings() {
                 $.ajax({
-                    url: location.origin +  '/api/LicenseSetting/GetAllLicenseSettings', // Adjust the URL to your API endpoint
+                    @* url: bs +  'LicenseSetting/GetAllLicenseSettings', // Adjust the URL to your API endpoint *@
+                    url: bs +  ajax.url.get_license_settings, // Adjust the URL to your API endpoint
                     type: 'GET',
                     success: function (response) {
                         if (response.collection[0].status === 0) {
@@ -233,7 +242,7 @@
             fetchLicenseSettings();
 
             // Handle the form submission
-            $('#uploadBtn').on('click', function () {
+            @* $('#uploadBtn').on('click', function () {
                 var formData = new FormData($('#frm_set_license')[0]);
 
                 $.ajax({
@@ -250,9 +259,7 @@
                         console.error('Error uploading license:', error);
                     }
                 });
-            });
+            }); *@
         });
-
-
     </script>
 }

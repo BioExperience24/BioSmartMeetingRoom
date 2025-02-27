@@ -270,7 +270,7 @@ namespace _3.BusinessLogic.Services.Implementation
                             OrderDatetimeBefore = bookEnd,
                             OrderSt = PantryTransaksiOrderStatus.Processing,
                             OrderStName = _Dictionary.PantryTransaksiOrderStatusDictionary[PantryTransaksiOrderStatus.Processing],
-                            Process = 1,
+                            Process = 0,
                             Complete = 0,
                             Failed = 0,
                             Done = 0,

@@ -10,14 +10,16 @@ namespace _5.Helpers.Consumer._Common
             { "module_int_365", "int_365" },
             { "module_int_google", "int_google" },
             { "module_room_advance", "room_adv" },
-            { "module_user_vip", "vip" }
+            { "module_user_vip", "vip" },
+            { "module_invoice", "invoice" }
         };
 
         public static readonly Dictionary<int, string> PantryTransaksiOrderStatusDictionary = new Dictionary<int, string>
         {
-            { 1, "Processing" },
-            { 2, "Completed" },
-            { 3, "Failed" }
+            { 0, "Processing" },
+            { 1, "Completed" },
+            { 2, "Failed" },
+            { 3, "Done" }
         };
     }
 }

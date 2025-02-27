@@ -2,7 +2,7 @@
 @model _1.PAMA.Razor.Views.Pages.Pantry.IndexModel
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Pantry";
+    ViewData["PageName"] = "Pantry";
 }
 
 @section Styles {
@@ -535,7 +535,7 @@
     <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
     <script src="~/assets/theme/plugins/jquery-editable/src/table-edits.js"></script>
     <script>
-
+        var authToken = "@Model.AuthToken";
         var baseUrl = "@Model.BaseUrl"
 
         $(function () {
@@ -1378,6 +1378,9 @@
                 url: bs + "@Model.GetAllSatuan",
                 type: "GET",
                 dataType: "json",
+                headers: {
+                    Authorization: `Bearer ${authToken}`
+                },
                 beforeSend: function () {
                     $('#id_loader').html('<div class="linePreloader"></div>');
                 },

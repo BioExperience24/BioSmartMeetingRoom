@@ -239,3 +239,86 @@ public class EmployeeWithDetailsViewModel
     [JsonPropertyName("department_name")]
     public string DepartmentName { get; set; }
 }
+
+public class EmployeeVMOrganizerFR : DataTableViewModel
+{
+    [FromQuery(Name = "date")]
+    public string? Date { get; set; }
+    [FromQuery(Name = "nik")]
+    public string? Nik { get; set; }
+    [FromQuery(Name = "building_id")]
+    public long BuildingId { get; set; }
+    [FromQuery(Name = "room_id")]
+    public string? RoomId { get; set; }
+}
+
+public class EmployeeVMOrganizerCollection : EmployeeViewModel
+{
+    [JsonPropertyName("no")]
+    public int No { get; set; } = 0;
+
+    [JsonPropertyName("company_name")]
+    public string CompanyName { get; set; } = string.Empty;
+    
+    [JsonPropertyName("department_name")]
+    public string DepartmentName { get; set; } = string.Empty;
+
+    [JsonPropertyName("total_meeting")]
+    public int TotalMeeting { get; set; } = 0;
+    
+    [JsonPropertyName("total_reschedule")]
+    public int TotalReschedule { get; set; } = 0;
+
+    [JsonPropertyName("total_cancel")]
+    public int TotalCancel { get; set; } = 0;
+
+    [JsonPropertyName("total_duration")]
+    public int TotalDuration { get; set; } = 0;
+
+    [JsonPropertyName("total_attendees")]
+    public int TotalAttendees { get; set; } = 0;
+    
+    [JsonPropertyName("total_attendees_checkin")]
+    public int TotalAttendeesCheckin { get; set; } = 0;
+    
+    [JsonPropertyName("total_approve")]
+    public int TotalApprove { get; set; } = 0;
+    
+}
+
+public class EmployeeVMOrganizerData : DataTableVM
+{
+    public IEnumerable<EmployeeVMOrganizerCollection>? Collections { get; set; }
+}
+
+public class EmployeeVMAttendeesCollection : EmployeeViewModel
+{
+    [JsonPropertyName("no")]
+    public int No { get; set; } = 0;
+
+    [JsonPropertyName("company_name")]
+    public string CompanyName { get; set; } = string.Empty;
+    
+    [JsonPropertyName("department_name")]
+    public string DepartmentName { get; set; } = string.Empty;
+
+    [JsonPropertyName("total_meeting")]
+    public int TotalMeeting { get; set; } = 0;
+
+    [JsonPropertyName("total_present")]
+    public int TotalPresent { get; set; } = 0;
+    
+    [JsonPropertyName("total_absent")]
+    public int TotalAbsent { get; set; } = 0;
+
+    [JsonPropertyName("total_duration")]
+    public int TotalDuration { get; set; } = 0;
+    
+    [JsonPropertyName("total_attendees_checkin")]
+    public int TotalAttendeesCheckin { get; set; } = 0;    
+}
+
+public class EmployeeVMAttendeesData : DataTableVM
+{
+    public IEnumerable<EmployeeVMAttendeesCollection>? Collections { get; set; }
+}

@@ -155,7 +155,9 @@ public class BookingRepository : BaseLongRepository<Booking>
                             where bookInvitation.IsDeleted == 0
                             select new {
                                 BookingId = bookInvitation.BookingId,
-                                Total = (
+                                Total = (bookInvitation.BookingId == null)
+                                ? (int?) null
+                                : (
                                     from bi in _dbContext.BookingInvitations
                                     where bi.BookingId == bookInvitation.BookingId
                                     select bi
@@ -167,7 +169,10 @@ public class BookingRepository : BaseLongRepository<Booking>
                         .Where(bi => bi.BookingId == booking.BookingId).DefaultIfEmpty()
                     where booking.IsExpired == 0 && booking.IsDeleted == 0
                     orderby booking.Start descending
-                    select new { booking, Attendees = participant.Total };
+                    select new { 
+                        booking, 
+                        Attendees = participant.Total != null ? participant.Total : 0 
+                    };
 
         if (entity?.DateStart != null && entity?.DateEnd != null)
         {
@@ -176,6 +181,8 @@ public class BookingRepository : BaseLongRepository<Booking>
                 && q.booking.Date <= entity.DateEnd
             );
         }
+
+        var recordsTotal = await query.CountAsync();
 
         if (entity?.Pic != null)
         {
@@ -196,9 +203,9 @@ public class BookingRepository : BaseLongRepository<Booking>
         if (entity?.RoomId != null)
         {
             query = query.Where(q => q.booking.RoomId == entity.RoomId);
-        }
+        } 
 
-        var recordsTotal = await query.CountAsync();
+        var recordsFiltered = await query.CountAsync();
 
         if (limit > 0)
         {
@@ -207,11 +214,104 @@ public class BookingRepository : BaseLongRepository<Booking>
                     .Take(limit);
         }
 
-        var recordsFiltered = query.Count();
-
         var result = await query.ToListAsync();
         
         return (result, recordsTotal, recordsFiltered);
+    }
+
+    
+    public async Task<BookingDataTable> GetAllItemReportUsageAsync(Booking? entity = null, int limit = 0, int offset = 0)
+    {
+        var participants = (from bookInvitation in _dbContext.BookingInvitations
+                            where bookInvitation.IsDeleted == 0
+                            select new {
+                                BookingId = bookInvitation.BookingId,
+                                Total = (int?) (
+                                    from bi in _dbContext.BookingInvitations
+                                    where bi.BookingId == bookInvitation.BookingId
+                                    select bi
+                                ).Count()
+                            }).Distinct();
+
+        var query = from booking in _dbContext.Bookings
+                    from participant in participants
+                        .Where(p => booking.BookingId == p.BookingId).DefaultIfEmpty()
+                    from bookingInvoice in _dbContext.BookingInvoices
+                        .Where(binv => booking.BookingId == binv.BookingId).DefaultIfEmpty()
+                    from room in _dbContext.Rooms
+                        .Where(r => booking.RoomId == r.Radid)
+                    from building in  _dbContext.Buildings
+                        .Where(bu => room.BuildingId == bu.Id)
+                    from bookingInvitation in _dbContext.BookingInvitations
+                        .Where(bi => booking.BookingId == bi.BookingId)
+                    from alocation in _dbContext.Alocations
+                        .Where(a => booking.AlocationId == a.Id).DefaultIfEmpty()
+                    from alocationType in _dbContext.AlocationTypes
+                        .Where(at => alocation.Type == at.Id).DefaultIfEmpty()
+                    from employee in _dbContext.Employees
+                        .Where(e => bookingInvitation.Nik == e.Nik).DefaultIfEmpty()
+                    orderby booking.Start descending
+                    select new BookingReportUsage {
+                        Booking = booking,
+                        Building = building,
+                        Attendees = (participant.Total != null) ? participant.Total : 0,
+                        RoomName = room.Name,
+                        RoomLocation = room.Location,
+                        MemoNo = bookingInvoice.MemoNo,
+                        ReferensiNo = bookingInvoice.ReferensiNo,
+                        InvoiceStatus = bookingInvoice.InvoiceStatus,
+                        AlocationName = alocation.Name,
+                        AlocationType = alocation.Type,
+                        AlocationInvoiceStatus = alocation.InvoiceStatus,
+                        AlocationTypeInvoiceStatus = alocationType.InvoiceStatus,
+                        NameEmployee = employee.Name,
+                        EmailEmployee = employee.Email,
+                        PhoneEmployee = employee.NoPhone,
+                        ExtEmployee = employee.NoExt
+                    };
+
+        if (entity?.DateStart != null && entity?.DateEnd != null)
+        {
+            query = query.Where(q => 
+                q.Booking!.Date >= entity.DateStart
+                && q.Booking!.Date <= entity.DateEnd
+            );
+        }
+        
+        var recordsTotal = await query.CountAsync();
+
+
+        if (entity?.BuildingId > 0)
+        {
+            query = query.Where(q => q.Building!.Id == entity.BuildingId);
+        }
+
+        if (entity?.RoomId != null)
+        {
+            query = query.Where(q => q.Booking!.RoomId == entity.RoomId);
+        }
+
+        if (entity?.AlocationId != null)
+        {
+            query = query.Where(q => q.Booking!.AlocationId == entity.AlocationId);
+        }
+
+        var recordsFiltered = await query.CountAsync();
+
+        if (limit > 0)
+        {
+            query = query
+                    .Skip(offset)
+                    .Take(limit);
+        }
+
+        var result = await query.ToListAsync();
+
+        return new BookingDataTable {
+            Collection = result,
+            RecordsTotal = recordsTotal,
+            RecordsFiltered = recordsFiltered
+        };
     }
 
     public async Task<IEnumerable<Booking>> GetBookingsByRoomIdsAndYearAsync(string[] roomId, int year)
@@ -227,6 +327,64 @@ public class BookingRepository : BaseLongRepository<Booking>
 
         var result = await query.ToListAsync();
         return result;
+    }
+    
+    
+    public async Task<int?> GetCountTotalDurationByPicAsync(BookingFilter? filter = null)
+    {
+        if (filter?.Nik == null)
+        {
+            return 0;
+        }
+
+        var invitationBookingIds = from bi in _dbContext.BookingInvitations
+                                from b in _dbContext.Bookings.Where(b => bi.BookingId == b.BookingId)
+                                from r in _dbContext.Rooms.Where(r => b.RoomId == r.Radid)
+                                from bu in _dbContext.Buildings.Where(bu => r.BuildingId == bu.Id)
+                                where bi.IsPic == 1
+                                && bi.Internal == 1
+                                && b.IsAlive != 0
+                                select new { bi, b, r, bu };
+
+        // NIK PIC
+        invitationBookingIds = invitationBookingIds.Where(q => q.bi!.Nik == filter.Nik);
+
+        if (filter?.DateStart != null && filter?.DateEnd != null)
+        {
+            invitationBookingIds = invitationBookingIds.Where(q => 
+                q.b!.Date >= filter.DateStart
+                && q.b!.Date <= filter.DateEnd
+            );
+        }
+
+        if (filter?.BuildingId > 0)
+        {
+            invitationBookingIds = invitationBookingIds.Where(q => q.bu!.Id == filter.BuildingId);
+        }
+
+        if (filter?.RoomId != null)
+        {
+            invitationBookingIds = invitationBookingIds.Where(q => q.b!.RoomId == filter.RoomId);
+        }
+
+        var query = from b in _dbContext.Bookings
+                    where (
+                        from bi in invitationBookingIds
+                        select bi.b.BookingId
+                    ).Contains(b.BookingId)
+                    select b;
+
+        return await query.SumAsync(b => b.TotalDuration + b.ExtendedDuration);
+
+        // alternatif jika nilai tidak sesuai
+        /* var sum = await _dbContext.Bookings
+                .Where(b => (
+                        from bi in invitationBookingIds
+                        select bi.b.BookingId
+                    ).Contains(b.BookingId))
+                .SumAsync(b => b.TotalDuration + b.ExtendedDuration);
+
+        return sum; */
     }
     
     public async Task<Booking?> GetByIdAsync(long id)

@@ -1,94 +1,124 @@
-var tblRoomUsage;
-function clearTableeRoomUsage() {
-    if (tblRoomUsage != null) {
-        tblRoomUsage.destroy();
+let tblRoomUsage;
+
+$("#id_roomusage_search").click(function (e) { 
+    e.preventDefault();
+    reloadTable();
+});
+
+function initRoomUsageTable() {
+    let module = getModule();
+    
+    let columns = [
+        {data:"no", name:"no", searchable:false, orderable:false},
+        /* {data:"export", name:"export", searchable:false, orderable:false, render: function (data, type, item) {
+            // return `
+            //     <div class="btn-group">\
+            //         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
+            //             ACTION <span class="caret"></span>\
+            //         </button>\
+            //         <ul class="dropdown-menu">\
+            //             <li><a href="javascript:void(0);" data-type="excell" data-bookid="${item.booking_id}" onclick="alertExport($(this))" >EXPORT TO EXCELL</a></li>\
+            //             <li role="separator" class="divider"></li>\
+            //         </ul>\
+            //     </div>
+            // `;
+            return `
+                <div class="btn-group">\
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
+                        ACTION <span class="caret"></span>\
+                    </button>\
+                    <ul class="dropdown-menu">\
+                        <li><a href="javascript:void(0);" data-type="excell" data-bookid="${item.booking_id}" >EXPORT TO EXCELL</a></li>\
+                        <li role="separator" class="divider"></li>\
+                    </ul>\
+                </div>
+            `;
+        }}, */
+        {data:"booking_id", name:"booking_id", searchable:false, orderable:false},
+        {data:"title", name:"title", searchable:false, orderable:false},
+        {data:"booking_date", name:"booking_date", searchable:false, orderable:false},
+        {data:"room_name", name:"room_name", searchable:false, orderable:false, render: function(_, _, item) { return `<b>${item.room_name}</b><br>${item.room_location}`}},
+        {data:"alocation_name", name:"alocation_name", searchable:false, orderable:false},
+        {data:"attendees", name:"attendees", searchable:false, orderable:false},
+        {data:"duration_per_meeting", name:"duration_per_meeting", searchable:false, orderable:false, render: function(_, _, item) {
+            var dur = (item.total_duration - 0) + (item.extended_duration - 0);
+            setHourString = getTimeFromMins(dur);
+            return setHourString;
+        }},
+    ];
+
+    if (module.price.is_enabled == 1) {
+        columns.push(
+            {data:"rent_cost", name:"rent_cost", searchable:false, orderable:false, render: function(_, _, item) {
+                return numeral(item.cost_total_booking).format('$0,0.0');
+            }},
+            {data:"status_invoice", name:"status_invoice", searchable:false, orderable:false, render: function(_, _, item) {
+                let status_invoice = "";
+                if (item.alcoation_type_invoice_status == item.alocation_invoice_status) {
+                    status_invoice = checkInvoiceStatus(item.alcoation_type_invoice_status, item.invoice_status);
+                } else {
+                    status_invoice = checkInvoiceStatus(item.alocation_invoice_status, item.invoice_status);
+                }
+                return status_invoice;
+            }}
+        );
     }
-}
 
-function initTableRoomUsage() {
-    tblRoomUsage = $('#id_tbl_room').DataTable({
-        "scrollX": true,
-        "scrollCollapse": true,
-        "fixedHeader": true,
-        paging: true,
-        // searching:        false,
-        // bFilter :         false,
-        info: false,
-        // scrollResize:     true,
-        order: [
-            [0, "asc"]
-        ],
-        // lengthMenu: [[5, 10, 20, 100,-1], [5, 10, 20,100, 'ALL']],
-        fixedColumns: {
-            leftColumns: 3,
-            // rightColumns: 1
-        },
-        columnDefs: [{
-                orderable: false,
-                // className: 'select-checkbox',
-                targets: 1,
-                searchable: false,
+    tblRoomUsage = $("#id_tbl_room").DataTable({
+        searching: false,
+        bLengthChange: false,
+        bInfo: true,
+        ordering: false,
+        columns: columns,
+        // "order": [[ 0, 'asc' ]],
+        ajax: {
+            url: bs + ajax.url.get_room_usage_datatable,
+            contentType: 'application/json',
+            beforeSend: function() {
+                if (typeof tblRoomUsage != "undefined" && tblRoomUsage.hasOwnProperty('settings') && tblRoomUsage.settings()[0].jqXHR != null) {
+                    tblRoomUsage.settings()[0].jqXHR.abort();
+                }
             },
-
-            {
-                orderable: true,
-
+            data: function (param) {
+                delete param.columns;
+                param.date = $("#id_roomusage_daterange_search").val();
+                param.building_id = $("#id_roomusage_building_search").val();
+                param.room_id = $("#id_roomusage_room_search").val();
+                param.alocation_id = $("#id_roomusage_department_search").val();
             },
-        ],
-        select: {
-            // style:    'multi',
-            // selector: 'td:first-child'
-        },
-    }).on('deselect.dt', function(e, dt, type, indexes) {
-        // console.log(dataTB.rows({selected:true}).data().length)
+            dataSrc: function (json) {
+                // Map properties to the expected structure
+                json.draw = json.collection.draw;
+                json.recordsFiltered = json.collection.recordsFiltered;
+                json.recordsTotal = json.collection.recordsTotal;
 
-        // if(dataTB.rows({selected:true}).data().length < count_room ){
-        //     $('#ck_all').attr("checked", false);
-        // }
-    }).on('select.dt', function(e, dt, type, indexes) {
-        // console.log(dataTB.rows({selected:true}).data().length, count_room)
-        // // $('#ck_all').find(".filled-in")
-        // if(dataTB.rows({selected:true}).data().length == count_room ){
-        //     $('#ck_all').attr("checked", true);
-        // }
+                $("#id_count_total_meeting").text(json.collection.recordsTotal);
+
+                return json.collection.data;
+            } 
+        },
+        processing: true,
+        serverSide: true,
+        createdRow: function( row, data, dataIndex ) {
+            // console.log("--------createdRow--------");
+            // console.log(row);
+            // console.log(data);
+            // console.log(dataIndex);
+            $(row).attr('id', `roomusage-${data.booking_id}`);
+            $(row).data("roomusageData", data);
+        },
+        drawCallback: function (settings) {
+            // console.log("--------drawCallback--------");
+            // console.log(settings);
+        },
     });
-
-    // $('#id_search').on( 'keyup', function () {
-    //     // console.log(this.value)
-    //     dataTB
-    //         .columns( 3 )
-    //         .search( this.value )
-    //         .draw();
-    // } );
-    // $('#tbldata_wrapper').find('#tbldata_filter').hide()
 }
 
-function ocBuilding() {
-    var bbb = $('#id_roomusage_building_search').val();
-    var gg = [];
-    var html = '<option selected value="">All Room</option>';
-    if (bbb == "") {
-        for (var x in gRoom) {
-            html += '<option value="' + gRoom[x].radid + '">' + gRoom[x].name + '</option>';
-        }
-
-    } else {
-        for (var x in gRoom) {
-            if (gRoom[x].building_id != bbb) {
-                continue;
-            }
-            html += '<option value="' + gRoom[x].radid + '">' + gRoom[x].name + '</option>';
-        }
+function reloadTable() {
+    if (typeof tblRoomUsage != "undefined") {
+        tblRoomUsage.ajax.reload();
     }
-    $('#id_roomusage_room_search').html(html);
-    select_enable();
-}
-
-
-function clickSubmit(btn) {
-    $('#' + btn)[0].click();
-}
-
+};
 
 function checkInvoiceStatus(enabled_stt, stt) {
     // console.log('globalStatusInvoice', globalStatusInvoice);
@@ -105,10 +135,7 @@ function checkInvoiceStatus(enabled_stt, stt) {
         })
         return ret;
     }
-
-
 }
-
 
 function initRoom(date1 = "", date2 = "") {
     var modules = $('#id_modules').val();
@@ -250,6 +277,96 @@ function initRoom(date1 = "", date2 = "") {
         },
         error: errorAjax
     })
+}
+
+function clearTableeRoomUsage() {
+    if (tblRoomUsage != null) {
+        tblRoomUsage.destroy();
+    }
+}
+
+function initTableRoomUsage() {
+    tblRoomUsage = $('#id_tbl_room').DataTable({
+        "scrollX": true,
+        "scrollCollapse": true,
+        "fixedHeader": true,
+        paging: true,
+        // searching:        false,
+        // bFilter :         false,
+        info: false,
+        // scrollResize:     true,
+        order: [
+            [0, "asc"]
+        ],
+        // lengthMenu: [[5, 10, 20, 100,-1], [5, 10, 20,100, 'ALL']],
+        fixedColumns: {
+            leftColumns: 3,
+            // rightColumns: 1
+        },
+        columnDefs: [{
+                orderable: false,
+                // className: 'select-checkbox',
+                targets: 1,
+                searchable: false,
+            },
+
+            {
+                orderable: true,
+
+            },
+        ],
+        select: {
+            // style:    'multi',
+            // selector: 'td:first-child'
+        },
+    }).on('deselect.dt', function(e, dt, type, indexes) {
+        // console.log(dataTB.rows({selected:true}).data().length)
+
+        // if(dataTB.rows({selected:true}).data().length < count_room ){
+        //     $('#ck_all').attr("checked", false);
+        // }
+    }).on('select.dt', function(e, dt, type, indexes) {
+        // console.log(dataTB.rows({selected:true}).data().length, count_room)
+        // // $('#ck_all').find(".filled-in")
+        // if(dataTB.rows({selected:true}).data().length == count_room ){
+        //     $('#ck_all').attr("checked", true);
+        // }
+    });
+
+    // $('#id_search').on( 'keyup', function () {
+    //     // console.log(this.value)
+    //     dataTB
+    //         .columns( 3 )
+    //         .search( this.value )
+    //         .draw();
+    // } );
+    // $('#tbldata_wrapper').find('#tbldata_filter').hide()
+}
+
+function ocBuilding() {
+    var bbb = $('#id_roomusage_building_search').val();
+    var gg = [];
+    var html = '<option selected value="">All Room</option>';
+    if (bbb == "") {
+        for (var x in gRoom) {
+            html += '<option value="' + gRoom[x].radid + '">' + gRoom[x].name + '</option>';
+        }
+
+    } else {
+        for (var x in gRoom) {
+            if (gRoom[x].building_id != bbb) {
+                continue;
+            }
+            html += '<option value="' + gRoom[x].radid + '">' + gRoom[x].name + '</option>';
+        }
+    }
+    $('#id_roomusage_room_search').html(html);
+    select_enable();
+}
+
+
+function clickSubmit(btn) {
+    $('#' + btn)[0].click();
 }
 
 function isInt(n) {

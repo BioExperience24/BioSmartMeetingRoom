@@ -20,7 +20,7 @@ public static class EnumMessage
 }
 public static class ModuleBackendTextModule
 {
-    
+
     public const string Automation = "module_automation";
     public const string Price = "module_price";
     public const string Int365 = "module_int_365";
@@ -28,7 +28,7 @@ public static class ModuleBackendTextModule
     public const string UserVIP = "module_user_vip";
     public const string RoomAdvance = "module_room_advance";
     public const string Pantry = "module_pantry";
-    
+
 
 }
 
@@ -178,11 +178,13 @@ public static class ReturnalType
     public const string NotFound = "not_found";
     public const string Forbidden = "forbidden";
     public const string UnderConstruction = "under_construction";
+    public const string UnAuthorized = "Token must be provided";
 }
 
 public static class PantryTransaksiOrderStatus
 {
-    public const int Processing = 1;
-    public const int Completed = 2;
-    public const int Failed = 3;
+    public const int Processing = 0;
+    public const int Completed = 1;
+    public const int Failed = 2;
+    public const int Done = 3;
 }

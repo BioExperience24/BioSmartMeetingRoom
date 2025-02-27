@@ -1,6 +1,8 @@
 ﻿using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer.EnumType;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Controllers;
@@ -12,7 +14,7 @@ namespace Controllers;
 /// 
 /// </remarks>
 /// <param name="service"></param>
-//[Authorize]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 [Route("api/[controller]/[action]")]
 [ApiController]
 public class PantrySatuanController(IPantrySatuanService service)

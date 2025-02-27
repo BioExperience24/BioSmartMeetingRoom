@@ -15,6 +15,8 @@
 
 	<ItemGroup>
 		<None Remove="Pages\authentication.php" />
+		<None Remove="Pages\PantryTransaction\index.php" />
+		<None Remove="Pages\PantryTransaction\pantry\view_transaction.php" />
 		<None Remove="Pages\Pantry\index.php" />
 		<None Remove="Pages\Pantry\indexMenu.php" />
 		<None Remove="Pages\Pantry\menu\view_menu.php" />
@@ -25,6 +27,7 @@
 		<PackageReference Include="jQuery" Version="3.7.1" />
 		<PackageReference Include="jQuery.Validation" Version="1.21.0" />
 		<PackageReference Include="Microsoft.Activities.Extensions" Version="2.0.6.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
@@ -34,6 +37,7 @@
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="8.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>

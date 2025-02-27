@@ -32,4 +32,10 @@ public class IndexModel(IConfiguration config) : PageModel
     public string? GetByIdVariant { get; private set; } = config["ApiUrls:Endpoints:PantryVariant:GetById"];
     public string? CreateVariant { get; private set; } = config["ApiUrls:Endpoints:PantryVariant:Create"];
     public string? UpdateVariant { get; private set; } = config["ApiUrls:Endpoints:PantryVariant:Update"];
+
+    public string AuthToken { get; set; }
+    public void OnGet()
+    {
+        AuthToken = HttpContext.Request.Cookies["AuthToken"] ?? "INVALID-TOKEN";
+    }
 }

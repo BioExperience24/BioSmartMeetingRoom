@@ -1,6 +1,7 @@
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer.EnumType;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _1.PAMA.Razor.Views.Controllers;
@@ -17,11 +18,37 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> CheckLogin([FromForm] LoginModel request)
     {
         var ret = await _service.CheckLogin(request);
 
         return StatusCode(ret.StatusCode, ret);
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<IActionResult> RequestToken([FromForm] LoginModel request)
+    {
+        var ret = await _service.RequestToken(request);
+
+        return StatusCode(ret.StatusCode, ret);
+    }
+
+    [Authorize]
+    [HttpGet]
+    [ProducesResponseType(typeof(UserViewModel), 200)]
+    public async Task<IActionResult> GetAuthUser()
+    {
+        var users = await _service.GetAuthUser();
+        return Ok(users);
+    }
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> GetAllClaims()
+    {
+        var claims = _service.GetAllClaims();
+        return Ok(claims);
     }
 
     [HttpGet]
@@ -120,4 +147,5 @@ public class UserController : ControllerBase
 
         return StatusCode(ret.StatusCode, ret);
     }
+
 }

@@ -69,6 +69,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRoomForUsageService, RoomForUsageService>();
         services.AddScoped<IBookingProcessService, BookingProcessService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IReportService, ReportService>();
     }
     public static void AddCustomRepository(this IServiceCollection services)
     {
@@ -87,7 +88,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<AlocationMatrixRepository>();
         services.AddScoped<PantryRepository>();
         services.AddScoped<LevelRepository>();
-        services.AddScoped<LevelDescriptiionRepository>();
+        services.AddScoped<LevelDescriptionRepository>();
         services.AddScoped<BuildingRepository>();
         services.AddScoped<PantryDetailRepository>();
         services.AddScoped<RoomAutomationRepository>();
@@ -151,6 +152,8 @@ public static class ServiceCollectionExtensions
             CreateMap<EmployeeVMCreateFR, Employee>().ReverseMap().IgnoreNullProperty();
             CreateMap<EmployeeVMUpdateVipFR, Employee>().ReverseMap().IgnoreNullProperty();
             CreateMap<EmployeeVMDeleteFR, Employee>().ReverseMap().IgnoreNullProperty();
+            CreateMap<EmployeeReportOrganizerUsage, EmployeeVMOrganizerCollection>().MapNestedProperties();
+            CreateMap<EmployeeReportAttendees, EmployeeVMAttendeesCollection>().MapNestedProperties();
 
             CreateMap<Level, LevelViewModel>().ReverseMap().IgnoreNullProperty();
             CreateMap<LevelVMUpdateFR, LevelViewModel>().ReverseMap().IgnoreNullProperty();
@@ -289,10 +292,10 @@ public static class ServiceCollectionExtensions
             CreateMap<AccessControl, AccessControlVMCreateFR>().ReverseMap();
             CreateMap<object, AccessControlViewModel>().MapNestedProperties();
             CreateMap<object, AccessControlVMRoom>().MapNestedProperties();
-            
+
             CreateMap<AccessChannel, AccessChannelViewModel>().ReverseMap();
             CreateMap<object, AccessChannelViewModel>().MapNestedProperties();
-            
+
             CreateMap<AccessIntegrated, AccessIntegratedViewModel>().ReverseMap();
             CreateMap<object, AccessIntegratedViewModel>().MapNestedProperties();
 
@@ -308,17 +311,17 @@ public static class ServiceCollectionExtensions
             CreateMap<Room, RoomVMUResponseFRViewModel>().ReverseMap();
 
 
-            
+
             CreateMap<RoomDisplay, RoomDisplayViewModel>().ReverseMap();
             CreateMap<object, RoomDisplayViewModel>().MapNestedProperties();
             CreateMap<RoomDisplayVMCreateFR, RoomDisplayViewModel>().ReverseMap();
             CreateMap<RoomDisplayVMUpdateFR, RoomDisplayViewModel>().ReverseMap();
             CreateMap<RoomDisplayVMChangeStatusFR, RoomDisplayViewModel>().ReverseMap();
             CreateMap<RoomDisplayVMDeleteFR, RoomDisplayViewModel>().ReverseMap();
-            
+
             CreateMap<BuildingFloor, BuildingFloorViewModel>().ReverseMap();
             CreateMap<object, BuildingFloorViewModel>().MapNestedProperties();
-            
+
             CreateMap<KioskDisplay, KioskDisplayViewModel>().ReverseMap();
             CreateMap<object, KioskDisplayViewModel>().MapNestedProperties();
             CreateMap<KioskDisplayVMCreateFR, KioskDisplayViewModel>().ReverseMap();
@@ -337,12 +340,13 @@ public static class ServiceCollectionExtensions
             CreateMap<Booking, BookingViewModel>().ReverseMap();
             CreateMap<object, BookingViewModel>().MapNestedProperties();
             CreateMap<BookingChart, BookingVMChart>().MapNestedProperties();
+            CreateMap<BookingReportUsage, BookingVMRoomUsageCollection>().MapNestedProperties();
 
             CreateMap<Room, RoomViewModel>().ReverseMap();
             CreateMap<object, RoomViewModelAlt>().MapNestedProperties();
             CreateMap<RoomVMDefaultFR, RoomViewModel>().ReverseMap();
             CreateMap<RoomVMUpdateFRViewModel, RoomViewModel>().ReverseMap();
-            
+
             CreateMap<object, RoomVMChartTopRoom>().MapNestedProperties();
 
             //CreateMap<RoomVMUpdateFRViewModel, RoomViewModel>()
@@ -352,6 +356,13 @@ public static class ServiceCollectionExtensions
             //            : string.Empty));
 
             CreateMap<RoomForUsage, RoomForUsageViewModel>().ReverseMap();
+            CreateMap<MenuHeaderLevel, MenuHeaderLevelVM>().ReverseMap();
+
+            CreateMap<object, PantryTransactionDetail>().MapNestedProperties();
+            CreateMap<PantryTransaksiStatus, PantryTransaksiStatusViewModel>().ReverseMap();
+
+            CreateMap<BookingInvitation, BookingInvitationViewModel>().ReverseMap().IgnoreNullProperty();
+            CreateMap<object, BookingInvitationViewModel>().MapNestedProperties();
         }
     }
 

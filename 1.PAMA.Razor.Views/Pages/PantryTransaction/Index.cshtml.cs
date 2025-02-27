@@ -11,12 +11,13 @@ public class IndexModel(IConfiguration config) : PageModel
 
     //CRUD
     public string? GetAll { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:GetAll"];
-    public string? Delete { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:Delete"];
-    public string? GetById { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:GetById"];
-    public string? Create { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:Create"];
-    public string? Update { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:Update"];
+    //public string? Delete { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:Delete"];
+    //public string? GetById { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:GetById"];
+    //public string? Create { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:Create"];
+    //public string? Update { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:Update"];
 
     //pantry
     public string? GetAllPantry { get; private set; } = config["ApiUrls:Endpoints:Pantry:GetAll"];
+    public string? GetAllTransaksiStatus { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:TransaksiStatus"];
 
 }

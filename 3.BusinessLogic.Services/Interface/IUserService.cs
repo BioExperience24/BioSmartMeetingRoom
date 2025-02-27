@@ -8,4 +8,7 @@ public interface IUserService : IBaseLongService<UserViewModel>
     Task<UserViewModel?> DisableAsync(UserVMDisableFR request);
     Task<UserViewModel?> DeleteAsync(UserVMDeleteFR request);
     Task<ReturnalModel> CheckLogin(LoginModel request);
+    Task<ReturnalModel> RequestToken(LoginModel request);
+    Task<ReturnalModel> GetAuthUser();
+    Dictionary<string, string>? GetAllClaims();
 }

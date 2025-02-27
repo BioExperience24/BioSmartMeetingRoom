@@ -73,6 +73,64 @@ public partial class Employee : BaseEntity
     public int? VipLockRoom { get; set; }
 }
 
+
+public class EmployeeFilter : Employee
+{
+    public DateOnly? DateStart { get; set; }
+    public DateOnly? DateEnd { get; set; }
+    public long BuildingId { get; set; }
+    public string? RoomId { get; set; }
+
+}
+
+public class EmployeeTotalParticipant
+{
+    public string? Nik { get; set; }
+    public int? TotalMeeting { get; set; }
+    public int? TotalReschedule { get; set; }
+    public int? TotalCancel { get; set; }
+    public int? TotalApprove { get; set; }
+}
+
+public class EmployeeReportOrganizerUsage : EmployeeTotalParticipant
+{
+    public Employee? Employee { get; set; }
+    public string? CompanyName { get; set; }
+    public string? DepartmentName { get; set; }
+    // public int? TotalMeeting { get; set; }
+    // public int? TotalReschedule { get; set; }
+    // public int? TotalCancel { get; set; }
+    public int? TotalDuration { get; set; }
+    public int? TotalAttendees { get; set; }
+    public int? TotalAttendeesCheckin { get; set; }
+    // public int? TotalApprove { get; set; }
+}
+
+public class EmployeeReportOrganizerUsageDataTable
+{
+    public IEnumerable<EmployeeReportOrganizerUsage>? Collections { get; set; }
+    public int RecordsTotal { get; set; } 
+    public int RecordsFiltered { get; set; }
+}
+
+public class EmployeeReportAttendees : EmployeeTotalParticipant
+{
+    public Employee? Employee { get; set; }
+    public string? CompanyName { get; set; }
+    public string? DepartmentName { get; set; }
+    public int? TotalPresent { get; set; }
+    public int? TotalAbsent { get; set; }
+    public int? TotalDuration { get; set; }
+    public int? TotalAttendeesCheckin { get; set; }
+}
+
+public class EmployeeReportAttendeesDataTable
+{
+    public IEnumerable<EmployeeReportAttendees>? Collections { get; set; }
+    public int RecordsTotal { get; set; } 
+    public int RecordsFiltered { get; set; }
+}
+
 public class EmployeeWithAccessInfo
 {
     [JsonPropertyName("name")]

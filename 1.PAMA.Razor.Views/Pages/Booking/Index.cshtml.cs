@@ -1,10 +1,12 @@
 using System.Text.Json;
 using _3.BusinessLogic.Services.Interface;
 using _5.Helpers.Consumer._Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.Booking
 {
+    [Authorize]
     public class IndexModel(
         IConfiguration config
         // IModuleBackendService moduleBackendService,

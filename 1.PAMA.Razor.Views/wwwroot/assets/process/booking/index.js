@@ -1138,7 +1138,7 @@ function init_table_booking_list() {
     tbldata = $("#tbldata").DataTable({
         searching: false,
         bLengthChange: false,
-        bInfo: false,
+        bInfo: true,
         ordering: false,
         columns: [
             {data:"no", name:"no", searchable:false, orderable:false},

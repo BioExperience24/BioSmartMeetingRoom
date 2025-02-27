@@ -2,7 +2,7 @@
 @model _1.PAMA.Razor.Views.Pages.PantryTransaction.IndexModel
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Pantry Transaction";
+    ViewData["PageName"] = "Pantry Transaction";
 }
 
 @section Styles {
@@ -22,9 +22,9 @@
                     <div class="body">
                         <ul class="nav nav-tabs tab-nav-right" role="tablist">
                             <li onclick="changeTabs('roomusage')" role="presentation" class="active"><a href="#roomusage" data-toggle="tab">TRANSACTION</a></li>
-                            <li onclick="changeTabs('organizer')" role="presentation"><a href="#organizer" data-toggle="tab">ORDER USER</a></li>
+                            @* <li onclick="changeTabs('organizer')" role="presentation"><a href="#organizer" data-toggle="tab">ORDER USER</a></li> *@
                         </ul>
-                        <div class="tab-content">
+@*                         <div class="tab-content">
                             <div role="tabpanel" class="tab-pane fade  in active" id="roomusage">
                                 @await Html.PartialAsync("PantryTransaction/pantry/ViewTransaction")
                             </div>
@@ -38,7 +38,7 @@
                             </div>
                             <div role="tabpanel" class="tab-pane fade" id="settings">
                             </div>
-                        </div>
+                        </div> *@
                         <br>
                         <br>
                         <br>
@@ -56,6 +56,11 @@
                             <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                                 <div class="form-group">
                                     <select name="prefix_id" id="id_pantry_data" class="form-control show-tick"></select>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                <div class="form-group">
+                                    <select name="prefix_id" id="id_pantry_transaction_status" class="form-control show-tick"></select>
                                 </div>
                             </div>
                             <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
@@ -154,6 +159,7 @@
     <script>
         $(function () {
             initPantry();
+            initPantryTransactionStatus();
             enable_datetimepicker()
             init();
         })
@@ -242,13 +248,15 @@
         function init(start = "", end = "") {
             var bs = $('#id_baseurlapi').val();
             var pantry = $('#id_pantry_data').val();
+            var transcStat = $('#id_pantry_transaction_status').val();
             $.ajax({
                 url: bs + "@Model.GetAll",
                 type: "GET",
                 data: {
                     start: start,
                     end: end,
-                    pantry: pantry,
+                    pantryId: pantry,
+                    orderSt: transcStat
                 },
                 dataType: "json",
                 beforeSend: function () {
@@ -270,13 +278,15 @@
                                     status_order = "Order expired";
                                     expired = moment(item.expired_at).format("DD MMM YYYY hh:mm A");
                                 }
+                            } else{
+                                expired = moment(item.expired_at).format("DD MMM YYYY hh:mm A");
                             }
                             var orderTime = moment(item.order_datetime).format("DD MMM YYYY hh:mm A");
                             html += '<tr data-id="' + item.id + '">';
                             html += '<td>' + num + '</td>';
                             html += '<td>' + item.id + '</td>';
                             html += '<td>' + orderTime + '</td>';
-                            html += '<td>' + ((item.emp_name == null) ? "" : item.emp_name) + '</td>';
+                            html += '<td>' + ((item.employee_name == null) ? "" : item.employee_name) + '</td>';
                             html += '<td>' + ((item.title == null) ? "" : item.title) + '</td>';
                             html += '<td>' + ((item.room_name == null) ? "" : item.room_name) + '</td>';
                             html += '<td>' + status_order + '</td>';
@@ -315,6 +325,37 @@
                             html += '<option value="' + item.id + '" >' + item.name + '</option>';
                         });
                         $('#id_pantry_data').html(html);
+                        select_enable()
+                    } else {
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg, 'top', 'center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+
+        function initPantryTransactionStatus() {
+            var bs = $('#id_baseurlapi').val();
+            $.ajax({
+                url: bs + "@Model.GetAllTransaksiStatus",
+                type: "GET",
+
+                dataType: "json",
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    if (data.status == "success") {
+                        var html = "";
+                        var num = 0;
+                        gPantry = data.collection;
+                        html += '<option value="" >All Transaction Status</option>';
+                        $.each(data.collection, function (index, item) {
+                            html += '<option value="' + item.id + '" >' + item.name + '</option>';
+                        });
+                        $('#id_pantry_transaction_status').html(html);
                         select_enable()
                     } else {
                         var msg = "Your session is expired, login again !!!";

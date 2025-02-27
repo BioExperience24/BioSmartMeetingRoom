@@ -5,6 +5,66 @@ namespace _6.Repositories.Repository;
 public class PantryTransaksiRepository(MyDbContext context)
     : BaseRepository<PantryTransaksi>(context)
 {
+    public async Task<IEnumerable<object>> GetPantryTransactionsAsync(DateTime? start = null, DateTime? end = null, long? pantryId = null, long? orderSt = null)
+    {
+        if (start.HasValue)
+        {
+            start = start.Value.Date; // Set ke jam 00:00:00
+        }
+
+        if (end.HasValue)
+        {
+            end = end.Value.Date.AddDays(1).AddSeconds(-1); // Set ke jam 23:59:59
+        }
+
+        var query = from pt in context.PantryTransaksis
+                    from booking in context.Bookings
+                        .Where(b => b.BookingId == pt.BookingId).DefaultIfEmpty()
+                    from room in context.Rooms
+                        .Where(r => r.Radid == booking.RoomId).DefaultIfEmpty()
+                    from employee in context.Employees
+                        .Where(e => e.Nik == pt.EmployeeId).DefaultIfEmpty()
+                    from am in context.AlocationMatrices
+                        .Where(a => a.Nik == employee.DepartmentId).DefaultIfEmpty()
+                    from alocation in context.Alocations
+                        .Where(a => a.Id == am.AlocationId).DefaultIfEmpty()
+                    from pts in context.PantryTransaksiStatuses
+                        .Where(ps => ps.Id == pt.OrderSt).DefaultIfEmpty()
+                    where pt.IsBlive == 0
+                          && (pantryId == null || pt.PantryId == pantryId)
+                          && (start == null || pt.OrderDatetime >= start)
+                          && (end == null || pt.OrderDatetime <= end)
+                          && (orderSt == null || pts.Id == orderSt)
+                    select new
+                    {
+                        Id = pt.Id,
+                        PantryId = pt.PantryId,
+                        OrderNo = pt.OrderNo,
+                        Title = booking.Title,
+                        DateBooking = booking.Date,
+                        RoomName = room.Name,
+                        RoomLocation = room.Location,
+                        BookingStart = booking.Start,
+                        BookingEnd = booking.End,
+                        EmployeeName = employee.Name,
+                        DepartmentName = alocation.Name,
+                        OrderStatus = pts.Name,
+                        OrderDatetime = pt.OrderDatetime,
+                        ExpiredAt = pt.ExpiredAt,
+                        OrderSt = pt.OrderSt
+                    };
+
+        var result = await query.ToListAsync();
+
+        return result;
+    }
+
+    public async Task<IEnumerable<PantryTransaksiStatus>?> GetAllPantryTransaksiStatus()
+    {
+        return await context.PantryTransaksiStatuses
+            .AsNoTracking()
+            .ToListAsync();
+    }
 
 }
 

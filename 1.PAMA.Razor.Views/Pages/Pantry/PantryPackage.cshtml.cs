@@ -30,5 +30,9 @@ public class PantryPackageModel(IConfiguration config) : PageModel
     //pantry detail/MENU
     public string? GetByPantryId { get; private set; } = config["ApiUrls:Endpoints:PantryDetail:GetByPantryId"];
 
-
+    public string AuthToken { get; set; }
+    public void OnGet()
+    {
+        AuthToken = HttpContext.Request.Cookies["AuthToken"] ?? "INVALID-TOKEN";
+    }
 }

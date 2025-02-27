@@ -434,6 +434,59 @@ public class BookingVMDataTableFR : DataTableViewModel
     public string? BookingRoom { get; set; }
 }
 
+public class BookingVMRoomUsageFR : DataTableViewModel
+{
+    [FromQuery(Name = "date")]
+    public string? Date { get; set; }
+    [FromQuery(Name = "building_id")]
+    public long BuildingId { get; set; }
+    [FromQuery(Name = "room_id")]
+    public string? RoomId { get; set; }
+    [FromQuery(Name = "alocation_id")]
+    public string? AlocationId { get; set; }
+}
+
+public class BookingVMRoomUsageCollection : BookingViewModel
+{
+    [JsonPropertyName("room_location")]
+    public string RoomLocation { get; set; } = string.Empty;
+    
+    [JsonPropertyName("memo_no")]
+    public string MemoNo { get; set; } = string.Empty;
+    
+    [JsonPropertyName("referensi_no")]
+    public string ReferensiNo { get; set; } = string.Empty;
+    
+    [JsonPropertyName("invoice_status")]
+    public string InvoiceStatus { get; set; } = string.Empty;
+    
+    [JsonPropertyName("alocation_type")]
+    public string AlocationType { get; set; } = string.Empty;
+    
+    [JsonPropertyName("alocation_invoice_status")]
+    public int AlocationInvoiceStatus { get; set; } = 0;
+    
+    [JsonPropertyName("alocation_type_invoice_status")]
+    public int AlocationTypeInvoiceStatus { get; set; } = 0;
+    
+    [JsonPropertyName("name_employee")]
+    public string NameEmployee { get; set; } = string.Empty;
+    
+    [JsonPropertyName("email_employee")]
+    public string EmailEmployee { get; set; } = string.Empty;
+    
+    [JsonPropertyName("phone_employee")]
+    public string PhoneEmployee { get; set; } = string.Empty;
+    
+    [JsonPropertyName("ext_employee")]
+    public string ExtEmployee { get; set; } = string.Empty;
+}
+
+public class BookingVMRoomUsageData : DataTableVM
+{
+    public IEnumerable<BookingVMRoomUsageCollection>? Collection { get; set; }
+}
+
 public class BookingModuleDetailsViewModel
 {
     [JsonPropertyName("module_id")]

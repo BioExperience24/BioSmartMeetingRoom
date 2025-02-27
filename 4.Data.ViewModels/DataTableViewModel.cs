@@ -63,4 +63,10 @@ namespace _4.Data.ViewModels
         public int RecordsFiltered { get; set; }
         public object? Data { get; set; }
     }
+
+    public class DataTableVM
+    {
+        public int RecordsTotal { get; set; } 
+        public int RecordsFiltered { get; set; }
+    }
 }

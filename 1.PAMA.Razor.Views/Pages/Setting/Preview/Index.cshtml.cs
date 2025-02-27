@@ -1,10 +1,12 @@
 using System.Text.Json;
 using _4.Data.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.Setting.Preview;
 
+[Authorize]
 public class IndexModel : PageModel
 {
     [BindProperty]
