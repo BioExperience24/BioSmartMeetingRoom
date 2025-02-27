@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demo Smart Meeting - @ViewData["PageName"]</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Favicon-->
+    <link href="~/assets/theme/plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/assets/theme/plugins/bs-select/select.css">
+    <link href="~/assets/theme/plugins/iconfont/material-icons.css" rel="stylesheet">
+    <!-- Waves Effect Css -->
+    <link href="~/assets/theme/plugins/node-waves/waves.css" rel="stylesheet" />
+    <!-- Animation Css -->
+    <link href="~/assets/theme/plugins/animate-css/animate.css" rel="stylesheet" />
+    <!-- Custom Css -->
+    <link href="~/assets/theme/css/style.css" rel="stylesheet">
+    <!-- AdminBSB Themes. You can choose a theme from css/themes instead of get all themes -->
+    <link href="~/assets/theme/css/themes/all-themes.css" rel="stylesheet" />
+    <!-- style section -->
+    @await RenderSectionAsync("Styles", required: false)
+    </head>
+    <body style="background: center no-repeat; background-size: cover; background-color: #CCCCCC;">
+        @RenderBody()
+    </body>
+</html>

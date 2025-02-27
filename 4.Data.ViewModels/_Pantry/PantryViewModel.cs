@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
 
 namespace _4.Data.ViewModels;
 
@@ -25,4 +26,29 @@ public class PantryViewModel : BaseLongViewModel
     //adds on
     public string? picBase64 { get; set; } = null;
     public IFormFile? image { get; set; }
+}
+
+public class DatabookViewModel
+{
+    [JsonPropertyName("is_alive")]
+    public int IsAlive { get; set; }
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = string.Empty;
+    [JsonPropertyName("nikPic")]
+    public string NikPic { get; set; } = string.Empty;
+
+    [JsonPropertyName("date")]
+    public string? Date { get; set; }
+
+    [JsonPropertyName("start_str")]
+    public string StartStr { get; set; } = string.Empty;
+
+    [JsonPropertyName("end_str")]
+    public string EndStr { get; set; } = string.Empty;
+
+    [JsonPropertyName("pantry_package")]
+    public string PantryPackage { get; set; } = string.Empty;
+
+    [JsonPropertyName("pantry_detail")]
+    public List<PantryTransaksiDViewModel> PantryDetail { get; set; }
 }

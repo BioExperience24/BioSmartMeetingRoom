@@ -34,6 +34,8 @@ public class UserViewModel : BaseLongViewModel
 
     [JsonPropertyName("is_vip")]
     public int? IsVip { get; set; }
+    [JsonPropertyName("nik")]
+    public string Nik { get; set; } = null!;
 
     [JsonPropertyName("vip_approve_bypass")]
     public int? VipApproveBypass { get; set; }
@@ -56,11 +58,19 @@ public class UserViewModel : BaseLongViewModel
     [JsonPropertyName("token")]
     public string? Token { get; set; }
 
-    [JsonPropertyName("levels")]
-    public List<MenuHeaderLevelVM>? Levels { get; set; }
+    [JsonPropertyName("level")]
+    public LevelViewModel? Level { get; set; }
+    [JsonPropertyName("secure_qr")]
+    public string? SecureQr { get; set; }
 
-    [JsonPropertyName("menu_headers")]
-    public List<MenuHeaderLevelVM>? MenuHeaders { get; set; }
+    //[JsonPropertyName("levels")]
+    //public List<MenuHeaderLevelVM>? Levels { get; set; }
+
+    // [JsonPropertyName("menu_headers")]
+    // public List<MenuHeaderLevelVM>? MenuHeaders { get; set; }
+
+    [JsonPropertyName("side_menu")]
+    public List<MenuVM>? SideMenu { get; set; }
 }
 
 public class MenuHeaderLevelVM
@@ -69,6 +79,20 @@ public class MenuHeaderLevelVM
     public string MenuName { get; set; }
     public string Url { get; set; }
     public string Icon { get; set; }
+}
+public class MenuVM
+{
+    public string MenuName { get; set; } = string.Empty;
+
+    public string MenuIcon { get; set; } = string.Empty;
+
+    public string MenuUrl { get; set; } = string.Empty;
+
+    public int MenuSort { get; set; }
+
+    public string ModuleText { get; set; } = string.Empty;
+
+    public List<MenuVM> Child { get; set; } = new List<MenuVM>();
 }
 
 public class UserVMDefaultFR
@@ -99,6 +123,20 @@ public class UserVMUpdateFR : UserVMDefaultFR
 {
     [BindProperty(Name = "id")]
     public long Id { get; set; }
+}
+public class UserVMUpdateUsernameFR
+{
+    [BindProperty(Name = "username")]
+    public string Username { get; set; } = null!;
+}
+public class UserVMUpdatePasswordFR
+{
+    [BindProperty(Name = "old_pass")]
+    public string Password { get; set; } = null!;
+    [BindProperty(Name = "new_pass")]
+    public string NewPassword { get; set; } = null!;
+    [BindProperty(Name = "con_pass")]
+    public string ConfirmationPassword { get; set; } = null!;
 }
 
 public class UserVMDisableFR

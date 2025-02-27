@@ -9,5 +9,5 @@ public partial class RoomMergeDetail
 
     public string MergeRoomId { get; set; } = null!;
 
-    public long? RoomId { get; set; }
+    public string? RoomId { get; set; }
 }

@@ -2,7 +2,7 @@
 
 public partial class PantryDetail : BaseLongEntity
 {
-    public int PantryId { get; set; }
+    public long PantryId { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -21,4 +21,11 @@ public partial class PantryDetail : BaseLongEntity
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
+}
+
+public class PantryDetailSelect : PantryDetail
+{
+    public int Qty { get; set; }
+    public string BookingId { get; set; } = null!;
+    public string? PackageId { get; set; }
 }

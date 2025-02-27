@@ -190,13 +190,13 @@ namespace _1.PAMA.Razor.Views.Controllers
             return ret;
         }
 
-        [HttpGet("{id}")]
-        public virtual async Task<IActionResult> GetRoomMerge(long id)
+        [HttpGet("{radId}")]
+        public virtual async Task<IActionResult> GetRoomMerge(string radId)
         {
             ReturnalModel ret = new();
 
             // Call the service to create the entry
-            ret.Collection = await service.GetRoomMerge(id);
+            ret.Collection = await service.GetRoomMerge(radId);
             ret.Message = "Successfully get room merge";
 
             return StatusCode(ret.StatusCode, ret);

@@ -5,6 +5,7 @@ using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Response;
 using _5.Helpers.Consumer.EnumType;
 using Controllers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _1.PAMA.Razor.Views.Controllers
@@ -35,6 +36,17 @@ namespace _1.PAMA.Razor.Views.Controllers
 
             ret.Message = "Get Success";
             ret.Collection = await _service.GetItemsAsync();
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<ActionResult> GetProfile()
+        {
+            ReturnalModel ret = new();
+
+            ret.Collection = await _service.GetProfileAsync();
 
             return StatusCode(ret.StatusCode, ret);
         }

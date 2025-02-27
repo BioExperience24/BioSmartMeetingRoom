@@ -1,9 +1,11 @@
+using _1.PAMA.Razor.Views.Attributes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace _1.PAMA.Razor.Views.Pages.PantryTransaction;
 
 [Authorize]
+[PermissionAccess]
 public class IndexModel(IConfiguration config) : PageModel
 {        //ADDSON
     public string? BaseUrl { get; private set; } = config["ApiUrls:BaseUrl"];

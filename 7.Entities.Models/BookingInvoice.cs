@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 namespace _7.Entities.Models;
 
-public partial class BookingInvoice
+public partial class BookingInvoice : BaseLongEntity
 {
-    public long Id { get; set; }
 
     public string? InvoiceGenerateNo { get; set; }
 

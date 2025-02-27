@@ -58,6 +58,12 @@ public class BaseRepositoryId<E> where E : BaseEntityId, new()
             .ToListAsync();
     }
 
+    public async Task<E?> GetFirstSettingAsync()
+    {
+        return await _dbSet.FirstOrDefaultAsync();
+    }
+
+
     // Add Entity
     /* public async Task AddAsync(E entity)
     {

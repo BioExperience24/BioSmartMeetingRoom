@@ -14,15 +14,27 @@ namespace _3.BusinessLogic.Services.Implementation
             _repo = repo;
             __mapper = mapper;
         }
-        public async Task<List<MenuHeaderLevel>> GetLevel(int levelId)
+        // public async Task<List<MenuHeaderLevel>> GetLevel(int levelId)
+        // {
+        //     var level = await _repo.GetLevel(levelId);
+        //     return level;
+        // }
+
+        public async Task<Level?> GetLevel(int levelId)
         {
             var level = await _repo.GetLevel(levelId);
             return level;
         }
 
-        public async Task<List<MenuHeaderLevel>> GetMenuHeader(int levelId)
+        // public async Task<List<MenuHeaderLevel>> GetMenuHeader(int levelId)
+        // {
+        //     var level = await _repo.GetMenuHeader(levelId);
+        //     return level;
+        // }
+
+        public async Task<List<LevelMenu>> GetMenu(int levelId)
         {
-            var level = await _repo.GetMenuHeader(levelId);
+            var level = await _repo.GetMenuFilteredByLevelId(levelId);
             return level;
         }
     }

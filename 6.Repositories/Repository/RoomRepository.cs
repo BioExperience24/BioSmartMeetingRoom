@@ -1,5 +1,7 @@
 ﻿
 
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+
 namespace _6.Repositories.Repository;
 
 public class RoomRepository : BaseLongRepository<Room>
@@ -11,6 +13,35 @@ public class RoomRepository : BaseLongRepository<Room>
     {
         _dbContext = dbContext;
     }
+
+    // Get By Id
+    public async Task<Room?> GetByRadId(string id)
+    {
+        return await _dbContext.Rooms
+                        .FirstOrDefaultAsync(e => e.Radid == id); // Cari berdasarkan id 
+    }
+
+    public async Task<List<Room>> GetByRadIdsAsync(List<string> radIds)
+    {
+        return await _dbContext.Rooms
+            .Where(r => radIds.Contains(r.Radid))
+            .ToListAsync();
+    }
+
+
+    public async Task<List<Room>> GetMergeRoomList(string radId)
+    {
+        var query = from roomMergeDetail in _dbContext.RoomMergeDetails
+                    join room in _dbContext.Rooms on roomMergeDetail.RoomId equals room.Radid
+                    where room.IsDeleted == 0 && roomMergeDetail.RoomId == radId
+                    orderby room.Name ascending
+                    select room;
+
+        var list = await query.ToListAsync();
+
+        return list;
+    }
+
 
     public async Task<IEnumerable<Room>> GetAllChartTopFiveRoomAsync(int year)
     {
@@ -162,6 +193,8 @@ public class RoomRepository : BaseLongRepository<Room>
 
     public async Task<IEnumerable<object>> GetAllRoomAvailableAsync(Room entity)
     {
+        // Console.WriteLine("-------------------GetAllRoomAvailableAsync-------------------");
+        // Console.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(entity)}");
         var qRoom = from room in _dbContext.Rooms
                     from building in _dbContext.Buildings
                         .Where(b => room.BuildingId == b.Id).DefaultIfEmpty()
@@ -183,31 +216,47 @@ public class RoomRepository : BaseLongRepository<Room>
             qRoom = qRoom.Where(q => q.room.KindRoom == entity.KindRoom);
         }
 
-        if (entity.WorkDay != null)
-        {
-            /* var dayKeywords = entity.WorkDay.ToArray();
-            qRoom = from qroom in qRoom
-                    where dayKeywords.Any(keyword => qroom.room.WorkDay!.Contains(keyword))
-                    select qroom; */
-
-            qRoom = qRoom.Where(q => entity.WorkDay!.Any(WorkDay => q.room.WorkDay!.Contains(WorkDay)));
-
-        }
-
         if (entity.BuildingId > 0)
         {
             qRoom = qRoom.Where(q => q.room.BuildingId == entity.BuildingId);
         }
 
-        if (entity.WorkStart != null && entity.WorkEnd != null)
+        if (entity.IsAllDay == true)
         {
-            qRoom = qRoom.Where(q => 
-                // string.Compare(q.room.WorkStart, entity.WorkStart) <= 0 
-                // && string.Compare(q.room.WorkEnd, entity.WorkEnd) >= 0 
-                string.Compare(q.room.WorkStart, entity.WorkEnd) <= 0 
-                && string.Compare(q.room.WorkEnd, entity.WorkStart) >= 0
-            );
+            DateOnly workDate = (entity.WorkDate != null) ? (DateOnly)entity.WorkDate : DateOnly.FromDateTime(DateTime.Now);
+            // Console.WriteLine($"workDate: {workDate}");
+
+            qRoom = qRoom.Where(q => (
+                from b in _dbContext.Bookings
+                where q.room.Radid == b.RoomId
+                && b.Date == workDate
+                select b
+            ).Count() <  1);
+        } 
+        else 
+        {
+            if (entity.WorkDay != null)
+            {
+                /* var dayKeywords = entity.WorkDay.ToArray();
+                qRoom = from qroom in qRoom
+                        where dayKeywords.Any(keyword => qroom.room.WorkDay!.Contains(keyword))
+                        select qroom; */
+
+                qRoom = qRoom.Where(q => entity.WorkDay!.Any(WorkDay => q.room.WorkDay!.Contains(WorkDay)));
+
+            }
+
+            if (entity.WorkStart != null && entity.WorkEnd != null)
+            {
+                qRoom = qRoom.Where(q => 
+                    // string.Compare(q.room.WorkStart, entity.WorkStart) <= 0 
+                    // && string.Compare(q.room.WorkEnd, entity.WorkEnd) >= 0 
+                    string.Compare(q.room.WorkStart, entity.WorkEnd) <= 0 
+                    && string.Compare(q.room.WorkEnd, entity.WorkStart) >= 0
+                );
+            }
         }
+
 
         if (entity.FacilityRoom != null)
         {
@@ -244,6 +293,42 @@ public class RoomRepository : BaseLongRepository<Room>
         await _dbContext.SaveChangesAsync(); // Save changes
         return existingEntity; // Return the updated entity
     }
+
+    public async Task<IEnumerable<RoomDetailDto>> GetByDataRoomByRadId(string? radId)
+    {
+        var query = from room in _dbContext.Rooms
+                    join roomAutomation in _dbContext.RoomAutomations
+                        on room.AutomationId equals roomAutomation.Id into roomAutomationGroup
+                    from roomAutomation in roomAutomationGroup.DefaultIfEmpty()
+                    where room.IsDeleted == 0 && room.Radid == radId
+                    select new RoomDetailDto
+                    {
+                        Id = room.Id,
+                        Name = room.Name,
+                        Description = room.Description,
+                        Capacity = room.Capacity,
+                        GoogleMap = room.GoogleMap,
+                        RaName = roomAutomation != null ? roomAutomation.Name : null,
+                        RaId = roomAutomation != null ? roomAutomation.Id : null,
+                    };
+
+        return await query.ToListAsync();
+    }
+    public async Task<List<Room>> GetDataRoomDisplayByListID(string[]? radIds)
+    {
+        if (radIds == null || radIds.Length == 0)
+        {
+            return new List<Room>();
+        }
+
+        var query = from room in _dbContext.Rooms
+                    where room.IsDeleted == 0 && radIds.Contains(room.Radid)
+                    orderby room.Name
+                    select room;
+
+        return await query.ToListAsync();
+    }
+
 
 }
 

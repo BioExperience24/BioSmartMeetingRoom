@@ -1,7 +1,7 @@
 ﻿namespace _3.BusinessLogic.Services.Implementation;
 
-public class PantryDetailMenuVariantService(IServiceProvider sp, IMapper mapper)
-    : BaseUowService<PantryDetailMenuVariantViewModel, PantryDetailMenuVariant>(sp, mapper), IPantryDetailMenuVariantService
+public class PantryDetailMenuVariantService(PantryDetailMenuVariantRepository sp, IMapper mapper)
+    : BaseService<PantryDetailMenuVariantViewModel, PantryDetailMenuVariant>(sp, mapper), IPantryDetailMenuVariantService
 {
 
 

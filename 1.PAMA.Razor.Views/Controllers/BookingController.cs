@@ -3,12 +3,15 @@ using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Common;
 using _5.Helpers.Consumer.EnumType;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _1.PAMA.Razor.Views.Controllers
 {
-    [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/[controller]/[action]")]
+    [ApiController]
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _service;
@@ -85,7 +88,7 @@ namespace _1.PAMA.Razor.Views.Controllers
         {
             ReturnalModel ret = new();
 
-            var (collection, recordsTotal, recordsFiltered) = await _service.GetAllItemDataTablesAsync(request);
+            var (collection, recordsTotal, recordsFiltered) = await _processService.GetAllItemDataTablesAsync(request);
 
             ret.Collection = new DataTableResponse {
                 Draw = request.Draw,
@@ -93,6 +96,80 @@ namespace _1.PAMA.Razor.Views.Controllers
                 RecordsFiltered = recordsFiltered,
                 Data = collection
             };
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet("{bookingId}")]
+        public async Task<IActionResult> GetPicByBookingId(string bookingId)
+        {
+            ReturnalModel ret = new();
+
+            if (string.IsNullOrEmpty(bookingId))
+            {
+                ret.Status = ReturnalType.Failed;
+                ret.Message = "BookingId is required";
+                return StatusCode(ret.StatusCode, ret);
+            }
+
+            var pic = await _processService.GetPicFilteredByBookingIdAsync(bookingId);
+
+            ret.Collection = pic;
+
+            if (pic == null)
+            {
+                ret.Status = ReturnalType.Failed;
+                ret.Message = "Data not found";
+                ret.Collection = null;
+            }
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet("{bookingId}/{date}/{roomId}")]
+        public async Task<IActionResult> CheckRescheduleDate(string bookingId, DateOnly date, string roomId)
+        {
+            ReturnalModel ret = await _processService.CheckRescheduleDateAsync(bookingId, date, roomId);
+            
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RescheduleBooking([FromForm] BookingVMRescheduleFR request)
+        {
+            ReturnalModel ret = await _processService.RescheduleBookingAsync(request);
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CancelBooking([FromForm] BookingVMCancelFR request)
+        {
+            ReturnalModel ret = await _processService.CancelBookingAsync(request);
+            
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EndMeeting([FromForm] BookingVMEndMeetingFR request)
+        {
+            ReturnalModel ret = await _processService.EndMeetingAsync(request);
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckExtendMeetingTime([FromQuery] BookingVMCheckExtendMeetingFR request)
+        {
+            ReturnalModel ret = await _processService.CheckExtendMeetingTimeAsync(request);
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetExtendMeeting([FromForm] BookingVMExtendMeetingFR request)
+        {
+            ReturnalModel ret = await _processService.SetExtendMeetingAsync(request);
 
             return StatusCode(ret.StatusCode, ret);
         }

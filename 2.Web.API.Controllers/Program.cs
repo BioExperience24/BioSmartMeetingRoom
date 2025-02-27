@@ -1,10 +1,19 @@
 
+using _4.Data.ViewModels;
+using _4.Helpers.Consumer;
+using _5.Helpers.Consumer.EnumType;
 using _6.Repositories.DB;
 using _6.Repositories.Repository;
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Reflection;
+using System.Text;
 using static Global.Extensions.ServiceCollectionExtensions;
 
 namespace _2.Web.API.Controllers;
@@ -26,10 +35,84 @@ public class Program
         builder.Services.AddCustomService();
         builder.Services.AddCustomRepository();
         builder.Services.AddAutoMapper(typeof(AutoMapConfig));
+        var apiVersion = builder.Configuration.GetSection("OTHER_SETTING").GetValue<string>("ApiVersion") ?? "v1";
+        var configTokenM = builder.Configuration.GetSection("TokenManagement");
+
+        builder.Services.Configure<TokenManagement>(configTokenM);
+        TokenManagement token = configTokenM.Get<TokenManagement>() ?? new();
+
+        // Tambahin authentication dan authorization services
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // Default untuk API
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.RequireHttpsMetadata = false;
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(token.SecretKey)),
+                ValidIssuer = token.Issuer,
+                ValidAudience = token.Audience,
+                ValidateIssuer = true,
+                ValidateAudience = true
+            };
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notifhub"))
+                    {
+                        context.Token = accessToken;
+                    }
+                    return Task.CompletedTask;
+                },
+                OnChallenge = context =>
+                {
+                    context.HandleResponse();
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.ContentType = "application/json";
+
+                    var response = new ReturnalModel
+                    {
+                        Title = ReturnalType.UnAuthorized,
+                        Status = ReturnalType.UnAuthorized,
+                        Message = "Unauthorized Error Message: Token is invalid or missing.",
+                        StatusCode = 401
+                    };
+
+                    return context.Response.WriteAsJsonAsync(response);
+                },
+                OnForbidden = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    context.Response.ContentType = "application/json";
+
+                    var response = new ReturnalModel
+                    {
+                        Title = ReturnalType.Forbidden,
+                        Status = ReturnalType.Forbidden,
+                        Message = "Failed, your access is restricted.",
+                        StatusCode = 403
+                    };
+
+                    return context.Response.WriteAsJsonAsync(response);
+                }
+            };
+        });
+
+        builder.Services.AddAuthorization();
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
+
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo
@@ -38,15 +121,40 @@ public class Program
                 Version = @$"last build backend: {File.GetLastWriteTime($"{AppDomain.CurrentDomain.BaseDirectory}{Assembly.GetEntryAssembly().GetName().Name}.dll").ToLocalTime().ToString("dd MMM yyyy HH:mm:ss \"GMT\"zzz")}",
                 Description = "Swagger"
             });
-            // Configure Swagger to use the xml documentation file
-            //var xmlFile = Path.ChangeExtension(typeof(Startup).Assembly.Location, ".xml");
-            //c.IncludeXmlComments(xmlFile);
+            //var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            //var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            //c.IncludeXmlComments(xmlPath);
+
             c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
             {
                 Description = "Standard Authorization header using the Bearer scheme. Example: \"bearer {token}\"",
                 In = ParameterLocation.Header,
                 Name = "Authorization",
                 Type = SecuritySchemeType.ApiKey
+            });
+
+            c.OperationFilter<SecurityRequirementsOperationFilter>();
+            c.DocInclusionPredicate((docName, apiDesc) =>
+            {
+                if (docName == "v1")
+                {
+                    return true;
+                }
+                else return true;
+            });
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
             });
         });
 
@@ -57,22 +165,42 @@ public class Program
                    .SetIsOriginAllowed((host) => true)
                    .AllowCredentials();
         }));
+        builder.Services.AddHttpClient("MyClient", c =>
+        {
+            // Configure your client here...
+        });
+        builder.Services.AddScoped<APICaller>(); // Register APICaller properly
+
+
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
-
         app.UseHttpsRedirection();
+        app.UseStaticFiles();
 
+        #region Swagger2
+        app.UseSwagger();
+        // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
+        // specifying the Swagger JSON endpoint.
+        //app.UseSwaggerAuthorized();
+        //var setToken = PublicAccess.getToken;
+        app.UseSwaggerUI(c =>
+        {
+            /* default sesuai urutan swagger doc */
+            //c.SwaggerEndpoint("/swagger/report/swagger.json", "Report API");
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "ITM CORE Dashboard & Report Portal");
+            c.RoutePrefix = "firedocumentation";
+            c.DocExpansion(DocExpansion.None);
+            c.InjectStylesheet("/custom/SwaggerDark.css");
+            c.InjectJavascript("/custom/SwaggerUICustom.js");
+        });
+        app.MapControllers();
+        #endregion
+
+        app.UseAuthentication();
         app.UseAuthorization();
         app.UseCors("MyPolicy");
-
-        app.MapControllers();
+        // Tambahin prefix route otomatis
 
         app.Run();
     }

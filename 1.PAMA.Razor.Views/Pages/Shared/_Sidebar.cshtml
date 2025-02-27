@@ -1,0 +1,95 @@
+@using _4.Data.ViewModels;
+@{
+    UserViewModel? authInfo = null;
+    List<MenuVM>? menu = null;
+    var userAvatar = "";
+    var userName = "";
+    var userRole = "";
+
+    if (Model.AuthInfo != null)
+    {
+        authInfo = Model.AuthInfo;
+        menu = authInfo.SideMenu;
+
+        userAvatar = authInfo.Name.Substring(0, 1).ToUpper();
+        userName = authInfo.Name;
+        userRole = authInfo.Level?.Name;
+    }
+}
+<aside id="leftsidebar" class="sidebar">
+    <!-- User Info -->
+    <div class="user-info" style="background:url(@($"{Model.AppUrl}assets/images/media-menubar.png")) no-repeat no-repeat;    background-size: cover !important;">
+        <div class="image">
+            <div style="height: 48px; width: 48px;border-radius: 50%;" class="bg-light-blue">
+                <center>
+                    <b style="line-height: 48px;font-size: 28px;">@userAvatar</b>
+                </center>  
+            </div>
+            <!-- <img src="../../images/user.png" width="48" height="48" alt="User"> -->
+        </div>
+        <div class="info-container">
+            <div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">@userName</div>
+            <div class="email">@userRole</div>
+            <div class="btn-group user-helper-dropdown">
+                <i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
+                <ul class="dropdown-menu pull-right">
+                    <li>
+                        <a class="dropdown-item waves-effect waves-block" href="@($"{Model.AppUrl}profile")">
+                            Profile <i class="material-icons">person</i>
+                        </a></li>
+                    <li>
+                        <a class="dropdown-item waves-effect waves-block" href="@($"{Model.AppUrl}logout")">
+                            Sign Out <i class="material-icons">input</i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- #User Info -->
+    
+    <!-- Menu -->
+    <div class="menu">
+        <ul class="list" style="overflow: hidden; width: auto; height: 656px;">
+            <li class="header">MAIN NAVIGATION</li>
+            @if (menu != null)
+            {
+                foreach (var item in menu)
+                {
+                    @if(item.Child.Count() > 0)
+                    {
+                        <a href="javascript:void(0);" class="menu-toggle waves-effect waves-block">
+                            <i class="material-icons">@item.MenuIcon</i>
+                            <span>@item.MenuName</span>
+                        </a>
+                        <ul class="ml-menu">
+                            @foreach (var itemChild in item.Child)
+                            {
+                                <li>
+                                    <a href="@($"{Model.AppUrl}{itemChild.MenuUrl.TrimStart('/')}")" class=" waves-effect waves-block">@itemChild.MenuName</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else 
+                    {
+                        <li class="">
+                            <a href="@($"{Model.AppUrl}{item.MenuUrl.TrimStart('/')}")" class=" waves-effect waves-block">
+                                <i class="material-icons">@item.MenuIcon</i>
+                                <span>@item.MenuName</span>
+                            </a>
+                        </li>
+                    }
+                }
+            }
+        </ul>
+    </div>
+    <!-- #Menu -->
+    <!-- Footer -->
+    <div class="legal">
+    <div class="copyright">
+        &copy; 2024 <a>Demo Smart Meeting</a>.
+    </div>
+    </div>
+    <!-- #Footer -->
+</aside>

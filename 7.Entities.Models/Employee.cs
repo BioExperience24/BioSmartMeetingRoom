@@ -218,3 +218,10 @@ public class EmployeeWithDetails
     [JsonPropertyName("department_name")]
     public string DepartmentName { get; set; }
 }
+
+public class EmployeeNikDto : Employee
+{
+    public string? AlocationName { get; set; }
+    public string? AlocationId { get; set; }
+    public string? DepartmentName { get; set; }
+}

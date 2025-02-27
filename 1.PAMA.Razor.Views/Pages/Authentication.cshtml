@@ -194,12 +194,21 @@
                // console.log(d);
            });
            $('#sign_in').submit(function(e){
+                // Ambil URL saat ini\
+                const currentUrl = new URL(window.location.href);
+
+                // Tambahkan atau ubah query parameter
+                currentUrl.searchParams.set('handler', 'Login');
+
+                // Simpan hasil ke variabel tanpa mengubah URL asli
+                const updatedUrl = currentUrl.toString();
                e.preventDefault();
                if($(this).valid() == false){
                    return false;
                }
                $.ajax({
-                    url: '/Authentication?handler=Login', // URL menuju handler
+                    @* url: '/Authentication?handler=Login', // URL menuju handler *@
+                    url: updatedUrl, // URL menuju handler
                     type: 'POST',
                     dataType : "json",
                     data: $(this).serialize(),
@@ -216,7 +225,8 @@
                            showNotification('alert-success', "Success, please wait for redirect.",'bottom','left')
                            setTimeout(function(){
                                $('#id_loader').html('');
-                               window.location.href = "./";
+                               @* window.location.href = "./"; *@
+                               window.location.href = data.collection;
                            }, 1000);
                        }
 

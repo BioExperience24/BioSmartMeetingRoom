@@ -82,6 +82,15 @@ public class EmployeeRepository : BaseRepository<Employee>
         return await query.FirstOrDefaultAsync();
     }
 
+    public async Task<Employee?> GetItemByNikAsync(string nik)
+    {
+        var query = from employee in _dbContext.Employees
+                    where employee.Nik == nik
+                    select employee;
+
+        return await query.FirstOrDefaultAsync();
+    }
+
     public async Task<IEnumerable<object>> GetAllItemByIdsAsync(string[] ids)
     {
         if (ids.Length == 0)
@@ -101,7 +110,7 @@ public class EmployeeRepository : BaseRepository<Employee>
 
         return result;
     }
-
+    
     public async Task<EmployeeReportOrganizerUsageDataTable> GetAllOrganizerUsageReportItemAsync(EmployeeFilter? filter = null, int limit = 0, int offset = 0)
     {
         var participants = getParticipantsQuery(filter);
@@ -357,5 +366,63 @@ public class EmployeeRepository : BaseRepository<Employee>
 
         return participants;
     }
+
+
+
+    public async Task<EmployeeNikDto?> GetNikEmployeeByPic(string nikPic)
+    {
+        var query = from employee in _dbContext.Employees.AsNoTracking()
+                    join alocationMatrix in _dbContext.AlocationMatrices.AsNoTracking()
+                        on employee.Nik equals alocationMatrix.Nik
+                    join alocation in _dbContext.Alocations.AsNoTracking()
+                        on alocationMatrix.AlocationId equals alocation.Id // Swapped order
+
+                    where employee.IsDeleted == 0 &&
+                          (employee.Nik == nikPic || employee.NikDisplay == nikPic)
+                        select new EmployeeNikDto
+                        {
+                            DivisionId = string.Empty,
+                            CompanyId = employee.CompanyId,
+                            DepartmentId = employee.DepartmentId,
+                            Name = employee.Name,
+                            Nik = employee.Nik,
+                            NikDisplay = employee.NikDisplay,
+                            Photo = string.Empty,
+                            Email = employee.Email,
+                            NoPhone = employee.NoPhone,
+                            NoExt = employee.NoExt,
+                            BirthDate = employee.BirthDate,
+                            Gender = employee.Gender,
+                            Address = string.Empty,
+                            CardNumber = string.Empty,
+                            CardNumberReal = string.Empty,
+                            PasswordMobile = string.Empty,
+                            GbId = string.Empty,
+                            FrId = string.Empty,
+                            Priority = employee.Priority,
+                            CreatedAt = employee.CreatedAt,
+                            UpdatedAt = employee.UpdatedAt,
+                            IsVip = employee.IsVip,
+                            VipApproveBypass = employee.VipApproveBypass,
+                            VipLimitCapBypass = employee.VipLimitCapBypass,
+                            VipLockRoom = employee.VipLockRoom,
+                            AlocationName = alocation.Name,
+                            AlocationId = alocation.Id
+                        };
+
+        return await query.FirstOrDefaultAsync();
+    }
+
+    public async Task<List<Employee?>> GetNikEmployeeByPic(List<string> nikPic)
+    {
+        var query = from employee in _dbContext.Employees.AsNoTracking()
+                    where employee.IsDeleted == 0 &&
+                          nikPic.Contains(employee.Nik)
+                    select employee;
+
+        return await query.ToListAsync();
+    }
+
+
 }
 

@@ -18,3 +18,11 @@ public partial class PantryMenuPaket : BaseEntity
 
 
 }
+
+public class PantryPackageDTO
+{
+    public string? Id { get; set; }
+    public string Name { get; set; }
+    public long PantryId { get; set; }
+    public string PantryName { get; set; }
+}

@@ -112,6 +112,40 @@ public class UserController : ControllerBase
         return StatusCode(ret.StatusCode, ret);
     }
 
+    [HttpPost("{id}")]
+    public async Task<IActionResult> UpdateUsername([FromForm] UserVMUpdateUsernameFR request, long id)
+    {
+        ReturnalModel ret = new();
+
+        ret.Message = "Success update username.";
+        var updatedUsername = await _service.UpdateUsernameAsync(request, id);
+
+        if (updatedUsername.Status == ReturnalType.Failed)
+        {
+            ret.Status = ReturnalType.Failed;
+            ret.Message = updatedUsername.Message;
+        }
+
+        return StatusCode(ret.StatusCode, ret);
+    }
+
+    [HttpPost("{id}")]
+    public async Task<IActionResult> UpdatePassword([FromForm] UserVMUpdatePasswordFR request, long id)
+    {
+        ReturnalModel ret = new();
+
+        ret.Message = "Success update password.";
+        var updatedPassword = await _service.UpdatePassword(request, id);
+
+        if (updatedPassword.Status == ReturnalType.Failed)
+        {
+            ret.Status = ReturnalType.Failed;
+            ret.Message = updatedPassword.Message;
+        }
+
+        return StatusCode(ret.StatusCode, ret);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Disable([FromForm] UserVMDisableFR request)
     {

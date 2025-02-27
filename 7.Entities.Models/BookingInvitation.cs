@@ -59,3 +59,10 @@ public class BookingInvitationFilter : BookingInvitation
     public long BuildingId { get; set; }
     public string? RoomId { get; set; }
 }
+
+public class BookingInvitationEmployee : BookingInvitation
+{
+    public string? EmployeeName { get; set; }
+    public string? EmployeeNoPhone { get; set; }
+    public string? EmployeeEmail { get; set; }
+}

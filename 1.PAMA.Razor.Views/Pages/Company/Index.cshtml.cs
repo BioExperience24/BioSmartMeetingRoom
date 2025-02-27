@@ -1,3 +1,4 @@
+using _1.PAMA.Razor.Views.Attributes;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ using System.Text.Json;
 namespace _1.PAMA.Razor.Views.Pages.Company;
 
 [Authorize]
+[PermissionAccess]
 public class IndexModel : PageModel
 {
     private readonly IConfiguration _config;

@@ -58,41 +58,6 @@
                         </div>
                     </div>
                     <div class="body table-responsive responsive">
-                        <!-- INTEGRATION ALARM -->
-                        <div class="row">
-                            <div class="col-xs-12">
-                                <div class="info-box" style="height:100px">
-                                    <div class="icon bg-white img-icon">
-                                        <img class='img-circle' src='<?= base_url()?>assets/alarm.png' />
-                                    </div>
-
-                                    <div class="content" style="width: 100%; ">
-                                        <div class="row ">
-                                            <div class=" col-xs-8">
-                                                <div class="text"><h3>Bio alarm integration</h3></div>
-                                                <div class="text"><h5>Bio alarm integration</h5></div>
-                                            </div>
-                                            <div class=" col-xs-4 align-right">
-                                                <div class="connected-area">
-                                                    <div class="wrapper-div">
-                                                        <?php if($modules['alarm']['is_enabled'] == 1){ ?>
-                                                        <button onclick="btnConfigIntegrationAlarm()" class="btn  btn-success waves-effect vcenter"><i class="material-icons">settings</i></button>
-                                                        <button onclick="btnIntegrationAlarm()" class="btn btn-lg btn-primary waves-effect vcenter" id="id_btn_connect_alarm"><b>Connect</b></button>
-                                                        <button style="display:none;" onclick="btnIntegrationAlarmDis()" class="btn btn-lg btn-danger waves-effect vcenter" id="id_btn_connect_alarm_disconnected"><b>Disconnected</b></button>
-
-                                                        <?php }else{echo "Module Disabled"; } ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                    <div class=" bg-white ">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <!-- END INTEGRATION ALARM -->
                         <!-- INTEGRATION M365 -->
                         <div class="row">
@@ -188,12 +153,12 @@
     </div>
 </div>
 <!-- # END MODAL CREATE  -->
-<input type="hidden" id="id_baseurl" value="<?= base_url()?>">
+@* <input type="hidden" id="id_baseurl" value="<?= base_url()?>">
 <textarea style="display:none;" id="id_alarm"><?= $alarm_integration?></textarea>
 <textarea style="display:none;" id="id_m365"><?= $m365_integration?></textarea>
 <textarea style="display:none;" id="id_module_alarm"><?= $alarm_integration?></textarea>
 <textarea style="display:none;" id="id_feedback_collection"></textarea>
-<textarea style="display:none;" id="id_m365_devices"><?= $m365_devices?></textarea>
+<textarea style="display:none;" id="id_m365_devices"><?= $m365_devices?></textarea> *@
 
 @section Scripts {
     <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
@@ -203,14 +168,47 @@
     <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
     <!-- Bootstrap Material Datetime Picker Plugin Js -->
     <script src="~/assets/theme/plugins/jquery-editable/src/table-edits.js"></script>
-    <script src="~/assets/process/alocation/index.js"></script>
 <script>
-    var alarm_integration = JSON.parse($('#id_alarm').val());
-    var m365_integration = JSON.parse($('#id_m365').val());
-    var m365_devices = JSON.parse($('#id_m365_devices').val());
+    var alarm_integration = "";
+    var m365_integration = "";
+    var m365_devices = "";
+    var id_module_alarm = "";
     var iconData = {};
     var arHttp = ["http://", "https://"];
     var cIAalarm;
+        getIntegrationData();
+
+        function getIntegrationData() {
+            $.ajax({
+                url: `@Model.ApiUrl@Model.GetIntegrationData`,
+                type: "GET",
+                dataType: "json",
+                beforeSend: function (XMLHttpRequest) {
+                    // startLoader();
+                },
+                success: function (data) {
+                    var col = data.collection;
+                    if (data.status == "fail") {
+                        stopLoader()
+                        swalShowNotification('alert-danger', data.msg, 'bottom', 'left')
+                    } else if (data.status == "success") {
+
+                        var col = data.collection;
+                        if (data.status == "fail") {
+
+                        } else if (data.status == "success") {
+                            alarm_integration = col.alarm_integration;
+                            m365_integration = col.m365_integration;
+                            m365_devices = col.m365_devices;
+                            id_module_alarm = col.alarm_integration;
+
+                        }
+                    }
+                },
+                error: errorAjax,
+
+            })
+        }
 
     function btnConfigIntegrationAlarm() {
         var auth = alarm_integration.url_auth;
@@ -471,7 +469,7 @@
     function init() {
         var bs = $('#id_baseurl').val();
         $.ajax({
-            url: bs + "facility/get/data",
+            url: `@Model.ApiUrl@Model.GetFacilities`,
             type: "GET",
             dataType: "json",
             beforeSend: function () {

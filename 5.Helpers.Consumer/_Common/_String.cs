@@ -52,6 +52,30 @@ namespace _5.Helpers.Consumer._Common
             }
         }
 
+        public static TimeOnly ToTimeOnly(string timeString, string timeFormat = "HH:mm:ss")
+        {
+            if (string.IsNullOrEmpty(timeString))
+            {
+                return TimeOnly.MinValue;
+            }
+
+            try
+            {
+                if (TimeOnly.TryParseExact(timeString, timeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out TimeOnly time))
+                {
+                    return time;
+                }
+                else
+                {
+                    throw new FormatException("Format waktu tidak valid.");
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        
         public static string ToDayName(string dateString, string dateFormat = "yyyy-MM-dd")
         {
             try

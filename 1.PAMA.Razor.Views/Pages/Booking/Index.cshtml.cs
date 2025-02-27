@@ -1,4 +1,5 @@
 using System.Text.Json;
+using _1.PAMA.Razor.Views.Attributes;
 using _3.BusinessLogic.Services.Interface;
 using _5.Helpers.Consumer._Common;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace _1.PAMA.Razor.Views.Pages.Booking
 {
     [Authorize]
+    [PermissionAccess]
     public class IndexModel(
         IConfiguration config
         // IModuleBackendService moduleBackendService,
@@ -49,6 +51,20 @@ namespace _1.PAMA.Razor.Views.Pages.Booking
             config["ApiUrls:Endpoints:PantryPackage:GetById"] ?? string.Empty;
         public string GetBookingDataTables { get; private set; } = 
             config["ApiUrls:Endpoints:Booking:GetDataTables"] ?? string.Empty;
+        public string GetPicByBookingId { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:GetPicByBookingId"] ?? string.Empty;
+        public string CheckRescheduleDate { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:CheckRescheduleDate"] ?? string.Empty;
+        public string RescheduleBooking { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:RescheduleBooking"] ?? string.Empty;
+        public string CancelBooking { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:CancelBooking"] ?? string.Empty;
+        public string EndMeeting { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:EndMeeting"] ?? string.Empty;
+        public string CheckExtendMeetingTime { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:CheckExtendMeetingTime"] ?? string.Empty;
+        public string SetExtendMeeting { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:SetExtendMeeting"] ?? string.Empty;
 
         // public string Modules { get; set; } = "{}";
         // public string SettingGeneral { get; set; } = "{}";

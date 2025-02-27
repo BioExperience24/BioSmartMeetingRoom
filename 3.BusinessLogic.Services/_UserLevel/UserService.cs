@@ -1,6 +1,6 @@
 using _5.Helpers.Consumer._Encryption;
 using _5.Helpers.Consumer.EnumType;
-using _7.Entities.Models;
+using Azure.Core;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -250,12 +250,44 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
             return ret;
         }
 
-        List<MenuHeaderLevel> getLevel = await _levelService.GetLevel(user.LevelId);
-        List<MenuHeaderLevel> getMenuHeaader = await _levelService.GetMenuHeader(user.LevelId);
+        var getLevel = await _levelService.GetLevel(user.LevelId);
+        // List<MenuHeaderLevel> getMenuHeaader = await _levelService.GetMenuHeader(user.LevelId);
+
+        // get side menu by level (role)
+        List<LevelMenu> getMenu = await _levelService.GetMenu(user.LevelId);
+        List<LevelMenu> getMenuParent = getMenu.Where(x => x.IsChild == 0).ToList();
+        List<LevelMenu> getMenuChild = getMenu.Where(x => x.IsChild != 0).ToList();
+        List<LevelMenu> getGroupMenu = getMenuChild.GroupBy(x => x.MenuGroupId).Select(x => x.First()).ToList();
+        var menuMap = _mapper.Map<List<MenuVM>>(getMenuParent);
+
+        foreach (var item in getGroupMenu)
+        {
+            menuMap.Add(
+                new MenuVM
+                {
+                    MenuName = item.GroupName!,
+                    MenuIcon = item.GroupIcon!,
+                    MenuUrl = "#",
+                    MenuSort = item.MenuSort,
+                    ModuleText = item.ModuleText,
+                    Child = getMenuChild.Where(x => x.MenuGroupId == item.MenuGroupId).Select(x => new MenuVM
+                    {
+                        MenuName = x.MenuName,
+                        MenuIcon = x.MenuIcon,
+                        MenuUrl = x.MenuUrl,
+                        MenuSort = x.MenuSort,
+                        ModuleText = x.ModuleText
+                    }).ToList()
+                }
+            );
+        }
+        var menuOrdered = menuMap.OrderBy(x => x.MenuSort).ToList();
+        // .get side menu by level (role)
 
         var userVM = _mapper.Map<UserViewModel>(user);
-        userVM.Levels = _mapper.Map<List<MenuHeaderLevelVM>>(getLevel);
-        userVM.MenuHeaders = _mapper.Map<List<MenuHeaderLevelVM>>(getMenuHeaader);
+        userVM.Level = _mapper.Map<LevelViewModel>(getLevel);
+        // userVM.MenuHeaders = _mapper.Map<List<MenuHeaderLevelVM>>(getMenuHeaader);
+        userVM.SideMenu = menuOrdered;
 
         ret.Message = "Login successful!";
         ret.Collection = userVM;
@@ -286,7 +318,9 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
                 //new (JwtRegisteredClaimNames.Sub, getValidUser.Id?.ToString() ?? "InvalidUser"),
                 new (ClaimTypes.NameIdentifier, getValidUser.Id?.ToString() ?? "InvalidUser"),
                 new (ClaimTypes.Name, getValidUser.Username),
-                new (ClaimTypes.Role, getValidUser.Levels?.FirstOrDefault()?.LevelName ?? "User")
+                new (ClaimTypes.Role, getValidUser.LevelId.ToString() ?? "0"),
+                new (ClaimTypes.Actor, getValidUser.AccessId ?? "#"),
+                new (ClaimTypes.UserData, getValidUser.Nik ?? "Nik")
             };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenManagement.SecretKey));
@@ -339,5 +373,178 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
         // Atau simpan dalam dictionary jika ingin akses lebih mudah
         Dictionary<string, string> claimsDictionary = claims.ToDictionary(c => c.Type, c => c.Value);
         return claimsDictionary;
+    }
+    public async Task<UserViewModel?> GetUserJoin(LoginModel request)
+    {
+        var encryptPass = _Base64.Encrypt(request.Password.Trim());
+        var items = await _repo.GetUserJoin(request.Username, encryptPass);
+
+        return __mapper.Map<UserViewModel>(items);
+    }
+
+    public async Task<ReturnalModel> PantryLogin(LoginModel request)
+    {
+        var getUser = await GetUserJoin(request);
+
+        if (getUser == null)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Failed,
+                Message = "Invalid User",
+                StatusCode = (int)HttpStatusCode.BadRequest
+            };
+        }
+
+        getUser.SecureQr = null;
+        return new ReturnalModel
+        {
+            Status = ReturnalType.Success,
+            Collection = getUser
+        };
+    }
+
+    public async Task<ReturnalModel> DisplayLogin(LoginModel request)
+    {
+        var getUser = await GetUserJoin(request);
+
+        if (getUser == null)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Failed,
+                Message = "Invalid User",
+                StatusCode = (int)HttpStatusCode.BadRequest
+            };
+        }
+
+        if (getUser.LevelId != 1)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Forbidden,
+                Message = "Failed login, your access is restricted",
+                StatusCode = (int)HttpStatusCode.Forbidden
+            };
+        }
+
+        return new ReturnalModel
+        {
+            Status = ReturnalType.Success,
+            Collection = getUser
+        };
+    }
+
+    public async Task<ReturnalModel> UpdateUsernameAsync(UserVMUpdateUsernameFR request, long id)
+    {
+        var ret = new ReturnalModel();
+        DateTime now = DateTime.Now;
+
+        // Get the actual user by ID
+        var existingUser = await _repo.GetById(id);
+
+        if (existingUser == null)
+        {
+            ret.Message = "User not found";
+            ret.Status = ReturnalType.Failed;
+            ret.StatusCode = (int)HttpStatusCode.BadRequest;
+            return ret;
+        }
+
+        if (existingUser.Username == request.Username)
+        {
+            ret.Message = "Username is same with the old one";
+            ret.Status = ReturnalType.Failed;
+            ret.StatusCode = (int)HttpStatusCode.BadRequest;
+            return ret;
+        }
+
+        var existingUsername = await _repo.GetUserByUsernameWithFilter(request.Username);
+        if (existingUsername != null)
+        {
+            ret.Message = "Username already exists";
+            ret.Status = ReturnalType.Failed;
+            ret.StatusCode = (int)HttpStatusCode.BadRequest;
+            return ret;
+        }
+
+        existingUser.Username = request.Username; // Update username
+        existingUser.UpdatedAt = now;
+
+        using (var scope = new TransactionScope(
+            TransactionScopeOption.Required,
+            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+            TransactionScopeAsyncFlowOption.Enabled
+        ))
+        {
+            try
+            {
+                await _repo.Update(existingUser);
+                scope.Complete();
+
+                _mapper.Map<UserViewModel>(existingUser);
+                return ret;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+    }
+
+    public async Task<ReturnalModel> UpdatePassword(UserVMUpdatePasswordFR request, long id)
+    {
+        var ret = new ReturnalModel();
+        DateTime now = DateTime.Now;
+        // Get the actual user by ID
+        var existingUser = await _repo.GetById(id);
+
+        if (existingUser == null)
+        {
+            ret.Message = "User not found";
+            ret.Status = ReturnalType.Failed;
+            ret.StatusCode = (int)HttpStatusCode.BadRequest;
+            return ret;
+        }
+
+        if (existingUser.Password != _Base64.Encrypt(request.Password.Trim()))
+        {
+            ret.Message = "Old password is incorrect";
+            ret.Status = ReturnalType.Failed;
+            ret.StatusCode = (int)HttpStatusCode.BadRequest;
+            return ret;
+        }
+
+        if (request.NewPassword.Trim() != request.ConfirmationPassword.Trim())
+        {
+            ret.Message = "Confirmation password is not same with new password";
+            ret.Status = ReturnalType.Failed;
+            ret.StatusCode = (int)HttpStatusCode.BadRequest;
+            return ret;
+        }
+
+        existingUser.RealPassword = request.NewPassword.Trim();//harusnnya gk disimpen di db ini, percuma amat diencrypt
+        existingUser.Password = _Base64.Encrypt(request.NewPassword.Trim());
+        existingUser.UpdatedAt = now;
+
+        using (var scope = new TransactionScope(
+            TransactionScopeOption.Required,
+            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+            TransactionScopeAsyncFlowOption.Enabled
+        ))
+        {
+            try
+            {
+                await _repo.Update(existingUser);
+                scope.Complete();
+
+                _mapper.Map<UserViewModel>(existingUser);
+                return ret;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
     }
 }

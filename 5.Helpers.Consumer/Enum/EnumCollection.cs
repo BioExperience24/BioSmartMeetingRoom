@@ -28,11 +28,34 @@ public static class ModuleBackendTextModule
     public const string UserVIP = "module_user_vip";
     public const string RoomAdvance = "module_room_advance";
     public const string Pantry = "module_pantry";
+    public const string IntAlarm = "module_int_alarm";
+    public const string Loker = "module_loker";
+    public const string Invoice = "module_invoice";
+    public const string Email = "module_email";
 
 
 }
+public static class EnumPantryTransaksiOrderStatus
+{
+    public const int Entry = 0;
+    public const int Process = 1;
+}
 
+public static class EnumPantryTransaksiPushStatus
+{
+    public const int NotYetProcess = 0;
+    public const int Process = 1;
+    public const int Delivered = 2;
+    public const int Complete = 3;
+    public const int Canceled = 4;
+    public const int Reject = 5;
+}
 
+public static class EnumBookingTypeRoom
+{
+    public const string AllRoom = "allroom";
+    public const string Receptionist = "receptionist";
+}
 
 public enum AlarmLevel : int
 {
@@ -179,12 +202,4 @@ public static class ReturnalType
     public const string Forbidden = "forbidden";
     public const string UnderConstruction = "under_construction";
     public const string UnAuthorized = "Token must be provided";
-}
-
-public static class PantryTransaksiOrderStatus
-{
-    public const int Processing = 0;
-    public const int Completed = 1;
-    public const int Failed = 2;
-    public const int Done = 3;
 }

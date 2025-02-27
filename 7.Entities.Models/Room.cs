@@ -25,7 +25,7 @@ public partial class Room : BaseLongEntity
     public string Name { get; set; } = null!;
 
     [JsonPropertyName("capacity")]
-    public int Capacity { get; set; }
+    public int? Capacity { get; set; }
 
     [JsonPropertyName("description")]
     public string Description { get; set; } = null!;
@@ -148,6 +148,12 @@ public partial class Room : BaseLongEntity
 
     [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
     public int TotalBook { get; set; }
+
+    [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
+    public bool IsAllDay { get; set; }
+
+    [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
+    public DateOnly? WorkDate { get; set; }
 }
 
 public class ResponseData
@@ -186,7 +192,7 @@ public class RoomDetailDto : Room
     public long? Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public int Capacity { get; set; }
+    public int? Capacity { get; set; }
     public string? GoogleMap { get; set; }
     public string? RaName { get; set; }
     public long? RaId { get; set; }
@@ -195,4 +201,19 @@ public class RoomDetailDto : Room
     public string? BuildingGoogleMap { get; set; }
     public RoomAutomation RoomAutomation { get; set; }
     public Building Building { get; set; }
+}
+
+public class RoomMergeViewModel
+{
+    [JsonPropertyName("rad_id")]
+    public string? RadId { get; set; }
+
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("location")]
+    public string? Location { get; set; }
+
+    [JsonPropertyName("link")]
+    public string? Link { get; set; }
 }

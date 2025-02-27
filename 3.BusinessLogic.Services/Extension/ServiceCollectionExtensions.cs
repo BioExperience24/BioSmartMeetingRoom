@@ -1,8 +1,11 @@
-﻿using _2.BusinessLogic.Services.Interface;
+﻿using System.Reflection;
+using _2.BusinessLogic.Services.Interface;
 using _3.BusinessLogic.Services.Extension;
 using _3.BusinessLogic.Services.Implementation;
 using _4.Data.ViewModels;
+using _4.Helpers.Consumer.Report;
 using _5.Helpers.Consumer._Response;
+using _5.Helpers.Consumer.Custom;
 using _6.Repositories.Repository;
 using _7.Entities.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,6 +73,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBookingProcessService, BookingProcessService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IAPIMainPantryService, APIMainPantryService>();
+        services.AddScoped<IAPIMainDisplayService, APIMainDisplayService>();
+        services.AddScoped<IIntegrationService, IntegrationService>();
+        services.AddScoped<IExportReport, ExportReport>();
+        services.AddScoped<IManualConfigService, ManualConfigService>();
     }
     public static void AddCustomRepository(this IServiceCollection services)
     {
@@ -121,6 +129,16 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RoomForUsageRepository>();
         services.AddScoped<BookingInvitationRepository>();
         services.AddScoped<PantryTransaksiDRepository>();
+        services.AddScoped<TimeScheduleRepository>();
+        services.AddScoped<PantryTransaksiStatusRepository>();
+        services.AddScoped<PantryTransaksiDetailRepository>();
+        services.AddScoped<BookingInvoiceRepository>();
+        services.AddScoped<SendingEmailRepository>();
+        services.AddScoped<SendingNotifRepository>();
+        services.AddScoped<PantryTransaskiDRepository>();
+        
+
+
     }
 
     /// <summary>
@@ -189,6 +207,7 @@ public static class ServiceCollectionExtensions
 
             CreateMap<PantryViewModel, Pantry>().ReverseMap();
             CreateMap<PantryDetailViewModel, PantryDetail>().ReverseMap();
+            CreateMap<PantryDetailSelect, PantryDetailVMMenus>().ReverseMap();
             CreateMap<PantryTransaksiViewModel, PantryTransaksi>().ReverseMap();
             CreateMap<PantrySatuanViewModel, PantrySatuan>().ReverseMap();
             CreateMap<PantryMenuPaketViewModel, PantryMenuPaket>()
@@ -326,6 +345,9 @@ public static class ServiceCollectionExtensions
             CreateMap<object, KioskDisplayViewModel>().MapNestedProperties();
             CreateMap<KioskDisplayVMCreateFR, KioskDisplayViewModel>().ReverseMap();
             CreateMap<KioskDisplayVMUpdateFR, KioskDisplayViewModel>().ReverseMap();
+            CreateMap<TimeBookingDTOViewModel, TimeBookingDTO>().ReverseMap();
+
+            
 
             CreateMap<LicenseSettingViewModel, LicenseSetting>().ReverseMap();
             CreateMap<LicenseSettingRepository, LicenseSetting>().ReverseMap();
@@ -333,7 +355,7 @@ public static class ServiceCollectionExtensions
             CreateMap<LicenseSetting, LicenseSettingCreateViewModelFR>().ReverseMap();
             CreateMap<LicenseSettingUpdateViewModelFR, LicenseSetting>().ReverseMap().IgnoreNullProperty();
             CreateMap<LicenseSettingUpdateViewModelFR, LicenseSetting>().ReverseMap().IgnoreNullProperty();
-
+            CreateMap<TimeBookingDTO, BookedTimeViewModel>().ReverseMap();
 
             CreateMap<RoomForUsageDetailListViewModel, RoomForUsageDetail>().ReverseMap();
 
@@ -343,6 +365,7 @@ public static class ServiceCollectionExtensions
             CreateMap<BookingReportUsage, BookingVMRoomUsageCollection>().MapNestedProperties();
 
             CreateMap<Room, RoomViewModel>().ReverseMap();
+            CreateMap<Room, RoomVMCheckReschedule>().ReverseMap();
             CreateMap<object, RoomViewModelAlt>().MapNestedProperties();
             CreateMap<RoomVMDefaultFR, RoomViewModel>().ReverseMap();
             CreateMap<RoomVMUpdateFRViewModel, RoomViewModel>().ReverseMap();
@@ -357,12 +380,33 @@ public static class ServiceCollectionExtensions
 
             CreateMap<RoomForUsage, RoomForUsageViewModel>().ReverseMap();
             CreateMap<MenuHeaderLevel, MenuHeaderLevelVM>().ReverseMap();
+            CreateMap<LevelMenu, MenuVM>().ReverseMap();
 
             CreateMap<object, PantryTransactionDetail>().MapNestedProperties();
             CreateMap<PantryTransaksiStatus, PantryTransaksiStatusViewModel>().ReverseMap();
 
             CreateMap<BookingInvitation, BookingInvitationViewModel>().ReverseMap().IgnoreNullProperty();
+            CreateMap<BookingInvitation, BookingInvitationVMCategory>().ReverseMap();
+            CreateMap<BookingInvitationEmployee, BookingInvitationVMCategory>().ReverseMap();
             CreateMap<object, BookingInvitationViewModel>().MapNestedProperties();
+            // CreateMap<UserLogin, UserLoginVM>().ReverseMap();
+            // CreateMap<User, UserLoginVM>().ReverseMap();
+            CreateMap<UserLogin, UserViewModel>().ReverseMap();
+            CreateMap<ModuleBackend, ModuleDetailsViewModel>().ReverseMap();
+
+            CreateMap<PantryTransaksiAndMenu, PantryTransaksiAndMenuViewModel>().ReverseMap();
+            CreateMap<object, PantryTransactionMobileHistory>().MapNestedProperties();
+
+            CreateMap<SendingEmail, SendingEmailViewModel>().ReverseMap();
+            CreateMap<SendingNotif, SendingNotifViewModel>().ReverseMap();
+            CreateMap<Room, FastBookRoomViewModel>().ReverseMap();
+            CreateMap<EmployeeViewModel, FastBookEmployeeViewModel>().ReverseMap();
+            CreateMap<BookingInvitation, FastBookBookingInvitationViewModel>().ReverseMap();
+            CreateMap<Booking, FastBookBookingViewModel>().ReverseMap();
+            CreateMap<BookingInvitation, FastBookBookingInvitation>().ReverseMap();
+            
+
+
         }
     }
 

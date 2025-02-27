@@ -19,7 +19,7 @@ namespace _3.BusinessLogic.Services.Interface
         Task<RoomDetailsViewModel> GetRoomDetailsAsync(string? pagename = "Room");
         Task<FileReady> GetRoomDetailView(string id, int h = 60);
         Task<List<RoomMergeDetailViewModel>> GetAllRoomMerge();
-        Task<List<RoomMergeDetailViewModel>> GetRoomMerge(long id);
+        Task<List<RoomMergeDetailViewModel>> GetRoomMerge(string id);
         Task<RoomVMUResponseFRViewModel> GetRoomById(long id);
         Task<List<RoomForUsageDetailListViewModel>> GetConfigRoomForUsageByIdRoom(long id);
     }

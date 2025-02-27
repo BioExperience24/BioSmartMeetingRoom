@@ -12,4 +12,5 @@ public interface IEmployeeService : IBaseService<EmployeeViewModel>
     Task<EmployeeViewModel?> UpdateAsync(string id, EmployeeVMDefaultFR request);
     Task<EmployeeViewModel?> UpdateVipAsync(string id, EmployeeVMUpdateVipFR request);
     Task<EmployeeViewModel?> DeleteAsync(string id);
+    Task<EmployeeViewModel> GetProfileAsync();
 }

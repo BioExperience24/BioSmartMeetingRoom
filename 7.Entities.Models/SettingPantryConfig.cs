@@ -5,7 +5,7 @@ namespace _7.Entities.Models;
 
 public partial class SettingPantryConfig : BaseEntityId
 {
-    public new int Id { get; set; }
+    // public new int Id { get; set; }
 
     public int Status { get; set; }
 

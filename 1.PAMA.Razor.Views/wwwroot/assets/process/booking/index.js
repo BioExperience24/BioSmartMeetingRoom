@@ -19,13 +19,17 @@ let gEmployeePIC = "";
 
 let tbldata;
 
+let reservedTimes = [];
+var gTimeSelectBookingRes = [];
+
 const timepickerOptionsTodayFrom = {
     timeFormat: 'HH:mm ',
     interval: 15,
     // minTime: moment(moment().format('YYYY-MM-DD') + " " +moment().format("HH:mm:")+"00").subtract(1, 'minutes').format("HH"),
     minTime: "00",
     maxTime: '23:45',
-    defaultTime: moment().format("HH:mm:")+"00",
+    // defaultTime: moment().format("HH:mm:")+"00",
+    defaultTime: getMinutesForNow(moment()).format("HH:mm"),
     startTime: getMinutesForNow(moment()).format("HH:mm"),
     dynamic: false,
     dropdown: true,
@@ -53,7 +57,7 @@ const timepickerOptionsTodayUntil = {
     // minTime: moment(moment().format('YYYY-MM-DD') + " " +moment().format("HH:mm:")+"00").subtract(1, 'minutes').format("HH"),
     minTime: "00",
     maxTime: '23:45',
-    defaultTime: getMinutesForNow(moment()).format("HH:mm"),
+    defaultTime: getMinutesForNow(moment()).add(5, 'minutes').format("HH:mm"),
     startTime:  getMinutesForNow(moment()).format("HH:mm"),
     dynamic: false,
     dropdown: true,
@@ -85,29 +89,50 @@ $(function () {
 
     runTooltip();
 
-    get_employees();
-    get_buildings();
-    get_rooms();
-    get_facilities();
-    get_departments();
-    get_pantry_packages();
+    init_master_data();
+    // get_employees();
+    // get_buildings();
+    // get_rooms();
+    // get_facilities();
+    // get_departments();
+    // get_pantry_packages();
 
-    init_table_booking_list();
+    // init_table_booking_list();
 
-    $("#form-find-reserve").trigger("submit");
+    // $("#form-find-reserve").trigger("submit");
 });
+
+async function init_master_data() {
+    try {
+        $("#id_area_skeleton_loading").removeClass("hidden");
+
+        await get_employees();
+        await get_buildings();
+        await get_rooms();
+        await get_facilities();
+        await get_departments();
+        await get_pantry_packages();
+    } finally {
+        await $("#form-find-reserve").trigger("submit");
+        await init_table_booking_list();
+    }
+}
 
 $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
     let roomCategory = $(e.target).data("roomCategory");
 
     if (roomCategory != undefined) {
-        let lastRoomCategory = $("#id_book_filter_room_category").val();
+        // let lastRoomCategory = $("#id_book_filter_room_category").val();
 
-        if (roomCategory != lastRoomCategory) {
-            $("#id_book_filter_room_category").val(roomCategory);
+        // if (roomCategory != lastRoomCategory) {
+        //     $("#id_book_filter_room_category").val(roomCategory);
 
-            $("#form-find-reserve").trigger("submit");
-        }
+        //     $("#form-find-reserve").trigger("submit");
+        // }
+
+        $("#id_book_filter_room_category").val(roomCategory);
+
+        $("#form-find-reserve").trigger("submit");
     }
     
 });
@@ -239,7 +264,14 @@ $("#id_frm_crt").submit(function(event) {
             // data: objectify_form(form.serializeArray()),
             // data: form.serialize(),
             data: $.param(data),
+            beforeSend: function()
+            {
+                $('#id_loader').html('<div class="linePreloader"></div>');
+                disableAllForm();
+            },
             success: function (data) {
+                $('#id_loader').html('');
+                enabledAllForm();
                 if (data.status == "success") {
                     onButtonBack();
                     reloadTable();
@@ -252,7 +284,10 @@ $("#id_frm_crt").submit(function(event) {
                     showNotification('alert-danger', msg, 'top', 'center');
                 }
             },
-            error: errorAjax
+            error: errorAjax,
+            complete: function(data) {
+                enabledAllForm();
+            }
         });
     }
 });
@@ -260,6 +295,107 @@ $("#id_frm_crt").submit(function(event) {
 $("#id_schedule_search").click(function (e) { 
     e.preventDefault();
     reloadTable();
+});
+
+$("#id_frm_crt_timestart").change(function (e) { 
+    e.preventDefault();
+    let val = $(this).val();
+
+    let times = generateTimes(moment(val, "HH:mm"));
+    generateOptTime("#id_frm_crt_timeend", times, reservedTimes, val);
+});
+
+$('#frm_reschedule').submit(function(e) {
+    e.preventDefault();
+    var bs = $('#id_baseurl').val();
+    var form = $('#frm_reschedule').serialize();
+    var dtt = $('#id_frm_res_date').val();
+    var unixTimeStart = moment($('#id_frm_res_start_input').val()).format('X');
+    var unixTimeEnd = moment($('#id_frm_res_end_input').val()).format('X');
+
+
+    // console.log($('#id_frm_res_start_input').val())
+    if ($('#id_frm_res_date').val() == "") {
+        Swal.fire('Attention !!!', 'Date coloumn cannot be empty!', 'warning')
+        // showNotification('alert-danger', "Date coloumn cannot be empty",'top','center')
+        $('#id_frm_res_date_dummy').focus();
+        return false;
+    } else if ($('#id_frm_res_start_input').val() == "" || $('#id_frm_res_end_input').val() == "") {
+        Swal.fire('Attention !!!', 'Please selected the time!', 'warning')
+        // showNotification('alert-danger', "Please selected the time",'top','center')
+        return false;
+    } else if (unixTimeStart > unixTimeEnd || unixTimeStart == unixTimeEnd) {
+        Swal.fire('Attention !!!', 'Start time must to be more than Finish time, or start & finish time cannot be equal!', 'warning')
+        // showNotification('alert-danger', "Start time must to be more than Finish time, or start & finish time cannot be equal.",'top','center')
+        return false;
+    }
+    if ($('#id_frm_res_date_dummy').val() == "") {
+
+        Swal.fire('Attention !!!', 'Please select a date ', 'warning')
+        return false;
+    }
+    Swal.fire({
+        title: 'Confirmation?',
+        text: "Are you sure to reschedule this meeting? ",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Reschedule Meeting !',
+        cancelButtonText: 'Close !',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.value) {
+            $.ajax({
+                // url: bs + "booking/post/rebook",
+                url: bs + ajax.url.post_reschedule_booking,
+                type: "post",
+                dataType: "json",
+                data: form,
+                beforeSend: function() {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                    Swal.fire({
+                        title: 'Please Wait !',
+                        html: 'Process saving',
+                        allowOutsideClick: false,
+                        onBeforeOpen: () => {
+                            Swal.showLoading()
+                        },
+                    });
+                },
+                success: function(data) {
+                    Swal.close();
+                    $('#id_loader').html('');
+                    if (data.status == "success") {
+                        showNotification('alert-success', "Succes reschedule a booking " + $('#id_res_text_name').html(), 'top', 'center')
+                        $('#id_mdl_reschedule').modal('hide')
+                        Swal.fire({
+                            title: 'Messaage',
+                            text: "Your schedule of meeting success to save ",
+                            type: "warning",
+                            showCancelButton: false,
+                            allowOutsideClick: false,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Close !',
+                            cancelButtonText: 'Close !',
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.value) {
+                                window.location.reload();
+                            } else {
+
+                            }
+                        })
+                    } else {
+                        var msg = "Your session is expired, login again !!!";
+                        showNotification('alert-danger', msg, 'top', 'center')
+                    }
+                },
+                error: errorAjax
+            })
+        } else { }
+    });
 });
 
 // Get API
@@ -569,7 +705,7 @@ function init_location_filter() {
 
 function init_date_book_filter()
 {
-    $("#id_book_filter_when").daterangepicker({
+    let opt = {
         singleDatePicker: true,
         showDropdowns: true,
         minDate: moment(),
@@ -577,10 +713,20 @@ function init_date_book_filter()
         locale: {
             // format: 'DD MMM YYYY'
             format: 'YYYY-MM-DD'
+        },
+        isInvalidDate: function(date) {
+            // Disable Saturdays and Sundays
+            return date.day() === 0 || date.day() === 6;
         }
         // minYear: 1901,
         // maxYear: parseInt(moment().format('YYYY'),10),
-    }, function(start, end, label) {
+    };
+    if (app.auth.level == "2")
+    {
+        // opt["minDate"] = moment().add(1, 'days');
+        opt["maxDate"] = moment().add(3, 'days');
+    }
+    $("#id_book_filter_when").daterangepicker(opt, function(start, end, label) {
         // console.log(`start: ${start}`);
         // console.log(`end: ${end}`);
         // console.log(`label: ${label}`);
@@ -620,7 +766,73 @@ function init_capability_filter() {
     });
 }
 
-function init_time_reserve_form(date, from, to) {
+function generateTimes(startTime = moment().startOf('day'), intervalMinutes = 5)
+{
+    let times = [];
+    
+    let endTime = moment().endOf('day'); // 23:59
+    
+    while (startTime.isBefore(endTime)) {
+        times.push(startTime.format('HH:mm'));
+        startTime.add(intervalMinutes, 'minutes');
+    }
+    
+    return times;
+}
+
+function generateOptTime(id, times = [], disableTimes = [], selected = "")
+{
+    $(id).empty();
+    // $(id).append(document.createElement("option"));
+
+    let isSelectedCount = 0;
+
+    $.each(times, function (_, item) { 
+        var opt = document.createElement("option");
+        var disabled = false;
+        var isSelected = false;
+        
+        if (disableTimes.includes(item))
+        {
+            disabled = true;
+        }
+
+        if (selected != "")
+        {
+            isSelected = item == selected ? true : false;
+        } else {
+            if (disabled == false && isSelectedCount == 0) {
+                isSelected = true;
+                isSelectedCount = 1;
+            }
+        }
+        
+        $(opt).text(item);
+        $(opt).attr("value", item);
+        $(opt).prop("disabled", disabled);
+        if (isSelected == true) {
+            $(opt).attr("selected", "selected");
+        }
+        $(id).append(opt);
+        $(id).selectpicker("refresh");
+    });
+}
+
+function init_time_reserve_form(date, from, to, disableTimes = [])
+{
+    
+    let now = getMinutesForNow(moment());
+    let times = generateTimes(now);
+
+    // let fromTimes = generateTimes(getMinutesForNow(moment()));
+    generateOptTime("#id_frm_crt_timestart", times, disableTimes);
+    
+    // let toTimes = generateTimes(getMinutesForNow(moment()).add(5, "minutes"));
+    generateOptTime("#id_frm_crt_timeend", times, disableTimes);
+}
+
+function init_time_reserve_form_old(date, from, to, disableTimes = []) {
+    // console.log(disableTimes);
     let optFrom = timepickerOptionsTodayFrom;
     let optUntil = timepickerOptionsTodayUntil;
 
@@ -633,19 +845,21 @@ function init_time_reserve_form(date, from, to) {
         var dataFrom = getMinutesForNow(moment(time)).toDate();
         $('#id_frm_crt_timeend').timepicker("setTime", dataFrom);
     }
+    optFrom["disableTimeRanges"] = [disableTimes];
     
     
     optUntil["scrollbar"] = false;
+    optUntil["disableTimeRanges"] = [disableTimes];
     // optUntil["defaultTime"] = `${to}:59`;
     // optUntil["startTime"] = getMinutesForNow(moment(`${date} ${to}:59`, 'YYYY-MM-DD HH:mm')).format("HH:mm");
     // optUntil["defaultTime"] = `23:59:59`;
     // optUntil["startTime"] = getMinutesForNow(moment(`${date} 23:59:59`, 'YYYY-MM-DD HH:mm')).format("HH:mm");
 
-    $('#id_frm_crt_timestart').timepicker(optFrom);
+    // $('#id_frm_crt_timestart').timepicker(optFrom);
     $('#id_frm_crt_timeend').timepicker(optUntil);
 
     let setStart = moment(`${date} ${from}:00`, 'YYYY-MM-DD HH:mm').toDate();
-    $('#id_frm_crt_timestart').timepicker("setTime", setStart);
+    // $('#id_frm_crt_timestart').timepicker("setTime", setStart);
     
     let setEnd = moment(`${date} ${to}:59`, 'YYYY-MM-DD HH:mm').toDate();
     $('#id_frm_crt_timeend').timepicker("setTime", setEnd);
@@ -822,33 +1036,44 @@ function renderRoomCard(data) {
 
 function onReserveRoom(_this)
 {
-    let t = $(_this);
+    $('.page-loader-wrapper').fadeIn();
+
+    setTimeout(function () { 
+        let t = $(_this);
     
-    let room = t.data("roomCardData");
-    // console.log(room);
+        let room = t.data("roomCardData");
+        // console.log(room);
 
-    let formFilter = objectify_form($("#form-find-reserve").serializeArray());
-    // console.log(formFilter);
+        let formFilter = objectify_form($("#form-find-reserve").serializeArray());
+        // console.log(formFilter);
 
-    $("#id_frm_crt_room_name").text(room.name);
-    $("#id_frm_crt_booking_type").val(formFilter["book_filter_room_category"] == "room" ? "general" : formFilter["book_filter_room_category"]);
-    $("#id_frm_crt_date").val(formFilter["book_filter_date"]);
-    $("#id_frm_crt_room_id").val(room.radid);
+        reservedTimes = room.reserved_times;
 
-    init_time_reserve_form(
-        formFilter["book_filter_date"],
-        formFilter["book_filter_time_from"], 
-        formFilter["book_filter_time_until"]);
-    init_pic_reserve_form();
-    init_alocation_reserve_form();
-    
-    tabsChangeTo("disabled");
-    $("#id_area_find_room").addClass("hidden");
-    $("#id_area_reserve_room").removeClass("hidden");
+        $("#id_frm_crt_room_name").text(room.name);
+        $("#id_frm_crt_booking_type").val(formFilter["book_filter_room_category"] == "room" ? "general" : formFilter["book_filter_room_category"]);
+        $("#id_frm_crt_date").val(formFilter["book_filter_date"]);
+        $("#id_frm_crt_room_id").val(room.radid);
+
+        init_time_reserve_form(
+            formFilter["book_filter_date"],
+            formFilter["book_filter_time_from"], 
+            formFilter["book_filter_time_until"],
+            reservedTimes
+        );
+        init_pic_reserve_form();
+        init_alocation_reserve_form();
+        
+        tabsChangeTo("disabled");
+        $("#id_area_find_room").addClass("hidden");
+        $("#id_area_booklist").addClass("hidden");
+        $("#id_area_reserve_room").removeClass("hidden");
+        $('.page-loader-wrapper').fadeOut(); 
+    }, 500);
 }
 
 function onButtonBack() {
     clearReserveRoom();
+    enabledAllForm();
 
     // clear attendees
     gPartisipantManual = [];
@@ -868,6 +1093,19 @@ function onButtonBack() {
     tabsChangeTo("enabled");
     $("#id_area_reserve_room").addClass("hidden");
     $("#id_area_find_room").removeClass("hidden");
+    $("#id_area_booklist").removeClass("hidden");
+    $("#id_btn_crt_submit_booking").removeClass("hidden");
+    $(".add-attendance-section").removeClass("hidden");
+
+    reservedTimes = [];
+
+    let roomCategory = $(".nav-tabs").find('li.active').find('a').data("roomCategory");
+
+    if (roomCategory != undefined)
+    {
+        $("#form-find-reserve").trigger("submit");
+    }
+
 }
 
 function clearReserveRoom() {
@@ -1045,17 +1283,20 @@ function clickPartisipantManualOpen(tp = "", dd = 0) {
     });
 }
 
-function reloadPartisipantManual() {
+function reloadPartisipantManual(withDelete = true) {
     var htmlEmp = '';
     $.each(gPartisipantManual, (index, item) => {
         var s = "update";
         htmlEmp += '<tr  id="id_tr_idmanual_' + index + '" onclick="clickPartisipantManualOpen(&quot;' + s + '&quot;,' + index + ')" style="cursor:pointer;">';
         htmlEmp += '<td style="width: 90%;">' + item.name + '</td>';
-        htmlEmp += '<td>\
-            <button data-item="' + index + '" onclick="removeCrtParticipantManual($(this))" type="button" class="btn bg-red btn-sm waves-effect">\
-                <i class="material-icons" >delete</i> \
-            </button>\
-        </td>';
+        if (withDelete == true)
+        {
+            htmlEmp += '<td>\
+                <button data-item="' + index + '" onclick="removeCrtParticipantManual($(this))" type="button" class="btn bg-red btn-sm waves-effect">\
+                    <i class="material-icons" >delete</i> \
+                </button>\
+            </td>';
+        }
         htmlEmp += '</tr>';
     });
     $('#id_list_tbl_participant_manual tbody').html(htmlEmp);
@@ -1107,16 +1348,19 @@ function reloadPartisipant() {
     select_enable();
 }
 
-function reloadPartisipantSelected() {
+function reloadPartisipantSelected(withDelete = true) {
     var htmlEmp = '';
     $.each(gEmployeesSelected, (index, item) => {
         htmlEmp += '<tr id="id_tr_id_' + item + '" data-id="' + item + '">';
         htmlEmp += '<td style="width: 90%;">' + gEmployeesSelectedArray[index].name + '</td>';
-        htmlEmp += '<td>\
-            <button data-item="' + item + '" onclick="removeCrtParticipant($(this))" type="button" class="btn bg-red btn-sm waves-effect">\
-                <i class="material-icons" >delete</i> \
-            </button>\
-        </td>';
+        if (withDelete == true)
+        {
+            htmlEmp += '<td>\
+                <button data-item="' + item + '" onclick="removeCrtParticipant($(this))" type="button" class="btn bg-red btn-sm waves-effect">\
+                    <i class="material-icons" >delete</i> \
+                </button>\
+            </td>';
+        }
         htmlEmp += '</tr>';
     });
     $('#id_list_tbl_participant tbody').html(htmlEmp);
@@ -1142,13 +1386,193 @@ function init_table_booking_list() {
         ordering: false,
         columns: [
             {data:"no", name:"no", searchable:false, orderable:false},
+            {data:"status", name:"status", searchable:false, orderable:false, render: function(_, _, item) {
+                let bookingTz = item.timezone == "SE Asia Standard Time" ? "Asia/Jakarta" : item.timezone;
+                let status = "";
+                let momentEnd = changeTimeIntoTimezone(item.server_end, bookingTz);
+                let momentStart = changeTimeIntoTimezone(item.server_start, bookingTz);
+                let extendTime = item.extended_duration -0;
+                let diffMomentEnd = momentEnd.add(extendTime, 'minutes');
+                
+                if (moment().unix() > momentEnd.unix()) {
+                    status = "<i style='color:red;'>Expired</i>"
+                } else if (item.end_early_meeting == 1) {
+                    status = "<i style='color:light-green;'>Meeting Expired</i>";
+                } else if (
+                    moment().unix() <= momentEnd.unix() &&
+                    moment().unix() >= momentStart.unix()
+                ) {
+                    status = "<i style='color:light-green;'>Meeting in progress</i>"; // meeting dimulai
+                } 
+                else if (
+                    momentStart.diff(moment(), 'minutes') <= 0
+                ) {
+                    status = "<i style='color:blue;'>Ongoing</i>"; // antrian
+                }
+                else if (
+                    moment().unix() <= moment(item.date + " " + item.start).unix()
+                ) {
+                    status = "<i style='color:blue;'>Meeting queue</i>"; // antrian
+                }
+                else if (
+                    moment().diff(diffMomentEnd) >= 0
+                ) {
+                    status = "<i style='color:light-green;'>Meeting Expired</i>";
+                } 
+                else if ( (item.is_alive-0)  == 0) {
+                    status = "<i style='color:light-green;'>Pending</i>"; // antrian
+                }
+
+                if (item.is_canceled == 1) {
+                    status = "<i style='color:red;'>Meeting Canceled</i>"; // antrian
+                }
+                if (item.is_expired == 1) {
+                    status = "<i style='color:red;'>Meeting Expired</i>"; // antrian
+                }
+
+                return status;
+            }},
             {data:"title", name:"title", searchable:false, orderable:false},
             {data:"room_name", name:"room_name", searchable:false, orderable:false},
             {data:"booking_date", name:"booking_date", searchable:false, orderable:false},
             {data:"time", name:"time", searchable:false, orderable:false},
-            {data:"attendees", name:"attendees", searchable:false, orderable:false},
-            {data:"pic", name:"pic", searchable:false, orderable:false},
-            // {data:"action", name:"action", searchable:false, orderable:false},
+            {data:"attendees", name:"attendees", searchable:false, orderable:false, render: function(_, _, item) {
+                return `
+                    <a 
+                        data-toggle="tooltip" 
+                        data-placement="top" 
+                        title="Attendees" 
+                        data-html="true"
+                        onclick="openPartispant($(this))" 
+                        data-booking_id="${item.booking_id}" 
+                        data-title="${item.title}" 
+                        style="cursor:pointer;font-size:16px;font-weight:bold;" >
+                        ${item.attendees} participants
+                    </a>
+                `;
+                // return `${item.attendees} participants`;
+            }},
+            {data:"pic", name:"pic", searchable:false, orderable:false, render: function(_, _, item) {
+                return `
+                    <a 
+                        data-toggle="tooltip" 
+                        data-placement="top" 
+                        title="Organizer" 
+                        data-html="true"
+                        onclick="clickPIC($(this))" 
+                        data-id="${item.booking_id}" 
+                        style="cursor:pointer;font-size:16px;font-weight:bold;" >
+                        ${item.pic}
+                    </a>
+                `;
+            }},
+            {data:"action", name:"action", searchable:false, orderable:false, render: function(_, _, item) {
+                let bookingTz = item.timezone == "SE Asia Standard Time" ? "Asia/Jakarta" : item.timezone;
+                let momentEnd = changeTimeIntoTimezone(item.server_end, bookingTz);
+                let momentStart = changeTimeIntoTimezone(item.server_start, bookingTz);
+                let extendTime = item.extended_duration -0;
+                let diffMomentEnd = momentEnd.add(extendTime, 'minutes');
+
+                // let html = `
+                //     <a onclick="detailData($(this))" >
+                //         <i 
+                //         class="material-icons col-blue" 
+                //         style="vertical-align: middle; cursor:pointer;" 
+                //         data-original-title="" 
+                //         title="">visibility</i>
+                //     </a>
+                // `;
+                let html = ``;
+                let bookExpr = false;
+                
+                if ( moment().diff(diffMomentEnd) >= 0 || item.is_expired == 1 ) {
+                    bookExpr = true;
+                }
+
+                let bookRun = false;
+
+                if (item.end_early_meeting == 1 || (
+                    moment().unix() <= momentEnd.unix() &&
+                    moment().unix() >= momentStart.unix()
+                )) {
+                    bookRun = true;
+                }
+                
+                if(
+                    bookExpr == false 
+                    && item.is_canceled == 0
+                    && ( 
+                        app.auth.level != "2" 
+                        || app.auth.nik == item.created_by
+                        || ( app.auth.level == "2" &&  app.auth.nik == item.pic_nik ) 
+                    )
+                ) {
+                    if (bookRun) {
+                        if (item.end_early_meeting == 0) {
+                            /* 
+                                html += '<a \
+                                onclick="extendMeeting($(this))" \
+                                data-id="' + item.id + '" \
+                                data-booking_id="' + item.booking_id + '" \
+                                data-name="' + item.title + '" \
+                                title="Extend Meeting" \
+                                ><i class="material-icons col-cyan" style="vertical-align: middle; cursor:pointer;" data-original-title="" title="">open_with</i></a>';
+                            */
+                            html += '<button \
+                                onclick="extendMeeting($(this))" \
+                                data-id="' + item.id + '" \
+                                data-booking_id="' + item.booking_id + '" \
+                                data-name="' + item.title + '" \
+                                type="button" class="btn btn-info waves-effect ">Extend Meeting</button>';
+                            html += '<button \
+                                onclick="endMeeting($(this))" \
+                                data-id="' + item.id + '" \
+                                data-booking_id="' + item.booking_id + '" \
+                                data-name="' + item.title + '" \
+                                type="button" class="btn btn-danger waves-effect ">End Meeting</button>';
+                        }
+                    } else {
+                        
+                        html += `
+                        <a  
+            
+                        data-id="${item.id}" 
+                        data-booking_id="${item.booking_id}" 
+                        data-name="${item.title}" 
+                        data-date="${item.date}" 
+                        data-start="${item.start}" 
+                        data-end="${item.end}" 
+                        data-room_name="${item.room_name}" 
+                        data-room_id="${item.room_id}" 
+                        data-toggle="tooltip" 
+                        data-placement="top" 
+                        title="Edit/Reschedule" 
+                        data-html="true"
+                        onclick="rescheduleMeeting($(this))" ><i 
+                            class="material-icons col-cyan" 
+                            style="vertical-align: middle; cursor:pointer;" 
+                            data-original-title="" 
+                            title="">edit</i></a>
+                        `;
+                        html += `
+                        <a  
+                        data-id="${item.id}" 
+                        data-booking_id="${item.booking_id}" 
+                        data-name="${item.title}" 
+                        data-toggle="tooltip" 
+                        data-placement="top" 
+                        title="Remove/Cancel Meeting" 
+                        data-html="true"
+                        onclick="cancelMeeting($(this))" ><i 
+                            class="material-icons col-red" 
+                            style="vertical-align: middle ;cursor:pointer;" 
+                            data-original-title="" 
+                            title="">close</i></a>
+                        `;
+                    }
+                }
+                return html;
+            }},
         ],
         "order": [[ 0, 'asc' ]],
         ajax: {
@@ -1160,6 +1584,7 @@ function init_table_booking_list() {
                 }
             },
             data: function (param) {
+                delete param.columns;
                 param.booking_date = $("#id_schedule_daterange_search").val();
                 param.booking_organizer = $("#id_schedule_employee_search").val();
                 param.booking_building = $("#id_schedule_building_search").val();
@@ -1185,7 +1610,9 @@ function init_table_booking_list() {
             // console.log(dataIndex);
             $(row).attr('id', `booking-row-${data.booking_id}`);
             $(row).data("bookingData", data);
-            $(row).find('td:eq(5)').text(`${data.attendees} participants`);
+            $(row).find('td:eq(8)')
+                .addClass("dtfc-fixed-right")
+                .css({"position": "sticky", "right": "0px"});
         },
     });
 }
@@ -1195,3 +1622,876 @@ function reloadTable() {
         tbldata.ajax.reload();
     }
 };
+
+function detailData(_this)
+{
+    // init_time_reserve_form();
+    init_pic_reserve_form();
+    init_alocation_reserve_form();
+
+    let row = _this.parents("tr");
+    let item = row.data("bookingData");
+    // console.log(item);
+
+    $("#id_frm_crt_room_name").text(item.room_name);
+    $("#id_frm_crt_booking_type").val(item.booking_type);
+    $("#id_frm_crt_date").val(item.date);
+    $("#id_frm_crt_room_id").val(item.room_id);
+
+
+    $("#id_frm_crt_title").val(item.title);
+    
+    let start = moment(item.start).format("HH:mm");
+    generateOptTime("#id_frm_crt_timestart", [start], [], start);
+    let end = moment(item.end).format("HH:mm");
+    generateOptTime("#id_frm_crt_timeend", [end], [], end);
+
+    $(`#id_frm_crt_pic option:contains('${item.pic}')`).prop("selected", true).trigger("change");
+
+    $("#id_frm_crt_alocation_name").val(item.alocation_name);
+    $("#id_frm_crt_note").val(item.note);
+    $("#id_frm_crt_external_link").val(item.external_link);
+    if (item.is_private == 1) {
+        $("#id_frm_crt_is_private").prop("checked", true);
+    }
+
+    if  (item.attendees_list.internal_attendess.length > 0)
+    {
+        gEmployeesSelectedArray = item.attendees_list.internal_attendess;
+        gEmployeesSelected = gEmployeesSelectedArray.map(item => item.nik);
+        reloadPartisipantSelected(false);
+    }
+
+    if  (item.attendees_list.external_attendess.length > 0)
+    {
+        gPartisipantManual = item.attendees_list.external_attendess;
+        reloadPartisipantManual(false);
+    }
+
+    if (item.package_menus.length > 0)
+    {
+        $("#id_frm_crt_meeting_category").val(item.package_id).trigger("change");
+        
+        pantryPackageDetailCollection = item.package_menus;
+        genPantryDetail();
+    }
+
+
+
+    
+    tabsChangeTo("disabled");
+    disableAllForm();
+    $("#id_btn_crt_submit_booking").addClass("hidden");
+    $(".add-attendance-section").addClass("hidden");
+    $("#id_area_find_room").addClass("hidden");
+    $("#id_area_booklist").addClass("hidden");
+    $("#id_area_reserve_room").removeClass("hidden");
+    
+}
+
+function disableAllForm()
+{
+    $(':input','#id_frm_crt').prop("disabled", true);
+}
+
+function enabledAllForm()
+{
+    $(':input','#id_frm_crt').prop("disabled", false);
+}
+
+function changeTimeIntoTimezone(time, $timezone) {
+    var dataMoment = moment.tz(time, $timezone);
+    var localtimezone = moment.tz.guess(true);
+    if ($timezone != localtimezone) {
+        return dataMoment.clone().tz(localtimezone);
+    }else{
+        return dataMoment;
+    }
+}
+
+function rescheduleMeeting(t) {
+    var date = t.data('date');
+    var booking_id = t.data('booking_id');
+    var room_name = t.data('room_name');
+    var room_id = t.data('room_id');
+    var start = t.data('start');
+    var end = t.data('end');
+    var name = t.data('name');
+    $('#id_frm_res_timezone').val(moment.tz.guess(true));
+    $('#id_frm_res_booking_id').val(booking_id);
+    $('#id_frm_res_start_input').val(start)
+    $('#id_frm_res_end_input').val(end)
+    // var display_button_start = moment(start).format("hh:mm A");
+    // var display_button_end = moment(end).format("hh:mm A");
+    var display_button_start = moment(start).format("HH:mm");
+    var display_button_end = moment(end).format("HH:mm");
+    var startDate = new Date(date)
+    $('#id_frm_res_date').val(date);
+    $('#id_frm_res_date_dummy').val(moment(startDate).format(' D MMMM YYYY'));
+    $('#id_res_text_name').html(name);
+    $('#id_frm_res_start').html(display_button_start);
+    $('#id_frm_res_finish').html(display_button_end);
+    activeResDatepicker(booking_id, room_id)
+    checkBookingDateRes(booking_id, date, room_id, "");
+    $('#id_mdl_reschedule').modal('show');
+}
+
+function activeResDatepicker(booking_id, room_id) {
+    var endDate = moment().add(365, 'days');
+    var startDate = moment().add(0, 'days');
+    $('#id_frm_res_date_dummy').datepicker({
+        autoclose: true,
+        todayHighlight: true,
+        toggleActive: true,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        format: "dd MM yyyy",
+    }).on('changeDate', function(e) {
+        var tm = moment(e.date).format('YYYY-MM-DD');
+        var dates = moment(e.date).format(' D MMMM YYYY');
+        var date = tm;
+        $('#id_frm_res_date_dummy').val(dates);
+        $('#id_frm_res_date').val(tm);
+        checkBookingDateRes(booking_id, date, room_id, "changed");
+    })
+}
+
+function checkBookingDateRes(bookid = "", date = "", radid = "", status = "") {
+    var bs = $('#id_baseurl').val();
+    // var url = bs + "booking/check/res-date/booking/" + bookid + "/" + date + "/" + radid;
+    var url = bs + ajax.url.get_check_reschedule_date + "/" + bookid + "/" + date + "/" + radid;
+    $.ajax({
+        url: url,
+        type: "GET",
+        dataType: "json",
+        beforeSend: function() {
+            $('#id_loader').html('<div class="linePreloader"></div>');
+            Swal.fire({
+                title: 'Please Wait !',
+                html: 'Process saving',
+                allowOutsideClick: false,
+                onBeforeOpen: () => {
+                    Swal.showLoading()
+                },
+            });
+        },
+        success: function(data) {
+            $('#id_loader').html('');
+            Swal.close();
+            if (data.status == "success") {
+                var col = data.collection;
+                var html = "";
+                gTimeSelectBookingRes = col;
+                var datatime = reStructureSchedule(col);
+                if (col.length <= 0) {
+                    return;
+                }
+                var item = col[0];
+                var today_name = moment().format("dddd");
+                var room_work_day = item.work_day;
+                today_name = today_name.toUpperCase();
+                var ifDayExist = room_work_day.indexOf("today_name");
+                var image_room = "";
+                var d1 = moment().format('YYYY-MM-DD'); //today
+                var d2 = moment(date).format('YYYY-MM-DD'); //pick date
+                var pick = date;
+                if (d1 == d2) {
+                    pick = "today";
+                }
+                var check_available = checkNowTimeRoomRes(datatime, item.work_start, item.work_end, pick)
+                if (check_available == null) {
+                    return true;
+                }
+                if (status == "") { // no change date
+                    // var ssSTART = $('#id_frm_res_start_input').val()
+                    // var ssEND = $('#id_frm_res_end_input').val()
+                    // var display_button_start = moment(ssSTART).format("hh:mm A");
+                    // var display_button_end = moment(ssEND).format("hh:mm A");
+                    // var display_button_start = moment(ssSTART).format("HH:mm");
+                    // var display_button_end = moment(ssEND).format("HH:mm");
+                    // $('#id_frm_res_start').html(display_button_start);
+                    // $('#id_frm_res_finish').html(display_button_end);
+                } else {
+                    var time_available_start = datatime[check_available]['time_array'];
+                    var time_available_end = datatime[check_available + 1]['time_array'];
+                    var display_button_start = moment(date + " " + time_available_start).format("hh:mm A");
+                    var display_button_end = moment(date + " " + time_available_end).format("hh:mm A");
+                    // $('#id_frm_res_start_input').val(date + " "+time_available_start);
+                    // $('#id_frm_res_end_input').val(date + " "+time_available_end);
+                    // $('#id_frm_res_start').html(display_button_start);
+                    // $('#id_frm_res_finish').html(display_button_end);
+                    $('#id_frm_res_start_input').val("");
+                    $('#id_frm_res_end_input').val("");
+                    $('#id_frm_res_start').html(" --:-- ");
+                    $('#id_frm_res_finish').html(" --:-- ");
+                }
+            } else {
+                var msg = "Your session is expired, login again !!!";
+                showNotification('alert-danger', msg, 'top', 'center')
+            }
+        },
+        error: errorAjax
+    })
+}
+
+function reStructureSchedule(colll) {
+    if (colll.length <= 0) {
+        return null;
+    }
+    var getDatatime = colll[0]['datatime'];
+    for (var x in getDatatime) {
+        var numIndex = x;
+        for (var rr in colll) {
+            var tmp_data = colll[rr]['datatime'][numIndex];
+            // console.log(tmp_data);
+            if (tmp_data.book == 1 || tmp_data.book == "1") {
+                getDatatime[numIndex]['book'] = "1";
+            }
+        }
+
+    }
+    return getDatatime;
+}
+
+function openAlertPilihRes(t) {
+    var ele = t.data('id');
+    var roomNum = 0; // first
+    var timeType = t.data('type');
+    var selectRoom = gTimeSelectBookingRes[0]; // first
+    var timeArray = selectRoom['datatime'];
+    var start = selectRoom['work_start'];
+    var end = selectRoom['work_end'];
+    // var text = gBookingCrt['date'] == "today" ? "" : gBookingCrt['date'];
+    var html = '';
+    var getdate = $('#id_frm_res_date').val();
+    html += '<table class="table table-hover select" >';
+    html += '<tbody>';
+    var bookqueue = false;
+    $.each(timeArray, (index, item) => {
+        var tnow = moment().format('hh:mm') + ":00";
+        var checkData = checkThatTimeRoomRes(timeArray, index, item, start, end, getdate);
+        var date = moment().format('YYYY-MM-DD');
+        // var display_text = moment(date + " " + item.time_array).format("hh:mm A");
+        var display_text = moment(date + " " + item.time_array).format("HH:mm");
+        if (checkData) {
+            if (item.book > 0) {
+                bookqueue = true;
+            }
+            if (timeType == "end") {
+
+                if (bookqueue == true) {
+                    html += '<tr class="disabled" ><td>' + display_text + '</td></tr>';
+                } else {
+                    var strStart = $('#id_frm_res_start_input').val()
+                    var timestart = moment(strStart).format('hh:mm') + ":00";
+                    var unixTimeStart = moment(date + " " + timestart).format('X');
+                    var unixTimeEnd = moment(date + " " + item.time_array).format('X');
+                    // console.log(timestart, item.time_array)
+                    if (unixTimeStart > unixTimeEnd || unixTimeStart == unixTimeEnd) {
+                        html += '<tr class="disabled" ><td>' + display_text + '</td></tr>';
+                    } else {
+                        html += '<tr data-timeType="' + timeType + '" data-ele="' + ele + '" \
+                        class="" data-timenum="' + index + '"  \
+                        data-value="' + item.time_array + '"   \
+                        data-text="' + display_text + '" data-roomnum="' + roomNum + '" \
+                        onclick="setTimeCrtBookingInsideRes($(this))" \
+                        style="cursor:pointer;" ><td>' + display_text + '</td></tr>';
+                    }
+                }
+            } else {
+                // start
+                html += '<tr data-timeType="' + timeType + '" data-ele="' + ele + '" \
+                    class="" data-timenum="' + index + '"  \
+                    data-value="' + item.time_array + '"   \
+                    data-text="' + display_text + '" data-roomnum="' + roomNum + '" \
+                    onclick="setTimeCrtBookingInsideRes($(this))" \
+                    style="cursor:pointer;" ><td>' + display_text + '</td></tr>';
+            }
+
+        } else {
+            html += '<tr class="disabled" ><td>' + display_text + '</td></tr>';
+        }
+    });
+    html += '</tbody>';
+    html += '</table>';
+    Swal.fire({
+        title: 'Choose Time',
+        icon: 'info',
+        html: html,
+        showCloseButton: true,
+        focusConfirm: false,
+        confirmButtonText: 'Close!',
+        confirmButtonAriaLabel: 'Close!',
+    });
+}
+
+function checkThatTimeRoomRes(timerange, index, thattime, start, end, pick = "") {
+    // console.log(pick);
+    var datenow = moment().format('YYYY-MM-DD');
+    var date = moment().format('YYYY-MM-DD');
+    var now = moment().format('HH:mm');
+    var unixStart = moment(pick + " " + start).format('X');
+    var unixEnd = moment(pick + " " + end).format('X');
+    var timeactive = false;
+    var unixNow = moment(pick + " " + now).format('X');
+
+    var completeTime = pick + " " + thattime.time_array;
+    var unixTime = moment(completeTime).format('X');
+    // console.log(pick,datenow)
+    var indexGet = index + 1;
+    if (indexGet >= timerange.length) {
+
+        return timeactive;
+    }
+    if (pick == datenow) {
+        // today
+        // console.log(unixStart , unixTime, unixEnd);
+        if (timerange[index]['book'] == 0) {
+            if (unixStart <= unixTime && unixEnd >= unixTime) {
+                // cek bahwa waktu diantara jam buka dan tutup
+                if (unixTime > unixNow) {
+                    // cek bahwa waktu ini lewat
+                    if (timerange[index]['book'] == 0) {
+                        timeactive = true;
+                    } else {
+
+                    }
+                }
+            }
+        }
+    } else {
+        // other day
+        if (timerange[index]['book'] == 0) {
+            if (unixStart <= unixTime && unixEnd >= unixTime) {
+                timeactive = true;
+
+            }
+        }
+    }
+
+    return timeactive;
+}
+
+function checkNowTimeRoomRes(timerange, start, end, pick = "") {
+    var date = moment().format('YYYY-MM-DD');
+    var now = moment().format('HH:mm');
+    var unixStart = moment(date + " " + start).format('X');
+    var unixEnd = moment(date + " " + end).format('X');
+    var timeactive = null;
+    var unixNow = moment(date + " " + now).format('X');
+    if (timerange != null) {
+        $.each(timerange, (index, item) => {
+            var completeTime = date + " " + item.time_array;
+            var unixTime = moment(completeTime).format('X');
+            if (item.book == 0) {
+                // cek waktu belum terbooking
+                if (unixStart <= unixTime && unixEnd > unixTime) {
+                    // cek bahwa waktu diantara jam buka dan tutup
+                    if (unixTime > unixNow || pick != "today") {
+                        // cek bahwa waktu ini lewat
+                        if (timerange[index + 1]['book'] == 0) {
+                            // 30 or 60 MIN
+                            timeactive = index;
+                            return false;
+                        } else {
+    
+                        }
+                    }
+                }
+            }
+        });
+    }
+    return timeactive;
+}
+
+function setTimeCrtBookingInsideRes(t) {
+    var ele = t.data('ele');
+    var roomnum = t.data('roomnum');
+    var text = t.data('text');
+    var value = t.data('value');
+    var timenum = t.data('timenum');
+    var timeType = t.data('timetype');
+    var ddd = moment().format("YYYY-MM-DD");
+    var valueOri = "";
+    var html = "";
+    var selectRoom = gTimeSelectBookingRes[0]; // first
+    var timeArray = selectRoom['datatime'];
+    var dddd = [];
+    if (timeType == "end") {
+        var str = $('#id_frm_res_start_input').val()
+        var stsp = str.split(" ");
+        var stdate = stsp[0];
+        var dtt = $('#id_frm_res_date').val();
+        // $('#id_frm_res_end_input').val(dtt + " " +value);
+        var endtime = timeArray[timenum];
+        var sttmoment = moment(str).format("YYYY-MM-DD HH:mm");
+        var endmoment = moment(stdate + " " + endtime.time_array).format("YYYY-MM-DD HH:mm");
+        var nnn = 0;
+        $.each(timeArray, (index, item) => {
+            var ttmm = moment(stdate + " " + item.time_array).format("YYYY-MM-DD HH:mm");
+            if (ttmm > sttmoment && ttmm < endmoment) {
+                if (item.book == "1" || item.book == 1) {
+                    nnn++;
+                    dddd.push(item)
+                }
+            }
+        })
+        if (nnn > 1) {
+            Swal.fire('Attention !!!', 'Time is used up, change your time!', 'warning')
+        } else {
+            if (sttmoment == endmoment) {
+                Swal.fire('Attention !!!', 'Finish/End time must more than start time', 'warning')
+            } else {
+                // var elemantHtml = moment(ddd + " " + value).format("hh:mm A");
+                var elemantHtml = moment(ddd + " " + value).format("HH:mm");
+                $('#' + ele).html(elemantHtml);
+                $('#id_frm_res_end_input').val(dtt + " " + value);
+                Swal.close();
+                // Swal.fire('Attention !!!','Time is used up, change your time!','warning')
+            }
+
+        }
+
+    } else {
+        var dtt = $('#id_frm_res_date').val();
+        $('#id_frm_res_start_input').val(dtt + " " + value)
+        // var elemantHtml = moment(ddd + " " + value).format("hh:mm A");
+        var elemantHtml = moment(ddd + " " + value).format("HH:mm");
+        $('#' + ele).html(elemantHtml);
+
+        $('#id_frm_res_finish').html(" --:-- ");
+        $('#id_frm_res_end_input').val("");
+        Swal.close();
+    }
+
+}
+
+function clickSubmit(ele) {
+    $('#' + ele).click();
+}
+
+function cancelMeeting(t) {
+    var id = t.data('id');
+    var booking_id = t.data('booking_id');
+    var name = t.data('name');
+    var form = new FormData();
+    form.append('id', id);
+    form.append('booking_id', booking_id);
+    form.append('name', name);
+    Swal.fire({
+        title: 'Are you sure want cancel ' + name + ' of meeting?',
+        text: "You will cancel the data booking " + name + " !",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Cancel Meeting !',
+        cancelButtonText: 'Close !',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.value) {
+            Swal.fire({
+                title: 'Reason for Cancellation',
+                input: "text",
+                inputAttributes: {
+                    autocapitalize: "off",
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Submit',
+                cancelButtonText: 'Close !',
+                reverseButtons: true,
+                preConfirm: (result) => {
+                    if (result == "" || result == null) {
+                        return Swal.showValidationMessage(`Reason for Cancellation is required`);
+                    }
+                }
+            }).then((result) => {
+                if (result.value !== undefined) {
+                    var reason = result.value;
+                    form.append('reason', reason);
+                    var bs = $('#id_baseurl').val();
+                    $.ajax({
+                        // url: bs + "booking/post/cancelbook",
+                        url: bs + ajax.url.post_cancel_booking,
+                        type: "POST",
+                        data: form,
+                        processData: false,
+                        contentType: false,
+                        dataType: "json",
+                        beforeSend: function() {
+                            $('#id_loader').html('<div class="linePreloader"></div>');
+                            Swal.fire({
+                                title: 'Please Wait !',
+                                html: 'Process to cancel meeting',
+                                allowOutsideClick: false,
+                                onBeforeOpen: () => {
+                                    Swal.showLoading()
+                                },
+                            });
+                        },
+                        success: function(data) {
+                            Swal.close();
+                            $('#id_loader').html('');
+                            if (data.status == "success") {
+                                showNotification('alert-success', "Succes cancel " + name, 'top', 'center')
+                                // init();
+                                reloadTable();
+                            } else {
+                                showNotification('alert-danger', "Cancel " + name + " meeting is failed!!!", 'bottom', 'left')
+                            }
+                        },
+                        error: errorAjax,
+                    });
+                }
+            });
+        } 
+    });
+}
+
+function extendMeeting(t) {
+    var date = t.data('date');
+    var booking_id = t.data('booking_id');
+    var room_name = t.data('room_name');
+    var room_id = t.data('room_id');
+    var start = t.data('start');
+    var end = t.data('end');
+    var name = t.data('name');
+    var bs = $('#id_baseurl').val();
+    $.ajax({
+        // url: bs + "booking/get/extend-meeting",
+        url: bs + ajax.url.get_check_extendmeeting_time,
+        type: "GET",
+        data: {
+            booking_id: booking_id,
+            time: moment().format("HH:mm:ss"),
+            date: moment().format('YYYY-MM-DD'),
+        },
+        dataType: "json",
+        beforeSend: function() {
+            $('#id_loader').html('<div class="linePreloader"></div>');
+            Swal.fire({
+                title: 'Please Wait !',
+                html: 'Process to cancel meeting',
+                allowOutsideClick: false,
+                onBeforeOpen: () => {
+                    Swal.showLoading()
+                },
+            });
+
+        },
+        success: function(data) {
+            Swal.close();
+            $('#id_loader').html('');
+            if (data.status == "success") {
+                var dt = data.collection;
+                var html = "";
+                html += '<table class="table table-hover select" >';
+                html += '<tbody>';
+                $.each(dt, (index, item) => {
+                    if (item.book == "0" || item.book == 0) {
+                        html += '<tr data-name="' + name + '" data-booking_id="' + booking_id + '" data-index="' + index + '"  data-duration="' + item.duration + '"   onclick="setExtendTimeBooking($(this))" style="cursor:pointer;" ><td>' + item.duration + ' mins</td></tr>';
+                    }
+                });
+                html += '</tbody>';
+                html += '</table>';
+                Swal.fire({
+                    title: 'Extend Time of ' + name,
+                    // icon: 'info',
+                    html: html,
+                    showCloseButton: true,
+                    focusConfirm: false,
+                    confirmButtonText: 'Close',
+                    confirmButtonAriaLabel: 'Close',
+                })
+                // gAlocation = data.collection;
+            }
+            // gBookingCrt['change'] = ;
+
+        },
+        error: errorAjax
+    })
+}
+
+function setExtendTimeBooking(t) {
+    var booking_id = t.data('booking_id');
+    var duration = t.data('duration');
+    var index = t.data('index');
+    var name = t.data('name');
+    var form = new FormData();
+    form.append('booking_id', booking_id);
+    form.append('index', index);
+    form.append('extend', duration);
+    form.append('name', name);
+    Swal.fire({
+        title: 'Are you sure want extend ' + name + ' of meeting?',
+        text: "You will extend the data booking " + name + " !",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Extend Meeting !',
+        cancelButtonText: 'Close !',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.value) {
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                // url: bs + "booking/post/extend-book",
+                url: bs + ajax.url.post_set_extendmeeting,
+                type: "POST",
+                data: form,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                beforeSend: function() {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                    Swal.fire({
+                        title: 'Please Wait !',
+                        html: 'Process to extend meeting',
+                        allowOutsideClick: false,
+                        onBeforeOpen: () => {
+                            Swal.showLoading()
+                        },
+                    });
+                },
+                success: function(data) {
+                    Swal.close();
+                    $('#id_loader').html('');
+                    if (data.status == "success") {
+                        showNotification('alert-success', "Succes extend " + name, 'top', 'center')
+                        // init();
+                        reloadTable();
+                    } else {
+                        showNotification('alert-danger', "Extend " + name + " meeting is failed!!!", 'bottom', 'left')
+                    }
+                },
+                error: errorAjax,
+            })
+        } else {
+
+        }
+    })
+}
+
+function endMeeting(t) {
+    var id = t.data('id');
+    var booking_id = t.data('booking_id');
+    var name = t.data('name');
+    var form = new FormData();
+    form.append('id', id);
+    form.append('booking_id', booking_id);
+    form.append('name', name);
+    form.append('user', false);
+
+    Swal.fire({
+        title: 'Are you sure want end ' + name + ' of meeting?',
+        text: "You will end the data booking " + name + " !",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'End Meeting !',
+        cancelButtonText: 'Close !',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.value) {
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                // url: bs + "booking/post/endbook",
+                url: bs + ajax.url.post_end_meeting,
+                type: "POST",
+                data: form,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                beforeSend: function() {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                    Swal.fire({
+                        title: 'Please Wait !',
+                        html: 'Process to end meeting',
+                        allowOutsideClick: false,
+                        onBeforeOpen: () => {
+                            Swal.showLoading()
+                        },
+                    });
+                },
+                success: function(data) {
+                    Swal.close();
+                    $('#id_loader').html('');
+                    if (data.status == "success") {
+                        showNotification('alert-success', "Succes end " + name, 'top', 'center')
+                        // init();
+                        reloadTable();
+                    } else {
+                        showNotification('alert-danger', "End " + name + " meeting is failed!!!", 'bottom', 'left')
+                    }
+                },
+                error: errorAjax,
+            })
+        } else {
+
+        }
+    })
+}
+
+function clickPIC(t) {
+    let row = t.parents("tr");
+    let item = row.data("bookingData");
+    var id = t.data('id');
+    var bs = $('#id_baseurl').val();
+    $.ajax({
+        // url: bs + "booking/get/data/pic/" + id,
+        url: bs + ajax.url.get_pic_by_bookingid + "/" + id,
+        type: "GET",
+        dataType: "json",
+        beforeSend: function() {},
+        success: function(data) {
+            if (data['status'] == "success") {
+                var item = data.collection;
+                var html = '';
+                var npo = (item.no_phone == null || item.no_phone == undefined || item.no_phone == "null") ? "-" : item.no_phone;
+                var ext = (item.no_ext == null || item.no_ext == undefined || item.no_ext == "null") ? "-" : item.no_ext;
+                html += '<div class="row clearfix">\
+                            <div class="col-xs-12 align-left">\
+                                <b style="font-size:18px;">Name</b>\
+                            </div>\
+                        </div>';
+                html += '<div class="row clearfix">\
+                            <div class="col-xs-12 align-left">\
+                                <b  style="font-size:20px;">' + item.name + '</b>\
+                            </div>\
+                        </div>';
+                html += '<br>';
+                html += '<div class="row clearfix">\
+                            <div class="col-xs-12 align-left">\
+                                <b  style="font-size:18px;">Email</b>\
+                            </div>\
+                        </div>';
+                html += '<div class="row clearfix">\
+                            <div class="col-xs-12 align-left">\
+                                <b  style="font-size:20px;">' + item.email + '</b>\
+                            </div>\
+                        </div>';
+                html += '<br>';
+                html += '<div class="row clearfix">\
+                            <div class="col-xs-12 align-left">\
+                                <b  style="font-size:18px;">No.Phone </b>\
+                            </div>\
+                        </div>';
+                html += '<div class="row clearfix">\
+                            <div class="col-xs-12 align-left">\
+                                <b  style="font-size:20px;">' + npo + '</b>\
+                            </div>\
+                        </div>';
+                html += '<br>';
+                html += '<div class="row clearfix">\
+                            <div class="col-xs-12 align-left">\
+                                <b  style="font-size:18px;">No.Extension </b>\
+                            </div>\
+                        </div>'
+                html += '<div class="row clearfix">\
+                            <div class="col-xs-12 align-left">\
+                                <b  style="font-size:20px;">' + ext + '</b>\
+                            </div>\
+                        </div>';
+                setTimeout(function() {
+                    Swal.fire({
+                        title: 'Organizer information',
+                        type: "info",
+                        // 
+                        html: html,
+                        showCloseButton: true,
+                        focusConfirm: false,
+                        confirmButtonText: 'C L O S E',
+                        confirmButtonAriaLabel: 'C L O S E',
+                    })
+                }, 0)
+            }
+        }
+    });
+}
+
+function openPartispant(t) {
+    let row = t.parents("tr");
+    let item = row.data("bookingData");
+    let title = t.data('title');
+    // console.log(item.attendees_list);
+
+    clearTable($('#tbldataInternal'));
+    clearTable($('#tbldataEksternal'));
+    let colin = item.attendees_list.internal_attendess;
+    let colek = item.attendees_list.external_attendess;
+    let htmlin = '';
+    let htmlek = '';
+    let nnn = 0;
+    let mmm = 0;
+    $('#id_partisipant_title').html(title)
+    $.each(colin, function(index, item) {
+        nnn++;
+        var stt = item.attendance_status == 1 ? "Attend" : "No Attend";
+        stt = item.execute_attendance == 0 ? "" : stt;
+        htmlin += '<tr>'
+        htmlin += '<td>' + nnn + '</td>';
+        htmlin += '<td>' + (item.employee_name == null ? "" : item.employee_name.toUpperCase()) + '</td>';
+        htmlin += '<td >' + (item.employee_email == null ? "" : item.employee_email) + '</td>';
+        htmlin += '<td >' + (item.employee_phone == null ? "" : item.employee_phone) + '</td>';
+        htmlin += '<td >' + (item.employee_extnum == null ? "" : item.employee_extnum) + '</td>';
+        htmlin += '<td>' + stt + '</td>';
+        htmlin += '</tr>'
+    })
+    $.each(colek, function(index, item1) {
+        mmm++;
+        var stt = item1.attendance_status == 1 ? "Attend" : "No Attend";
+        stt = item1.execute_attendance == 0 ? "" : stt;
+        htmlek += '<tr>'
+        htmlek += '<td>' + mmm + '</td>';
+        htmlek += '<td>' + (item1.name == null ? "" : item1.name.toUpperCase()) + '</td>';
+        htmlek += '<td>' + (item1.email == null ? "" : item1.email) + '</td>';
+        htmlek += '<td>' + (item1.company == null ? "" : item1.company) + '</td>';
+        // htmlek += '<td>' + (item1.position == null ? "" : item1.position) + '</td>';
+        htmlek += '<td>' + stt + '</td>';
+        htmlek += '</tr>'
+    })
+    $('#tbldataInternal tbody').html(htmlin)
+    $('#tbldataEksternal tbody').html(htmlek)
+    initTable($('#tbldataInternal'));
+    initTable($('#tbldataEksternal'));
+    $('#id_loader').html('');
+    $('#id_mdl_partisipant').modal('show');
+}
+
+function initTable(selector) {
+    // selector.DataTable();
+    selector.DataTable({
+        // "scrollX": true,
+        // "scrollCollapse": true,
+        "fixedHeader": true,
+        paging: true,
+        searching:        true,
+        // bFilter :         false,
+        info: false,
+        // scrollResize:     true,
+        order: [
+            [0, "asc"]
+        ],
+        // lengthMenu: [[5, 10, 20, 100,-1], [5, 10, 20,100, 'ALL']],
+        fixedColumns: {
+            leftColumns: 1,
+            rightColumns: 1
+        },
+        columnDefs: [{
+                orderable: true,
+                // className: 'select-checkbox',
+                targets: 0,
+                searchable: false,
+            },
+            
+        ],
+    })
+}
+
+function clearTable(selector) {
+    selector.DataTable().destroy();
+}

@@ -76,5 +76,61 @@ namespace _6.Repositories.Repository
 
             return await query.CountAsync();
         }
+
+        public async Task<IEnumerable<BookingInvitationEmployee>> GetAllFilteredByBookingIds(string[] bookingIds)
+        {
+            var query = from bi in _dbContext.BookingInvitations
+                        from e in _dbContext.Employees.Where(e => bi.Nik == e.Nik)
+                            .Where(e => bi.Nik == e.Nik).DefaultIfEmpty()
+                        where bi.IsDeleted == 0
+                        && bookingIds.Contains(bi.BookingId)
+                        select new BookingInvitationEmployee
+                        {
+                            Id = bi.Id,
+                            BookingId = bi.BookingId, 
+                            Nik = bi.Nik, 
+                            Internal = bi.Internal, 
+                            AttendanceStatus = bi.AttendanceStatus, 
+                            AttendanceReason = bi.AttendanceReason, 
+                            ExecuteAttendance = bi.ExecuteAttendance, 
+                            ExecuteDoorAccess = bi.ExecuteDoorAccess, 
+                            Email = bi.Email, 
+                            Name = bi.Name, 
+                            Company = bi.Company, 
+                            Position = bi.Position, 
+                            IsPic = bi.IsPic, 
+                            IsVip = bi.IsVip, 
+                            PinRoom = bi.PinRoom, 
+                            CreatedAt = bi.CreatedAt, 
+                            CreatedBy = bi.CreatedBy, 
+                            UpdatedAt = bi.UpdatedAt, 
+                            UpdatedBy = bi.UpdatedBy, 
+                            LastUpdate365 = bi.LastUpdate365, 
+                            Checkin = bi.Checkin, 
+                            EndMeeting = bi.EndMeeting,
+                            IsDeleted = bi.IsDeleted,
+                            EmployeeName = e.Name,
+                            EmployeeNoPhone = e.NoPhone,
+                            EmployeeEmail = e.Email
+                        };
+                        // select bi;
+
+            var result = await query.ToListAsync();
+
+            return result;
+        }
+    
+        public async Task<BookingInvitation?> GetPicFilteredByBookingId(string bookingId)
+        {
+            var query = from bi in _dbContext.BookingInvitations
+                        where bi.IsDeleted == 0
+                        && bi.BookingId == bookingId
+                        && bi.IsPic == 1
+                        select bi;
+
+            var result = await query.FirstOrDefaultAsync();
+
+            return result;
+        }
     }
 }

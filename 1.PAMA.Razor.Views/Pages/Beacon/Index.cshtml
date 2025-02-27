@@ -68,11 +68,11 @@
                                             <th>#</th>
                                             <th>Floor Name</th>
                                             <th>Building</th>
-                                            <th>Image</th>
+                                            @* <th>Image</th>
                                             <th>Pixel</th>
                                             <th>Length</th>
                                             <th>Width</th>
-                                            <th>Meter  pixel</th>
+                                            <th>Meter  pixel</th> *@
                                             <th>
                                                 <button 
                                                     onclick="createData($(this))" 
@@ -130,7 +130,7 @@
                     <div class="form-group">
                         <select title="Choose one of the building..." data-live-search="true" name="building_id" id="id_crt_building_id" class="form-control selectpickerr show-tick"></select>
                     </div>
-                    <div class="row clearfix">
+                    @* <div class="row clearfix">
                         <div class="col-xs-6">
                             <label for="">Image Floor (PNG, JPG, JPEG)</label>
                             <div class="form-group">
@@ -144,7 +144,7 @@
                                 <img src="" id="id_crt_image_preview" class="img-responsive">
                             </a>
                         </div>
-                    </div>
+                    </div> *@
                     
                     <label for="">Name</label>
                     <div class="form-group">
@@ -152,7 +152,7 @@
                             <input type="text" autocomplete="off" name="name" id="id_crt_name" required=""  class="form-control" placeholder="Name">
                         </div>
                     </div>
-                    <label for="">Pixel</label>
+                    @* <label for="">Pixel</label>
                     <div class="form-group">
                         <div class="form-line">
                             <input type="text" readonly autocomplete="off" name="pixel" id="id_crt_pixel" required=""  class="form-control" placeholder="Image Pixel">
@@ -182,7 +182,7 @@
                                 <button onclick="calcPixel()" class="btn btn-sm btn-info waves-effect" type="button">Calculate</button>
                             </span>
                         </div>
-                    </div>
+                    </div> *@
                         
                     <button type="submit" id="id_btn_crt_submit" class="btn btn-primary m-t-15 waves-effect" style="display: none;" >Save</button>
                 </form>
@@ -214,7 +214,7 @@
                     <div class="form-group">
                         <select title="Choose one of the building..." data-live-search="true" name="building_id" id="id_edt_building_id" class="form-control selectpickerr show-tick"></select>
                     </div>
-                    <div class="row clearfix">
+                    @* <div class="row clearfix">
                         <div class="col-xs-6">
                             <a href="#" class="thumbnail">
                                 <img src="" id="id_edt_image_old_preview" class="img-responsive">
@@ -237,7 +237,7 @@
                         <div class="form-line">
                             <input type="file" accept="image/png, image/jpeg, image/jpg" name="image" id="id_edt_image"  class="form-control" >
                         </div>
-                    </div>
+                    </div> *@
                     
                     <label for="">Name</label>
                     <div class="form-group">
@@ -324,7 +324,7 @@
     <!-- <script src="~/assets/external/numeral/locale.id.js"></script> -->
     <!-- Input Mask Plugin Js -->
     <script src="~/assets/theme/plugins/jquery-inputmask/jquery.inputmask.bundle.js"></script>
-    <script src="~/assets/process/beacon/beacon.floor.js"></script>
+    <script src="~/assets/process/beacon/beacon.floor.js" asp-append-version="true"></script>
     <script type="text/javascript">
         $(function(){
             @* initRoom(); *@

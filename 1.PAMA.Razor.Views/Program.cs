@@ -1,4 +1,6 @@
+using _1.PAMA.Razor.Views.Middlewares;
 using _4.Data.ViewModels;
+using _4.Helpers.Consumer;
 using _5.Helpers.Consumer.EnumType;
 using _6.Repositories.DB;
 using _6.Repositories.Repository;
@@ -126,11 +128,26 @@ public class Program
 
         builder.Services.AddAuthorization();
 
+        builder.Services.AddSession(options =>
+        {
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+            options.IdleTimeout = TimeSpan.FromSeconds(token.AccessExpiration);
+        });
+
         #region SWAGGER
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
+
+        builder.Services.AddHttpClient("MyClient", c =>
+        {
+            // Configure your client here...
+        });
+        builder.Services.AddScoped<APICaller>(); // Register APICaller properly
+
         builder.Services.Configure<ApiBehaviorOptions>(options =>
         {
             options.SuppressModelStateInvalidFilter = true;
@@ -200,11 +217,18 @@ public class Program
         app.MapControllers();
         #endregion
 
+        // Menambahkan middleware session
+        app.UseSession();
+
         app.UseRouting();
 
         // Pakai authentication & authorization middleware
         app.UseAuthentication();
         app.UseAuthorization();
+
+        // Custom Middleware
+        app.UseErrorHandling();
+
         app.MapRazorPages();
         app.Run();
     }

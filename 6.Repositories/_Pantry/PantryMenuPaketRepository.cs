@@ -42,11 +42,37 @@ public class PantryMenuPaketRepository(MyDbContext context)
             .AsNoTracking()
             .ToListAsync(); // Cari berdasarkan id
     }
-
+    
     public virtual async Task CreateBulkPackageD(IEnumerable<PantryMenuPaketD> entities)
     {
         await _context.BulkInsertAsync(entities.ToList());
     }
+
+    public async Task<PantryPackageDTO?> GetDataPantryPackage(string? id)
+    {
+        var query = from pm in _context.PantryMenuPakets
+                    join p in _context.Pantries
+                        on pm.PantryId equals p.Id
+                    where pm.IsDeleted == 0 && p.IsDeleted == 0 
+                    select new PantryPackageDTO
+                    {
+                        Id = pm.Id,
+                        Name = pm.Name,
+                        PantryId = pm.PantryId,
+                        PantryName = p.Name
+                    };
+
+
+                    if (id != null)
+                    {
+                        query = query.Where(q => q.Name.Contains(id));
+                    }
+
+        // Apply ordering
+        query = query.OrderBy(e => e.Id);
+        return await query.FirstOrDefaultAsync();
+    }
+
 
     public virtual async Task UpdateBulkPackageD(IEnumerable<PantryMenuPaketD> entities)
     {

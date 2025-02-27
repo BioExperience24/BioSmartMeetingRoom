@@ -1,13 +1,16 @@
 ﻿
+using System.Security.Claims;
 using System.Transactions;
 using _2.BusinessLogic.Services.Interface;
 using _5.Helpers.Consumer._Encryption;
+using _5.Helpers.Consumer.EnumType;
 
 namespace _3.BusinessLogic.Services.Implementation;
 
 public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmployeeService
 {
     private readonly IMapper __mapper;
+    private readonly IHttpContextAccessor _httpCont;
 
     private readonly EmployeeRepository _repo;
 
@@ -17,6 +20,8 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
 
     private readonly UserRepository _userRepo;
 
+    private readonly IUserService _userService;
+
     private readonly IAttachmentListService _attachmentListService;
 
     public EmployeeService(
@@ -25,7 +30,9 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
         UserConfigRepository userConfigRepo,
         AlocationMatrixRepository alocationMatrixRepo,
         UserRepository userRepo,
+        IUserService userService,
         IAttachmentListService attachmentListService,
+        IHttpContextAccessor httpCont,
         IConfiguration config)
         : base(repo, mapper)
     {
@@ -34,6 +41,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
         _userConfigRepo = userConfigRepo;
         _alocationMatrixRepo = alocationMatrixRepo;
         _userRepo = userRepo;
+        _userService = userService;
 
         attachmentListService.SetTableFolder(
             config["UploadFileSetting:tableFolder:employee"] ?? "employee");
@@ -41,6 +49,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
         attachmentListService.SetTypeAllowed(config["UploadFileSetting:imageContentTypeAllowed"]!);
         attachmentListService.SetSizeLimit(Convert.ToInt32(config["UploadFileSetting:imageSizeLimit"] ?? "8")); // MB
         _attachmentListService = attachmentListService;
+        _httpCont = httpCont;
     }
 
     public async Task<IEnumerable<EmployeeVMResp>> GetItemsAsync()
@@ -60,6 +69,15 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
         var employees = await _repo.GetItemsWithoutUserAsync();
 
         return __mapper.Map<List<EmployeeViewModel>>(employees);
+    }
+
+    public async Task<EmployeeViewModel> GetProfileAsync()
+    {
+        var nik = _httpCont?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+        
+        var employee = await _repo.GetItemByNikAsync(nik!);
+
+        return __mapper.Map<EmployeeViewModel>(employee);
     }
 
     public async Task<EmployeeViewModel?> CreateAsync(EmployeeVMCreateFR request)

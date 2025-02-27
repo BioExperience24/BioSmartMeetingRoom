@@ -41,3 +41,8 @@ public partial class User : BaseLongEntity
 
     public int? IsApproval { get; set; }
 }
+
+public partial class UserLogin : User
+{
+    public string Nik { get; set; } = null!;
+}

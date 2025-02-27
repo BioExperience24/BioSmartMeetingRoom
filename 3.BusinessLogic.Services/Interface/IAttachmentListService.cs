@@ -14,4 +14,6 @@ public interface IAttachmentListService
     Task<string> NoImageBase64(string filename = "no-image.jpg", int sizeh = 100);
     Task<FileReady> ViewNoImage();
     MemoryStream ConvertBase64ToMemoryStream(string base64String);
+
+    Task<long> ProcessBase64ToBlob(string base64, string filename);
 }

@@ -68,4 +68,48 @@ namespace _4.Data.ViewModels
         [JsonPropertyName("end_meeting")]
         public int? EndMeeting { get; set; }
     }
+
+    public class BookingInvitationVMList
+    {
+        [JsonPropertyName("external_attendess")]
+        public List<BookingInvitationVMCategory> ExternalAttendess { get; set; } = new List<BookingInvitationVMCategory>();
+        
+        [JsonPropertyName("internal_attendess")]
+        public List<BookingInvitationVMCategory> InternalAttendess { get; set; } = new List<BookingInvitationVMCategory>();
+    }
+
+    public class BookingInvitationVMCategory
+    {
+        [JsonPropertyName("nik")]
+        public string? Nik { get; set; }
+
+        [JsonPropertyName("email")]
+        public string Email { get; set; } = string.Empty;
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("company")]
+        public string Company { get; set; } = string.Empty;
+
+        [JsonPropertyName("position")]
+        public string Position { get; set; } = string.Empty;
+
+        [JsonPropertyName("employee_name")]
+        public string? EmployeeName { get; set; }
+
+        [JsonPropertyName("employee_no_phone")]
+        public string? EmployeeNoPhone { get; set; }
+
+        [JsonPropertyName("employee_email")]
+        public string? EmployeeEmail { get; set; }
+    }
+
+    public class InternalBatchViewModel
+    {
+        [JsonPropertyName("internal_batch")]
+        public List<BookingInvitationViewModel> InternalBatch { get; set; }
+        [JsonPropertyName("data_email_internal")]
+        public List<EmployeeViewModel> DataEmailInternal { get; set; }
+    }
 }

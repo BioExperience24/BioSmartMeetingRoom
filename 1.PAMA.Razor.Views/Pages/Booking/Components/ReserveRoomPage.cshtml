@@ -40,8 +40,14 @@
                                 @* <select data-type="" onchange="setSelectedTimeCrtBookingInside($(this))" data-size="5" title="Choose the Time..." onchange="s($(this))" id="id_frm_crt_timestart" class="form-control show-tick" data-live-search="true">
                                     <option value=""></option>
                                 </select> *@
-                                <div class="form-line">
-                                    <input autocomplete="off" type="text" name="start" id="id_frm_crt_timestart" class="form-control timepicker" placeholder="From" readonly required>
+                                <div id="div_crt_timestart" class="form-line">
+                                    @* <input autocomplete="off" type="text" name="start" id="id_frm_crt_timestart" class="form-control timepicker" placeholder="From" readonly required> *@
+
+                                    <div class="input-group">
+                                        <select title="--:--" name="start" id="id_frm_crt_timestart" class="form-control show-tick" required>
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -51,8 +57,13 @@
                                 @* <select data-type="end" onchange="setSelectedTimeCrtBookingInside($(this))" data-size="5" title="Choose the Time..." onchange="s($(this))" id="id_frm_crt_timeend" class="form-control show-tick" data-live-search="true">
                                     <option value=""></option>
                                 </select> *@
-                                <div class="form-line">
-                                    <input autocomplete="off" type="text" name="end" id="id_frm_crt_timeend" class="form-control timepicker" placeholder="To" readonly required>
+                                <div id="div_crt_timeend" class="form-line">
+                                    @* <input autocomplete="off" type="text" name="end" id="id_frm_crt_timeend" class="form-control timepicker" placeholder="To" readonly required> *@
+                                    <div class="input-group">
+                                        <select title="--:--" name="end" id="id_frm_crt_timeend" class="form-control show-tick" required>
+                                            <option value=""></option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -188,7 +199,7 @@
                             <div class="row clearfix">
                                 <div class="col-xs-12">
                                     <b class="lbl_text">INTERNAL ATTENDEES</b>
-                                    <div class="input-group">
+                                    <div class="input-group add-attendance-section">
                                         <select data-size="4" title="Choose the attendees..." data-actions-box="true" data-selected-text-format="count > 0" multiple id="id_frm_crt_participant" class="form-control show-tick" data-live-search="true">
                                         </select>
                                         <span class="input-group-addon">
@@ -209,7 +220,7 @@
                             <div class="row clearfix">
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <b class="lbl_text">EXTERNAL ATTENDEES</b>
-                                    <div class="input-group">
+                                    <div class="input-group add-attendance-section">
                                         <button onclick="clickPartisipantManualOpen()" type="button" class="btn bg-blue  btn-lg waves-effect">
                                             ADD MANUAL
                                         </button>

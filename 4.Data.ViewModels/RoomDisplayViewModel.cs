@@ -141,4 +141,11 @@ namespace _4.Data.ViewModels
         [BindProperty(Name = "id")]
         public long Id { get; set; }
     }
+
+    public class RoomDisplayBySerialViewModel : RoomDisplayViewModel
+    {
+        [JsonPropertyName("room_select_data")]
+        public new List<RoomViewModel> RoomSelectData { get; set; } = new();
+    }
+
 }

@@ -7,13 +7,37 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Net;
 using System.Runtime.ConstrainedExecution;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace _1.PAMA.Razor.Views.Pages;
 
-public class AuthenticationModel(IUserService userService) : PageModel
+public class AuthenticationModel(
+    IUserService userService,
+    IConfiguration config
+) : PageModel
 {
-    public void OnGet()
+    public string AppUrl { get; set; } = config["App:BaseUrl"] ?? string.Empty;
+
+    public IActionResult OnGet()
     {
+        if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            return Redirect($"{AppUrl}dashboard");
+        }
+        else if (Request.Cookies.TryGetValue("AuthCookie", out var authCookieValue))
+        { // jika tidak cookie tidak valid tapi masih add cookienya
+
+            HttpContext.Response.Cookies.Delete("AuthCookie");
+            HttpContext.Response.Cookies.Delete("AuthToken");
+
+            if (Request.Cookies.TryGetValue("AuthInfoId", out var authInfoId))
+            {
+                HttpContext.Session.Remove($"AuthInfo-{authInfoId}");
+                HttpContext.Response.Cookies.Delete("AuthInfoId");
+            }
+        }
+
+        return Page();
     }
 
     [BindProperty]
@@ -21,6 +45,9 @@ public class AuthenticationModel(IUserService userService) : PageModel
 
     [BindProperty]
     public required string Password { get; set; }
+
+    [BindProperty]
+    public string? ReturnUrl { get; set; }
 
     public async Task<JsonResult> OnPostLogin()
     {
@@ -33,7 +60,9 @@ public class AuthenticationModel(IUserService userService) : PageModel
             var claims = new List<Claim> {
                 new (ClaimTypes.NameIdentifier, userVM.Id?.ToString() ?? "InvalidUser"),
                 new (ClaimTypes.Name, userVM.Username),
-                new (ClaimTypes.Role, userVM.Levels?.FirstOrDefault()?.LevelName ?? "User")
+                new (ClaimTypes.Role, userVM.LevelId.ToString() ?? "0"),
+                new (ClaimTypes.UserData, userVM.Nik.ToString() ?? "InvalidNik")
+                // new (ClaimTypes.Role, userVM.Levels?.FirstOrDefault()?.LevelName ?? "User")
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, "CookieAuth");
@@ -48,6 +77,23 @@ public class AuthenticationModel(IUserService userService) : PageModel
                 SameSite = SameSiteMode.Strict
             });
 
+            // Menyimpan JSON ke session
+            string authInfoId = Guid.NewGuid().ToString();
+            var authInfo = JsonSerializer.Serialize(userVM);
+
+            HttpContext.Response.Cookies.Append("AuthInfoId", authInfoId, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            });
+            HttpContext.Session.SetString($"AuthInfo-{authInfoId}", authInfo);
+
+        }
+
+        if (cekLogin!.Status == ReturnalType.Success)
+        {
+            cekLogin.Collection = (ReturnUrl != null) ? ReturnUrl : "/dashboard";
         }
 
         return new JsonResult(cekLogin);

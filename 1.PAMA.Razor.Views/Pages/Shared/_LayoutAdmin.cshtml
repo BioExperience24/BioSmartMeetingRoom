@@ -1,9 +1,36 @@
 @* @model _1.PAMA.Razor.Views.Pages.Shared._LayoutAdminModel *@
+@using _4.Data.ViewModels;
+@using System.Text.Json;
 @inject Microsoft.Extensions.Configuration.IConfiguration Config
 @{ 
     var AppUrl = Config["App:BaseUrl"];
     var ApiUrl = Config["ApiUrls:BaseUrl"];
     var GetModules = $"{ApiUrl}{Config["ApiUrls:Endpoints:ModuleBackend:GetModuleBackends"]}";
+
+    var authToken = Context.Request.Cookies["AuthToken"];
+    var authInfoId = Context.Request.Cookies["AuthInfoId"];
+    string? authInfoSessionKey = null;
+    string? jsonAuthInfo = null;
+    UserViewModel? authInfo = null;
+    int? levelId = null;
+    string? nik = null;
+    if (!string.IsNullOrEmpty(authInfoId))
+    {
+        authInfoSessionKey = $"AuthInfo-{authInfoId}";
+        jsonAuthInfo = Context.Session.GetString(authInfoSessionKey);
+        if (!string.IsNullOrEmpty(jsonAuthInfo))
+        {
+            authInfo = JsonSerializer.Deserialize<UserViewModel>(jsonAuthInfo);
+            levelId = authInfo?.LevelId ?? null;
+            nik = authInfo?.Nik ?? null;
+        }
+    }
+
+    var data = new { 
+        AppUrl = AppUrl, 
+        ApiUrl = ApiUrl,
+        AuthInfo = authInfo
+    };
 }
 
 
@@ -177,15 +204,25 @@
     <!-- Overlay For Sidebars -->
     <div class="overlay"></div>
     <!-- Top Bar -->
-        @await Component.InvokeAsync("Navbar", new { pageName = @ViewData["PageName"] })
+        @* @await Component.InvokeAsync("Navbar", new { pageName = @ViewData["PageName"] }) *@
+        @await Html.PartialAsync("_Navbar")
+
     <!-- #Top Bar -->
     <section>
-        @await Component.InvokeAsync("Sidebar")
+        @* @await Component.InvokeAsync("Sidebar") *@
+        @await Html.PartialAsync("_Sidebar", data)
     </section>
     
     @RenderBody()
     
     @Html.AntiForgeryToken()
+
+    @if(authInfo == null || string.IsNullOrEmpty(jsonAuthInfo) || string.IsNullOrEmpty(authToken))
+    {
+        <script type="text/javascript">
+            window.location.href = '@Url.Page("/Logout")';
+        </script>
+    }
 
     <script>
         const app = {
@@ -193,6 +230,10 @@
                 app: "@AppUrl",
                 api: "@ApiUrl",
                 get_modules: "@GetModules"
+            },
+            auth: {
+                nik: "@nik",
+                level: "@levelId"
             }
         }
     </script>
@@ -330,7 +371,10 @@
     <script src="~/assets/theme/plugins/jquery-validation/jquery.validate.js" ></script>
     <script>
         $.ajaxSetup({
-            headers: { 'XSRF-TOKEN': $('input:hidden[name="__RequestVerificationToken"]').val() }
+            headers: { 
+                'XSRF-TOKEN': $('input:hidden[name="__RequestVerificationToken"]').val(),
+                'Authorization': "Bearer @authToken"
+            }
         });
     </script>
 

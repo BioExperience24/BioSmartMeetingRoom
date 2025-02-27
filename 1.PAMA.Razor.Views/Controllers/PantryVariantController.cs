@@ -12,7 +12,7 @@ public class PantryVariantController(IVariantService service) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetVariantByPatryDetailId(long id)
     {
-        var response = await service.GetVariantByPatryDetailId(id);
+        var response = await service.GetVariantByMenuId(id);
         ReturnalModel ret = new()
         {
             Collection = response

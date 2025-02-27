@@ -28,5 +28,11 @@ namespace _1.PAMA.Razor.Views.Controllers
 
             return StatusCode(ret.StatusCode, ret);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> TestApi()
+        {
+            return Ok("Test API");
+        }
     }
 }

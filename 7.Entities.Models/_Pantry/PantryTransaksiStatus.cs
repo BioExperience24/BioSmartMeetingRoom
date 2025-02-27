@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace _7.Entities.Models;
 
 public partial class PantryTransaksiStatus
 {
-    public int Id { get; set; }
+    [Key]
+    public long Id { get; set; }
 
     public string Name { get; set; } = null!;
 }

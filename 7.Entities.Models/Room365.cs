@@ -51,3 +51,9 @@ public partial class Room365
 
     public int? IsDeleted { get; set; }
 }
+
+
+public partial class RoomSystemToIntegrationDTO : Room365
+{
+    public string? RadId { get; set; }
+}

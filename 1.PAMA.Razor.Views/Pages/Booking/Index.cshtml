@@ -200,6 +200,25 @@
         input.number-without-arrow[type=number] {
         -moz-appearance: textfield;
         }
+
+        #div_crt_timestart > .input-group > .bootstrap-select > .dropdown-menu,
+        #div_crt_timeend > .input-group > .bootstrap-select > .dropdown-menu
+        {
+            overflow: hidden !important;
+            max-height: 250px !important;
+        }
+
+        #div_crt_timestart > .input-group > .bootstrap-select > .dropdown-menu > ul,
+        #div_crt_timeend > .input-group > .bootstrap-select > .dropdown-menu > ul
+        {
+            max-height: 250px !important;
+        }
+
+        #div_crt_timestart > .input-group > .bootstrap-select > .dropdown-toggle > .bs-caret,
+        #div_crt_timeend > .input-group > .bootstrap-select > .dropdown-toggle > .bs-caret
+        {
+            display:none !important;
+        }
     </style>
 }
 
@@ -217,13 +236,14 @@
                     <li role="presentation" class="active"><a href="#booknowpage" data-toggle="tab" data-room-category="room"><b>Book Now</b></a></li>
                     <li role="presentation"><a href="#booknowpage" data-toggle="tab" data-room-category="trainingroom"><b>Training Room</b></a></li>
                     <li role="presentation"><a href="#booknowpage" data-toggle="tab" data-room-category="noroom"><b>No Room</b></a></li>
+                    <li role="presentation"><a href="#booknowpage" data-toggle="tab" data-room-category="specialroom"><b>Special Room</b></a></li>
                 </ul>
             </div>
         </div>
         <div class="row clearfix">
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane fade " id="homepage">
-                    <div class="card">
+                    <div id="id_area_booklist" class="card">
                         <div class="body">
                             <div class="row clearfix">
                                 <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3">
@@ -277,14 +297,14 @@
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
-                                                    @* <th>Status</th> *@
+                                                    <th>Status</th>
                                                     <th>Subject</th>
                                                     <th>Room</th>
                                                     <th >Date</th>
                                                     <th>Time</th>
                                                     <th>Attendees</th>
                                                     <th>Organizer</th>
-                                                    @* <th></th> *@
+                                                    <th></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -312,11 +332,10 @@
                     <div class="row clearfix" id="id_area_find_room">
                         @await Html.PartialAsync("Booking/Components/FindRoomPage")
                     </div>
-
-                    <div class="row clearfix hidden" id="id_area_reserve_room" style="padding: 0px 15px;">
-                        @await Html.PartialAsync("Booking/Components/ReserveRoomPage")
-                    </div>
                 </div>
+            </div>
+            <div class="row clearfix hidden" id="id_area_reserve_room" style="padding: 0px 15px;">
+                @await Html.PartialAsync("Booking/Components/ReserveRoomPage")
             </div>
         </div>
     </div>
@@ -345,13 +364,15 @@
                             <div class="col-xs-6 align-left">
                                 <label for="">START</label>&nbsp;&nbsp;&nbsp;
                                 <button data-type="start" data-id="id_frm_res_start" onclick="openAlertPilihRes($(this))" type="button" class="btn btn-default btn-sm waves-effect">
-                                    <b id="id_frm_res_start" class="lbl_text">07:30 AM</b> <span class="caret"> &nbsp;</span>
+                                    @* <b id="id_frm_res_start" class="lbl_text">07:30 AM</b> <span class="caret"> &nbsp;</span> *@
+                                    <b id="id_frm_res_start" class="lbl_text">--:--</b> <span class="caret"> &nbsp;</span>
                                 </button>
                             </div>
                             <div class="col-xs-6 align-right">
                                 <label for="">FINISH</label>&nbsp;&nbsp;&nbsp;
                                 <button data-type="end" data-id="id_frm_res_finish" onclick="openAlertPilihRes($(this))" type="button" class="btn btn-default btn-sm waves-effect">
-                                    <b id="id_frm_res_finish" class="lbl_text">07:30 AM</b> <span class="caret"> &nbsp;</span>
+                                    @* <b id="id_frm_res_finish" class="lbl_text">07:30 AM</b> <span class="caret"> &nbsp;</span> *@
+                                    <b id="id_frm_res_finish" class="lbl_text">--:--</b> <span class="caret"> &nbsp;</span>
                                 </button>
                             </div>
                         </div>
@@ -481,6 +502,13 @@
                 get_pantry_packages : "@Model.PantryPackages",
                 get_pantry_details : "@Model.PantryPackageDetailById",
                 get_bookings : "@Model.GetBookingDataTables",
+                get_pic_by_bookingid : "@Model.GetPicByBookingId",
+                get_check_reschedule_date : "@Model.CheckRescheduleDate",
+                post_reschedule_booking : "@Model.RescheduleBooking",
+                post_cancel_booking : "@Model.CancelBooking",
+                post_end_meeting : "@Model.EndMeeting",
+                get_check_extendmeeting_time : "@Model.CheckExtendMeetingTime",
+                post_set_extendmeeting : "@Model.SetExtendMeeting",
             }
         };
 

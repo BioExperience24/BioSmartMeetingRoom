@@ -4,7 +4,9 @@ using _5.Helpers.Consumer.EnumType;
 using Microsoft.AspNetCore.Hosting;
 using SkiaSharp;
 using System.Buffers.Text;
+using System.Diagnostics;
 using System.Net.Mail;
+using System.Runtime.InteropServices;
 
 namespace _3.BusinessLogic.Services.Implementation;
 
@@ -258,5 +260,93 @@ public class AttachmentListService : IAttachmentListService
         {
             throw;
         }
+    }
+
+    public async Task<long> ProcessBase64ToBlob(string base64, string filename)
+    {
+        var byteFile = ExtractByte(base64);
+        long result = byteFile.Length;
+        validateLogo(byteFile);
+
+        await IByteToPhysical(byteFile, _thisTableFolder, filename);
+
+        return result;
+    }
+
+    public string GetFileExtensionFromBase64(string base64String)
+    {
+        // Memisahkan metadata dari data base64
+        var data = base64String.Split(',');
+
+        // Mengekstrak tipe MIME dari metadata
+        var mimeTypeMatch = Regex.Match(data[0], @"data:(?<type>.+?);base64");
+
+        if (!mimeTypeMatch.Success)
+        {
+            throw new ArgumentException("Invalid base64 string");
+        }
+
+        // Mendapatkan ekstensi file dari tipe MIME
+        var mimeType = mimeTypeMatch.Groups["type"].Value;
+        var extension = mimeType.Split('/')[1];
+
+        return extension;
+    }
+
+    public byte[] ExtractByte(string base64)
+    {
+        var cleanbase64 = base64.Trim('\'').Replace("data:image/png;base64,", string.Empty);
+        cleanbase64 = cleanbase64.Replace("data:image/jpg;base64,", string.Empty);
+        cleanbase64 = cleanbase64.Replace("data:image/jpeg;base64,", string.Empty);
+
+        byte[] ImageData = Convert.FromBase64String(cleanbase64);
+
+        return ImageData;
+    }
+
+    public async Task IByteToPhysical(byte[] uploadedFile, string folder, string fileName)
+    {
+        var path = Path.Combine(
+            folder, fileName);
+
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            exec("chmod 777 -R " + path);
+        }
+
+        await File.WriteAllBytesAsync(path, uploadedFile);
+    }
+
+    private void validateLogo(byte[] uploadedFile)
+    {
+        if (uploadedFile == null)
+            throw new InvalidOperationException("File cannot be NULL");
+        if (uploadedFile.Length <= 0)
+            throw new InvalidOperationException("File cannot be Empty");
+        if (uploadedFile.Length > 10000000)
+            throw new InvalidOperationException("Logo Size is too Large");
+    }
+
+    private void exec(string cmd)
+    {
+        var escapedArgs = cmd.Replace("\\", "/");
+
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                FileName = "/bin/bash",
+                Arguments = $"-c \"{escapedArgs}\""
+            }
+        };
+
+        process.Start();
+        process.WaitForExit();
     }
 }

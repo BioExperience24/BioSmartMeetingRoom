@@ -1,26 +1,29 @@
+using _5.Helpers.Consumer._Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics;
+using System.Net;
 
 namespace PAMA1.Pages
 {
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [IgnoreAntiforgeryToken]
-    public class ErrorModel : PageModel
+    public class ErrorModel(IConfiguration config) : PageModel
     {
+        public string AppUrl { get; set; } = config["App:BaseUrl"] ?? string.Empty;
         public string? RequestId { get; set; }
+        public new int StatusCode { get; set; }
+        public string StatusMessage { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
 
-        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-
-        private readonly ILogger<ErrorModel> _logger;
-
-        public ErrorModel(ILogger<ErrorModel> logger)
+        public void OnGet(int code)
         {
-            _logger = logger;
-        }
+            HttpStatusCode httpStatusCode = (HttpStatusCode)code;
 
-        public void OnGet()
-        {
+            StatusCode = code;
+            StatusMessage = _Dictionary.StatusCodeMessage.ContainsKey(code) ? _Dictionary.StatusCodeMessage[code] : _Dictionary.StatusCodeMessage[404];
+            Title = httpStatusCode.ToString();
+
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
         }
     }

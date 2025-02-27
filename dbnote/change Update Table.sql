@@ -159,3 +159,13 @@ ALTER TABLE smart_meeting_room.room_display
 ADD   
     name VARCHAR(100) NULL,  
     description VARCHAR(MAX) NULL;
+
+-- 
+ALTER TABLE smart_meeting_room.setting_pantry_config DROP CONSTRAINT PK_setting_pantry_config_id;
+ALTER TABLE smart_meeting_room.setting_pantry_config ALTER COLUMN id bigint NOT NULL;
+ALTER TABLE smart_meeting_room.setting_pantry_config ADD CONSTRAINT PK_setting_pantry_config_id PRIMARY KEY (id);
+
+ALTER TABLE smart_meeting_room.smart_meeting_room.room_merge_detail ALTER COLUMN room_id nvarchar(8) NOT NULL;
+
+--
+ALTER TABLE smart_meeting_room.booking_invoice ADD is_deleted INT DEFAULT 0;

@@ -17,16 +17,27 @@ namespace _6.Repositories.Repository
                                 .Where(q => q.Radid == roomDisplay.RoomId)
                         where roomDisplay.IsDeleted == 0 && room.IsDeleted == 0
                         orderby room.Id ascending
-                        select new {
+                        select new
+                        {
                             roomDisplay,
-                            Room = new {
+                            Room = new
+                            {
                                 RoomName = room != null ? room.Name : ""
                             }
                         };
 
             var list = await query.ToListAsync();
-            
+
             return list;
+        }
+
+        public async Task<RoomDisplay> GetDisplaySerialBySerialNumber(string displaySerial)
+        {
+            var query = from roomDisplay in _dbContext.RoomDisplays
+                        where roomDisplay.IsDeleted == 0 && roomDisplay.DisplaySerial == displaySerial
+                        select roomDisplay;
+
+            return await query.FirstOrDefaultAsync()!;
         }
     }
 }

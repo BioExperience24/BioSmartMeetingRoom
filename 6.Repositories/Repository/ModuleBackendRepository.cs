@@ -83,16 +83,44 @@ public class ModuleBackendRepository
         return await _dbContext.ModuleBackends
             .FirstOrDefaultAsync(m => m.ModuleText == moduleText);
     }
+
+    public async Task<NotificationConfig?> GetTopNotificationConfig()
+    {
+        return await _dbContext.NotificationConfigs.FirstOrDefaultAsync();
+    }
+
+    public async Task<SettingEmailTemplate?> GetTemplateEmailSettingByType(string type)
+    {
+        return await _dbContext.SettingEmailTemplates
+            .FirstOrDefaultAsync(m => m.Type.ToLower() == type.ToLower());
+    }
+
+    public async Task<List<AlarmIntegration>> GetAlarmIntegration()
+    {
+        return await _dbContext.AlarmIntegrations.ToListAsync();
+    }
+    public async Task<List<Integration365>> GetIntegration365()
+    {
+        return await _dbContext.Integration365s.ToListAsync();
+    }
+    public async Task<Integration365> GetIntegration365Top()
+    {
+        return await _dbContext.Integration365s.FirstOrDefaultAsync();
+    }
+    public async Task<List<Integration365>> GetIntegration365TopByStatus()
+    {
+        return await _dbContext.Integration365s.Where(x => x.Status == 1).ToListAsync();
+    }
     public async Task<List<RoomMergeDetail?>> GetAllRoomMerge()
     {
         return await _dbContext.RoomMergeDetails
             .ToListAsync();
     }
 
-    public async Task<List<RoomMergeDetail?>> GetRoomMerge(long id)
+    public async Task<List<RoomMergeDetail?>> GetRoomMerge(string radId)
     {
         return await _dbContext.RoomMergeDetails
-            .Where(m => m.RoomId == id)
+            .Where(m => m.RoomId == radId)
             .ToListAsync();
     }
     public async Task<IEnumerable<Facility>> SelectAllFacilityAsync()
@@ -117,6 +145,13 @@ public class ModuleBackendRepository
             .ToListAsync();
     }
 
+    public async Task<Locker> GetLockerByStatusTop()
+    {
+        return await _dbContext.Lockers
+            .Where(m => m.IsDeleted == 0 && m.AutoReserve == "1")
+            .FirstOrDefaultAsync();
+    }
+
     public async Task DeleteOldRoomForUsageDetailAsync(long id)
     {
         // Use ExecuteDelete for efficient deletion
@@ -134,13 +169,13 @@ public class ModuleBackendRepository
     ////}
 
 
-    public async Task RemoveRoomMergeDetail(long? roomId)
+    public async Task RemoveRoomMergeDetail(string? roomId)
     {
         await _dbContext.RoomMergeDetails
             .Where(m => m.RoomId == roomId)
             .ExecuteDeleteAsync();
     }
-    public async Task RemoveRoomDetail(long? roomId)
+    public async Task RemoveRoomDetail(string? roomId)
     {
         await _dbContext.RoomMergeDetails
             .Where(m => m.RoomId == roomId)
@@ -177,6 +212,10 @@ public class ModuleBackendRepository
 
 
     public virtual async Task CreateBulkRoomDetail(IEnumerable<RoomDetail> entities)
+    {
+        await _dbContext.BulkInsertAsync(entities.ToList());
+    }
+    public virtual async Task CreateBulkNotificationData(IEnumerable<NotificationData> entities)
     {
         await _dbContext.BulkInsertAsync(entities.ToList());
     }
@@ -765,5 +804,125 @@ public async Task<List<EmployeeWithDetails>> GetEmployeesWithDetailsAsync()
 
         return data;
     }
+
+
+    public async Task<List<RoomBookingDTO>> GetDataMergeRoomBookingAsync(string? radId)
+    {
+        var query = await (from roomMerge in _dbContext.RoomMergeDetails
+                           join room in _dbContext.Rooms on roomMerge.MergeRoomId equals room.Radid
+                           join automation in _dbContext.RoomAutomations on room.AutomationId equals automation.Id
+                           join building in _dbContext.Buildings on room.BuildingId equals building.Id
+                           where roomMerge.RoomId == radId && room.IsDeleted == 0
+                           select new RoomBookingDTO
+                           {
+                               Room = room, // Returns full Room entity
+                               RaName = automation.Name,
+                               RaId = automation.Id,
+                               BuildingName = building.Name,
+                               BuildingDetail = building.DetailAddress,
+                               BuildingGoogleMap = building.GoogleMap
+                           }).ToListAsync();
+
+        return query;
+    }
+
+
+    public async Task<List<TimeBookingDTO>> GetBookedTimesAsync(string radId, DateTime startDate, int pieceTime, int maxDisplayDuration)
+{
+    var currentTime = DateTime.UtcNow;
+    var bookedTimes = new List<TimeBookingDTO>();
+
+    for (int x = pieceTime; x <= maxDisplayDuration; x += pieceTime)
+    {
+        var timeSlot = currentTime.AddMinutes(x);
+        var timeString = timeSlot.ToString("HH:mm:ss");
+
+        var bookingCount = await _dbContext.Bookings
+            .Where(b => b.RoomId == radId &&
+                        b.Date == DateOnly.FromDateTime(startDate) &&
+                        b.IsAlive == 1 &&
+                        b.EndEarlyMeeting == 0 &&
+                        timeSlot.TimeOfDay >= b.Start.TimeOfDay &&
+                        timeSlot.TimeOfDay <= b.End.AddMinutes(b.ExtendedDuration ?? 0).TimeOfDay)
+            .CountAsync();
+
+        var canceledCount = await _dbContext.Bookings
+            .Where(b => b.RoomId == radId && b.Date == DateOnly.FromDateTime(startDate) && b.IsCanceled == 1)
+            .CountAsync();
+
+        var expiredCount = await _dbContext.Bookings
+            .Where(b => b.RoomId == radId && b.Date == DateOnly.FromDateTime(startDate) && b.IsExpired == 1)
+            .CountAsync();
+
+        var endEarlyCount = await _dbContext.Bookings
+            .Where(b => b.RoomId == radId && b.Date == DateOnly.FromDateTime(startDate) && b.EndEarlyMeeting == 1)
+            .CountAsync();
+
+        bookedTimes.Add(new TimeBookingDTO
+        {
+            TimeArray = timeString,
+            BookedCount = bookingCount,
+            Canceled = canceledCount,
+            Expired = expiredCount,
+            EndEarly = endEarlyCount,
+            Duration = x
+        });
+    }
+
+    return bookedTimes;
+}
+
+
+    public async Task<RoomSystemToIntegrationDTO> RoomSystemToIntegration(string? radId)
+    {
+        var query = await (from room365s in _dbContext.Room365s
+                           join room in _dbContext.Rooms on room365s.Id equals room.ConfigMicrosoft
+                           where room365s.IsDeleted == 0 && room365s.Initial == 1 && room.Radid == radId
+                           orderby room365s.DisplayName // Corrected OrderBy
+                           select new RoomSystemToIntegrationDTO
+                           {
+                               Id = room365s.Id,
+                               EmailAddress = room365s.EmailAddress,
+                               DisplayName = room365s.DisplayName,
+                               GeoCoordinates = room365s.GeoCoordinates,
+                               Phone = room365s.Phone,
+                               Nickname = room365s.Nickname,
+                               Building = room365s.Building,
+                               FloorNumber = room365s.FloorNumber,
+                               FloorLabel = room365s.FloorLabel,
+                               Label = room365s.Label,
+                               Capacity = room365s.Capacity,
+                               BookingType = room365s.BookingType,
+                               AudioDeviceName = room365s.AudioDeviceName,
+                               VideoDeviceName = room365s.VideoDeviceName,
+                               DisplayDeviceName = room365s.DisplayDeviceName,
+                               IsWheelChairAccessible = room365s.IsWheelChairAccessible,
+                               Tags = room365s.Tags,
+                               Address = room365s.Address,
+                               Initial = room365s.Initial,
+                               CreatedAt = room365s.CreatedAt,
+                               UpdatedAt = room365s.UpdatedAt,
+                               IsDeleted = room365s.IsDeleted,
+                               RadId = room.Radid
+                           }).FirstOrDefaultAsync();
+
+        return query;
+    }
+
+
+    public async Task InsertNotification(NotificationAdmin entity)
+    {
+        _dbContext.Set<NotificationAdmin>().Add(entity);
+
+        await _dbContext.SaveChangesAsync();
+    }
+
+
+    public async Task CreateBulk(IEnumerable<NotificationData> entities)
+    {
+        await _dbContext.BulkInsertAsync(entities.ToList());
+    }
+
+
 
 }

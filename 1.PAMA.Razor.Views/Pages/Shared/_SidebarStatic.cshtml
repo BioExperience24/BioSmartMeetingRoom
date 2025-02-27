@@ -1,0 +1,169 @@
+<aside id="leftsidebar" class="sidebar">
+    <!-- User Info -->
+    <div class="user-info" style="background:url(@($"{Model.AppUrl}assets/images/media-menubar.png")) no-repeat no-repeat;    background-size: cover !important;">
+        <div class="image">
+            <div style="height: 48px; width: 48px;border-radius: 50%;" class="bg-light-blue">
+                <center>
+                    <b style="line-height: 48px;font-size: 28px;">A</b>
+                </center>  
+            </div>
+            <!-- <img src="../../images/user.png" width="48" height="48" alt="User"> -->
+        </div>
+        <div class="info-container">
+            <div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Admin</div>
+            <div class="email">Administrator</div>
+            <div class="btn-group user-helper-dropdown">
+                <i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
+                <ul class="dropdown-menu pull-right">
+                    <li>
+                        <a class="dropdown-item waves-effect waves-block" href="#">
+                            Profile <i class="material-icons">person</i>
+                        </a></li>
+                    <li>
+                        <a class="dropdown-item waves-effect waves-block" href="@($"{Model.AppUrl}logout")">
+                            Sign Out <i class="material-icons">input</i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- #User Info -->
+    
+    <!-- Menu -->
+    <div class="menu">
+        <ul class="list" style="overflow: hidden; width: auto; height: 656px;">
+            <li class="header">MAIN NAVIGATION</li>
+            <li class="">
+                <a href="@($"{Model.AppUrl}dashboard")" class=" waves-effect waves-block">
+                    <i class="material-icons">home</i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li class="">
+                <a href="@($"{Model.AppUrl}company")" class=" waves-effect waves-block">
+                    <i class="material-icons">card_membership</i>
+                    <span>Information</span>
+                </a>
+            </li>
+
+            <a href="javascript:void(0);" class="menu-toggle waves-effect waves-block">
+                <i class="material-icons">contacts</i>
+                <span>User Management</span>
+            </a>
+            <ul class="ml-menu">
+                <li>
+                    <a href="@($"{Model.AppUrl}alocation")" class=" waves-effect waves-block">Company/Department</a>
+                </li>
+                <li>
+                    <a href="@($"{Model.AppUrl}employee")" class=" waves-effect waves-block">Employee</a>
+                </li>
+                <li>
+                    <a href="@($"{Model.AppUrl}user")" class=" waves-effect waves-block">User</a>
+                </li>
+            </ul>
+
+            <a href="javascript:void(0);" class="menu-toggle waves-effect waves-block">
+                <i class="material-icons">storage</i>
+                <span>Master/Base</span>
+            </a>
+            <ul class="ml-menu">
+                <li>
+                    <a href="@($"{Model.AppUrl}access")" class=" waves-effect waves-block">Access Door</a>
+                </li>
+                <li>
+                    <a href="@($"{Model.AppUrl}display")" class=" waves-effect waves-block">Display Signage</a>
+                </li>
+                @* <li>
+                    <a href="@($"{Model.AppUrl}display-kiosk")" class=" waves-effect waves-block">Display Kiosk</a>
+                </li> *@
+                <li>
+                    <a href="@($"{Model.AppUrl}facility")" class=" waves-effect waves-block">Facility</a>
+                </li>
+            </ul>
+
+            <a href="javascript:void(0);" class="menu-toggle waves-effect waves-block">
+                <i class="material-icons">my_location</i>
+                <span>Location</span>
+            </a>
+            <ul class="ml-menu">
+                <li>
+                    <a href="@($"{Model.AppUrl}building")" class=" waves-effect waves-block">Building</a>
+                </li>
+                <li>
+                    <a href="@($"{Model.AppUrl}beacon-floor")" class=" waves-effect waves-block">Floor Management</a>
+                </li>
+            </ul>
+
+            <a href="javascript:void(0);" class="menu-toggle waves-effect waves-block">
+                <i class="material-icons">input</i>
+                <span>Meeting Room</span>
+            </a>
+            <ul class="ml-menu">
+                <li>
+                    <a href="@($"{Model.AppUrl}booking")" class=" waves-effect waves-block">Room Schedule</a>
+                </li>
+                <li>
+                    <a href="@($"{Model.AppUrl}room")" class=" waves-effect waves-block">Room Management</a>
+                </li>
+                <li>
+                    <a href="@($"{Model.AppUrl}report-usage")" class=" waves-effect waves-block">Room Usage</a>
+                </li>
+            </ul>
+
+            <a href="javascript:void(0);" class="menu-toggle waves-effect waves-block">
+                <i class="material-icons">local_cafe</i>
+                <span>Snack &amp; Pantry</span>
+            </a>
+            <ul class="ml-menu">
+                <li>
+                    <a href="/Pantry" class=" waves-effect waves-block">Master Snack &amp; Pantry</a>
+                </li>
+                <li>
+                    <a href="/Pantry-package" class=" waves-effect waves-block">Menu Package</a>
+                </li>
+                <li>
+                    <a href="/Pantry-transaction" class=" waves-effect waves-block">Order Management</a>
+                </li>
+            </ul>
+
+            @* <li class="">
+                <a href="#" class=" waves-effect waves-block">
+                    <i class="material-icons">open_with</i>
+                    <span>Integration</span>
+                </a>
+            </li> *@
+
+            <a href="javascript:void(0);" class="menu-toggle waves-effect waves-block">
+            <i class="material-icons">lock</i>
+            <span>Setting</span>
+            </a>
+            <ul class="ml-menu">
+                <li>
+                    <a href="@($"{Model.AppUrl}setting/general")" class=" waves-effect waves-block">General</a>
+                </li>
+                <li>
+                    <a href="@($"{Model.AppUrl}setting/smtp")" class=" waves-effect waves-block">SMTP &amp; Email</a>
+                </li>
+                <li>
+                    <a href="@($"{Model.AppUrl}setting/license")" class=" waves-effect waves-block">License</a>
+                </li>
+            </ul>
+            <li class="">
+                <a href="@($"{Model.AppUrl}logout")" class=" waves-effect waves-block">
+                    <i class="material-icons">input</i>
+                    <span>Sign Out</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+    <!-- #Menu -->
+    <!-- Footer -->
+    <div class="legal">
+    <div class="copyright">
+        &copy; 2024 <a>Demo Smart Meeting</a>.
+    </div>
+    </div>
+    <!-- #Footer -->
+</aside>

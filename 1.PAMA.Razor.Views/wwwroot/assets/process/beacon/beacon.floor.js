@@ -140,11 +140,11 @@ var _URL = window.URL || window.webkitURL;
                             html += '<td>'+nn+'</td>';
                             html += '<td style="width:150px;">'+item.name+'</td>';
                             html += '<td>'+item.building_name+'</td>';
-                            html += '<td>'+imggg+'</td>';
-                            html += '<td>'+item.pixel+'</td>';
-                            html += '<td>'+item.floor_length+'</td>';
-                            html += '<td>'+item.floor_width+'</td>';
-                            html += '<td>'+item.meter_per_px+'</td>';
+                            // html += '<td>'+imggg+'</td>';
+                            // html += '<td>'+item.pixel+'</td>';
+                            // html += '<td>'+item.floor_length+'</td>';
+                            // html += '<td>'+item.floor_width+'</td>';
+                            // html += '<td>'+item.meter_per_px+'</td>';
                          
                             html += '<td>';
                             html += '<button \

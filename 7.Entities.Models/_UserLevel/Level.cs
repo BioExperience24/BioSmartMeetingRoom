@@ -20,8 +20,9 @@ public partial class Level : BaseLongEntity
     public DateTime? UpdatedAt { get; set; }
 
     // public short IsDeleted { get; set; }
-}
 
+    public int? SortLevel { get; set; }
+}
 
 public class MenuHeaderLevel
 {
@@ -31,3 +32,15 @@ public class MenuHeaderLevel
     public string Icon { get; set; }
 }
 
+public class LevelMenu
+{
+    public string MenuName { get; set; } = string.Empty;
+    public string MenuIcon { get; set; } = string.Empty;
+    public string MenuUrl { get; set; } = string.Empty;
+    public int MenuSort { get; set; }
+    public int IsChild { get; set; }
+    public int MenuGroupId { get; set; }
+    public string ModuleText { get; set; } = string.Empty;
+    public string? GroupName { get; set; }
+    public string? GroupIcon { get; set; }
+}

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using _1.PAMA.Razor.Views.Attributes;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Response;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace _1.PAMA.Razor.Views.Pages.Alocation
 {
     [Authorize]
+    [PermissionAccess]
     public class IndexModel : PageModel
     {
 

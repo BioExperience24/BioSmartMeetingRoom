@@ -1,3 +1,4 @@
+using _1.PAMA.Razor.Views.Attributes;
 using _3.BusinessLogic.Services.Implementation;
 using _3.BusinessLogic.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace _1.PAMA.Razor.Views.Pages.Dashboard
 {
     [Authorize]
+    [PermissionAccess]
     public class IndexModel(
         IConfiguration config,
         IRoomService roomService,

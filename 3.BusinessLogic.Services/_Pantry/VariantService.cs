@@ -1,12 +1,17 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using System.Transactions;
 
 namespace _3.BusinessLogic.Services.Implementation;
 
-public class VariantService(IMapper mapper, IPantryDetailMenuVariantService pantryVariantService,
-    IPantryDetailMenuVariantDetailService pantryVariantDetailService, IServiceProvider sp)
+public class VariantService(IMapper mapper,
+    IPantryDetailMenuVariantService pantryVariantService,
+    IPantryDetailMenuVariantDetailService pantryVariantDetailService,
+    PantryDetailMenuVariantRepository repoVariant,
+    PantryDetailMenuVariantDetailRepository repoVariantDetail
+    )
     : IVariantService
 {
-    public async Task<IEnumerable<PantryDetailMenuVariantViewModel>> GetVariantByPatryDetailId(long PantryDetailId)
+    public async Task<IEnumerable<PantryDetailMenuVariantViewModel>> GetVariantByMenuId(long PantryDetailId)
     {
         var data = await pantryVariantService.GetListByField("menu_id", PantryDetailId.ToString());
         return data;
@@ -35,14 +40,13 @@ public class VariantService(IMapper mapper, IPantryDetailMenuVariantService pant
 
     public async Task<PantryVariantDataAndDetail?> GetVariantId(string id)
     {
-        var getVariantT = pantryVariantService.GetById(id);
-        var getDetailT = pantryVariantDetailService.GetListByField("variant_id", id);
+        var getVariant = await pantryVariantService.GetById(id);
+        var getDetail = await pantryVariantDetailService.GetListByField("variant_id", id);
 
-        var getVariant = await getVariantT;
         List<PantryDetailMenuVariantDetailViewModel>? item_ = [];
         if (getVariant != null)
         {
-            item_ = (await getDetailT).ToList();
+            item_ = getDetail.ToList();
         }
         PantryVariantDataAndDetail result = new()
         {
@@ -58,35 +62,35 @@ public class VariantService(IMapper mapper, IPantryDetailMenuVariantService pant
         PantryDetailMenuVariantViewModel? res = null;
         if (dReq?.Id != null)
         {
-            using var dalSession = sp.GetRequiredService<DalSession>();
-            UnitOfWork uow = dalSession.UnitOfWork;
-            uow.BeginTransaction();
-            PantryDetailMenuVariantRepository repo = new(uow);
-            PantryDetailMenuVariantDetailRepository repo2 = new(uow);
+            using var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            );
             try
             {
                 var variantId = dReq.Id;
-                var entity = await repo.GetById(variantId, true);
-                var entityDetail = await repo2.GetListByField("variant_id", variantId, true);
+                var entity = await repoVariant.GetByIdAsync(variantId);
+                var entityDetail = await repoVariantDetail.GetListByField("variant_id", variantId);
                 if (entity == null)
                 {
                     return null;
                 }
 
                 entity.IsDeleted = 1;
-                await repo.Update(entity);
+                await repoVariant.UpdateAsync(entity);
 
                 if (entityDetail != null && entityDetail.Count > 0)
                 {
                     entityDetail.ForEach(x => x.IsDeleted = 1);
-                    await repo2.UpdateBulk(entityDetail);
+                    await repoVariantDetail.UpdateBulk(entityDetail);
                 }
                 res = mapper.Map<PantryDetailMenuVariantViewModel>(entity);
-                uow.Commit();
+
+                scope.Complete();
             }
             catch (Exception)
             {
-                uow.Rollback();
                 throw;
             }
         }
@@ -99,24 +103,24 @@ public class VariantService(IMapper mapper, IPantryDetailMenuVariantService pant
         PantryDetailMenuVariantViewModel? res = null;
         if (uReq?.Id != null)
         {
-            using var dalSession = sp.GetRequiredService<DalSession>();
-            UnitOfWork uow = dalSession.UnitOfWork;
-            uow.BeginTransaction();
-            PantryDetailMenuVariantRepository repo = new(uow);
-            PantryDetailMenuVariantDetailRepository repo2 = new(uow);
+            using var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            );
             try
             {
                 uReq.IsDeleted = 0;
                 uReq.multiple = uReq.rule;
                 var variantId = uReq.Id;
-                var entity = await repo.GetById(variantId, true);
-                var oldDetail = await repo2.GetListByField("variant_id", variantId, true);
+                var entity = await repoVariant.GetByIdAsync(variantId);
+                var oldDetail = await repoVariantDetail.GetListByField("variant_id", variantId);
                 if (entity == null)
                 {
                     return null;
                 }
                 mapper.Map(uReq, entity);
-                await repo.Update(entity);
+                await repoVariant.UpdateAsync(entity);
 
                 List<PantryDetailMenuVariantDetail> addNewVariantDetail = [];
                 List<PantryDetailMenuVariantDetail> updateOldVariantDetail = [];
@@ -138,19 +142,31 @@ public class VariantService(IMapper mapper, IPantryDetailMenuVariantService pant
                     }
                 }
 
-                await repo2.CreateBulk(addNewVariantDetail);
-                await repo2.UpdateBulk(updateOldVariantDetail);
+                await repoVariantDetail.CreateBulk(addNewVariantDetail);
+                await repoVariantDetail.UpdateBulk(updateOldVariantDetail);
 
                 res = mapper.Map<PantryDetailMenuVariantViewModel>(entity);
-                uow.Commit();
+
+                scope.Complete();
             }
             catch (Exception)
             {
-                uow.Rollback();
                 throw;
             }
         }
 
         return res;
+    }
+
+    public async Task<IEnumerable<PantryDetailMenuVariantDetailViewModel>> GetVariantDetailByMenuId(long PantryDetailId)
+    {
+        using var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            );
+        var data = await repoVariantDetail.GetByMenuId(PantryDetailId);
+
+        return mapper.Map<IEnumerable<PantryDetailMenuVariantDetailViewModel>>(data);
     }
 }

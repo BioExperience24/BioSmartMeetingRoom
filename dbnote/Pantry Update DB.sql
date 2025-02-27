@@ -56,3 +56,6 @@ ALTER TABLE smart_meeting_room.smart_meeting_room.pantry_menu_paket_d ALTER COLU
 ALTER TABLE smart_meeting_room.smart_meeting_room.pantry_transaksi ADD paket_id bigint NULL;
 ALTER TABLE smart_meeting_room.smart_meeting_room.pantry_transaksi ADD approved_by text NULL;
 ALTER TABLE smart_meeting_room.smart_meeting_room.pantry_transaksi ADD approved_at datetime NULL;
+
+INSERT INTO smart_meeting_room.smart_meeting_room.pantry_transaksi_status (id, name) 
+VALUES (5, 'Reject');

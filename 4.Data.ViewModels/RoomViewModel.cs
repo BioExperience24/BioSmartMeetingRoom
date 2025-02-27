@@ -301,6 +301,9 @@ public class RoomViewModelAlt : BaseLongViewModel
 
     [JsonPropertyName("room_display_background")]
     public string RoomDisplayBackground { get; set; } = string.Empty;
+    
+    [JsonPropertyName("reserved_times")]
+    public List<string> ReservedTimes { get; set; } = new();
 }
 
 public class RoomVMChartTopRoom
@@ -374,6 +377,39 @@ public class RoomVMFindAvailable
     [FromQuery(Name = "book_filter_cap_seat")]
     public string? Seat { get; set; }
 
+}
+
+public class RoomVMCheckReschedule : RoomViewModelAlt
+{
+    [JsonPropertyName("datatime")]
+    public List<RoomVMTimeData>? DataTime { get; set; }
+
+    [JsonPropertyName("setting")]
+    public SettingRuleBookingViewModel? Setting { get; set; }
+}
+
+public class RoomVMTimeData
+{
+    [JsonPropertyName("book")]
+    public int Book { get; set; }
+
+    [JsonPropertyName("time_array")]
+    public TimeSpan TimeArray { get; set; }
+
+    [JsonPropertyName("room_id")]
+    public string RoomId { get; set; } = null!;
+
+    // [JsonPropertyName("canceled")]
+    [JsonIgnore]
+    public int Canceled { get; set; }
+
+    // [JsonPropertyName("expired")]
+    [JsonIgnore]
+    public int Expired { get; set; }
+
+    // [JsonPropertyName("end_early")]
+    [JsonIgnore]
+    public int EndEarly { get; set; }
 }
 
 public class ModuleDetailsViewModel
@@ -537,6 +573,8 @@ public class RoomBuildingViewModel
 
 public class RoomVMDefaultFR
 {
+    [JsonPropertyName("radid")]
+    public string? Radid { get; set; }
     [BindProperty(Name = "name")]
     public string? Name { get; set; }
 

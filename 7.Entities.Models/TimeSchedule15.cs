@@ -11,3 +11,6 @@ public partial class TimeSchedule15
 
     public int IsDeleted { get; set; }
 }
+
+public class TimeSchedule : TimeSchedule15
+{ }

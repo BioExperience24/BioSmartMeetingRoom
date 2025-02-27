@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using _5.Helpers.Consumer.Custom;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _4.Data.ViewModels;
@@ -312,6 +313,24 @@ public class BookingViewModel : BaseLongViewModel
 
     [JsonPropertyName("attendees")]
     public int Attendees { get; set; }
+
+    [JsonPropertyName("attendees_list")]
+    public BookingInvitationVMList? AttendeesList { get; set; }
+    
+    [JsonPropertyName("package_id")]
+    public string PackageId { get; set; } = string.Empty;
+    
+    [JsonPropertyName("package_menus")]
+    public List<PantryDetailVMMenus>? PackageMenus { get; set; }
+
+    [JsonPropertyName("pantry_package")]
+    public string PantryPackage { get; set; } = string.Empty;
+
+    [JsonPropertyName("pantry_detail")]
+    public List<PantryTransaksiDViewModel> PantryDetail { get; set; }
+
+    [JsonPropertyName("pic_nik")]
+    public string? PicNIK { get; set; }
 }
 
 public class BookingVMChart
@@ -335,7 +354,7 @@ public class BookingVMCreateReserveFR
     public string BookingType { get; set; } = string.Empty;
 
     [BindProperty(Name = "date")]
-    public string Date { get; set; } = string.Empty;
+    public DateOnly Date { get; set; }
 
     [BindProperty(Name = "room_id")]
     public string RoomId { get; set; } = string.Empty;
@@ -344,10 +363,10 @@ public class BookingVMCreateReserveFR
     public string Title { get; set; } = string.Empty;
 
     [BindProperty(Name = "start")]
-    public string Start { get; set; } = string.Empty;
+    public TimeSpan Start { get; set; }
 
     [BindProperty(Name = "end")]
-    public string End { get; set; } = string.Empty;
+    public TimeSpan End { get; set; }
     
     [BindProperty(Name = "pic")]
     public string Pic { get; set; } = string.Empty;
@@ -487,6 +506,81 @@ public class BookingVMRoomUsageData : DataTableVM
     public IEnumerable<BookingVMRoomUsageCollection>? Collection { get; set; }
 }
 
+public class BookingVMRescheduleFR
+{
+    [BindProperty(Name = "date")]
+    public DateOnly? Date { get; set; }
+
+    [BindProperty(Name = "timezone")]
+    public string Timezone { get; set; } = string.Empty;
+
+    [BindProperty(Name = "booking_id")]
+    public string BookingId { get; set; } = string.Empty;
+
+    [BindProperty(Name = "start")]
+    public DateTime? Start { get; set; }
+
+    [BindProperty(Name = "end")]
+    public DateTime? End { get; set; }
+}
+
+public class BookingVMCancelFR
+{
+    [BindProperty(Name = "id")]
+    public string Id { get; set; } = string.Empty;
+
+    [BindProperty(Name = "booking_id")]
+    public string BookingId { get; set; } = string.Empty;
+
+    [BindProperty(Name = "name")]
+    public string Name { get; set; } = string.Empty;
+
+    [BindProperty(Name = "reason")]
+    public string Reason { get; set; } = string.Empty;
+}
+
+public class BookingVMEndMeetingFR
+{
+    [BindProperty(Name = "id")]
+    public string Id { get; set; } = string.Empty;
+
+    [BindProperty(Name = "booking_id")]
+    public string BookingId { get; set; } = string.Empty;
+
+    [BindProperty(Name = "name")]
+    public string Name { get; set; } = string.Empty;
+
+    [BindProperty(Name = "user")]
+    public bool User { get; set; } = false;
+}
+
+public class BookingVMCheckExtendMeetingFR
+{
+    [BindProperty(Name = "booking_id")]
+    public string BookingId { get; set; } = string.Empty;
+
+    [BindProperty(Name = "time")]
+    public TimeOnly Time { get; set; }
+
+    [BindProperty(Name = "date")]
+    public DateOnly Date { get; set; }
+}
+
+public class BookingVMExtendMeetingFR
+{
+    [BindProperty(Name = "booking_id")]
+    public string BookingId { get; set; } = string.Empty;
+
+    [BindProperty(Name = "index")]
+    public int Index { get; set; }
+
+    [BindProperty(Name = "extend")]
+    public int Extend { get; set; }
+
+    [BindProperty(Name = "name")]
+    public string Name { get; set; } = string.Empty;
+}
+
 public class BookingModuleDetailsViewModel
 {
     [JsonPropertyName("module_id")]
@@ -557,4 +651,255 @@ public class BookingMenuDetailViewModel
 
     [JsonPropertyName("facility")]
     public object Facility { get; set; } = default!;
+}
+
+public class BookingVMDuration
+{
+    [JsonPropertyName("duration")]
+    public int Duration { get; set; }
+
+    [JsonPropertyName("book")]
+    public int Book { get; set; }
+
+    [JsonPropertyName("time_data")]
+    public TimeSpan TimeData { get; set; }
+}
+
+
+public class ListBookingByDateFR
+{
+    [JsonPropertyName("rad_id")]
+    public string RadId { get; set; } = string.Empty;
+
+    [JsonPropertyName("date")]
+    public string Date { get; set; } = string.Empty;
+
+    [JsonPropertyName("time")]
+    public string Time { get; set; } = string.Empty;
+}
+
+public class BookedTimeViewModel
+{
+    [JsonPropertyName("time_array")]
+    public string TimeArray { get; set; } = string.Empty;
+
+    [JsonPropertyName("booked_count")]
+    public int BookedCount { get; set; }
+
+    [JsonPropertyName("canceled")]
+    public int Canceled { get; set; }
+
+    [JsonPropertyName("expired")]
+    public int Expired { get; set; }
+
+    [JsonPropertyName("end_early")]
+    public int EndEarly { get; set; }
+
+    [JsonPropertyName("duration")]
+    public int Duration { get; set; }
+}
+
+public class ListBookingByDateNikFRViewModel
+{
+    [JsonPropertyName("rad_id")]
+    public string RadId { get; set; } = string.Empty;
+
+
+    [JsonPropertyName("nik")]
+    public string Nik { get; set; } = string.Empty;
+
+    [JsonPropertyName("date")]
+    public string Date { get; set; } = string.Empty; // Consider using DateTime if necessary
+
+    [JsonPropertyName("time")]
+    public string Time { get; set; } = string.Empty; // Consider using TimeSpan if necessary
+}
+
+public class TimeBookingListViewModel
+{
+    [JsonPropertyName("rad_id")]
+    public string? RadId { get; set; }
+
+    [JsonPropertyName("type_room")]
+    public string? TypeRoom { get; set; }
+
+    [JsonPropertyName("datetime")]
+    public List<TimeBookingDTOViewModel>? Datetime { get; set; }
+    
+}
+
+public class TimeBookingDTOViewModel
+{
+    [JsonPropertyName("room_id")]
+    public string? RoomId { get; set; }
+
+    [JsonPropertyName("time_array")]
+    public string? TimeArray { get; set; }
+
+    [JsonPropertyName("booked_count")]
+    public int BookedCount { get; set; }
+
+    [JsonPropertyName("canceled")]
+    public int Canceled { get; set; }
+
+    [JsonPropertyName("expired")]
+    public int Expired { get; set; }
+
+    [JsonPropertyName("end_early")]
+    public int EndEarly { get; set; }
+
+    [JsonPropertyName("duration")]
+    public int Duration { get; set; }
+}
+
+public class BookingDisplayScheduleFastBookedFRViewModel
+{
+    [JsonPropertyName("serial")]
+    public string Serial { get; set; }
+
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
+
+    [JsonPropertyName("rad_id")]
+    public string RadId { get; set; }
+
+    [JsonPropertyName("title")]
+    public string Title { get; set; }
+
+    [JsonPropertyName("duration")]
+    public int Duration { get; set; }
+
+    [JsonPropertyName("nik")]
+    public string Nik { get; set; }
+
+    [JsonPropertyName("date")]
+    public DateOnly Date { get; set; }
+
+    [JsonPropertyName("link")]
+    public string? Link { get; set; }
+
+    [JsonPropertyName("note")]
+    public string? Note { get; set; }
+
+    [JsonPropertyName("time")]
+    public string Time { get; set; }
+
+    [JsonPropertyName("timezone")]
+    public string? Timezone { get; set; }
+
+    [JsonPropertyName("start_time")]
+    public string? StartTime { get; set; }
+
+    [JsonPropertyName("notif")]
+    public int Notif { get; set; }
+    [JsonPropertyName("is_merge")]
+    public short? IsMerge { get; set; }
+
+    [JsonPropertyName("MergeRoom")]
+    public List<string>? MergeRoom { get; set; }
+
+    [JsonPropertyName("internal_data")]
+    public List<EmployeeViewModel>? InternalData { get; set; }
+    [JsonPropertyName("external_data")]
+    public List<FastBookBookingInvitationViewModel>? ExternalData { get; set; }
+}
+
+
+public class ListInternalDataFRViewModel
+{
+    [JsonPropertyName("nik")]
+    public string Nik { get; set; } = string.Empty;
+
+}
+public class ListRoomMergeFRViewModel
+{
+    [JsonPropertyName("rad_id")]
+    public string RadId { get; set; } = string.Empty;
+
+}
+
+
+public class ListScheduleOccupiedFRViewModel : ListRoomMergeFRViewModel
+{
+    [JsonPropertyName("timezone")]
+    public string Timezone { get; set; } = string.Empty;
+    [JsonPropertyName("date")]
+    public string? Date { get; set; }
+
+    [JsonPropertyName("time")]
+    public string? Time { get; set; }
+
+}
+
+public class ListDisplaySerialFRViewModel
+{
+    [JsonPropertyName("serial")]
+    public string? Serial { get; set; }
+
+}
+
+public class ListDisplayMeetingScheduleTodayFRViewModel 
+{
+
+    [JsonPropertyName("serial")]
+    public string Serial { get; set; }
+
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
+
+    [JsonPropertyName("rad_id")]
+    public string RadId { get; set; }
+
+    [JsonPropertyName("title")]
+    public string Title { get; set; }
+
+    [JsonPropertyName("duration")]
+    public int Duration { get; set; }
+
+    [JsonPropertyName("nik")]
+    public string Nik { get; set; }
+
+    [JsonPropertyName("date")]
+    public string Date { get; set; }
+
+    [JsonPropertyName("time")]
+    public string Time { get; set; }
+
+    [JsonPropertyName("timezone")]
+    public string Timezone { get; set; }
+
+    [JsonPropertyName("notif")]
+    public int Notif { get; set; }
+
+    [JsonPropertyName("is_merge")]
+    public short? IsMerge { get; set; }
+
+    [JsonPropertyName("startTime")]
+    public string StartTime { get; set; }
+    [JsonPropertyName("link")]
+    public string? Link { get; set; }
+    [JsonPropertyName("note")]
+    public string? Note { get; set; }
+    [JsonPropertyName("room_select")]
+    public string? RoomSelect { get; set; }
+
+}
+
+
+public class MeetingDisplayCollection
+{
+    public DateTime ServerDateTime { get; set; }
+    public List<string> RoomSelect { get; set; } = new List<string>();
+}
+
+public class DateSimpleRoomViewModel
+{
+    [JsonPropertyName("rad_id")]
+    public string RadId { get; set; }
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+    [JsonPropertyName("location")]
+    public string Location { get; set; }
+    [JsonPropertyName("link")]
+    public string? Link { get; set; }
 }

@@ -12,12 +12,15 @@ namespace _3.BusinessLogic.Services.Implementation
         private readonly RoomRepository _repo;
         private readonly ModuleBackendRepository _repoModuleBackend;
         private readonly IAttachmentListService _attachmentListService;
+        
+        private readonly BookingRepository _repoBooking;
 
         public RoomService(RoomRepository repo, IMapper mapper,
-        IConfiguration config, IAttachmentListService attachmentListService, ModuleBackendRepository repoModuleBackend) : base(repo, mapper)
+        IConfiguration config, IAttachmentListService attachmentListService, ModuleBackendRepository repoModuleBackend, BookingRepository repoBooking) : base(repo, mapper)
         {
             _repo = repo;
             _repoModuleBackend = repoModuleBackend;
+            _repoBooking = repoBooking;
 
             attachmentListService.SetTableFolder(
                 config["UploadFileSetting:tableFolder:room"] ?? "room");
@@ -57,9 +60,6 @@ namespace _3.BusinessLogic.Services.Implementation
 
         public async Task<IEnumerable<RoomViewModelAlt>> GetAllRoomAvailableAsync(RoomVMFindAvailable request)
         {
-            // Console.WriteLine("-------------------GetAllRoomAvailableAsync-------------------");
-            // Console.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(request)}");
-
             Room entity = new Room{};
 
             entity.KindRoom = (request.RoomCategory != "")
@@ -69,6 +69,7 @@ namespace _3.BusinessLogic.Services.Implementation
             if (request.Date != "")
             {
                 entity.WorkDay = new List<string>{ _String.ToDayName(request.Date) };
+                entity.WorkDate = DateOnly.Parse(request.Date);
             }
 
             if (request.BuildingId > 0)
@@ -98,8 +99,10 @@ namespace _3.BusinessLogic.Services.Implementation
                 }
             }
 
-            // Console.WriteLine("-------------------Entity-------------------");
-            // Console.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(entity)}");
+            if (request.IsAllDay == "on")
+            {
+                entity.IsAllDay = true;
+            }
 
             var items = await _repo.GetAllRoomAvailableAsync(entity);
 
@@ -126,6 +129,35 @@ namespace _3.BusinessLogic.Services.Implementation
             // Tunggu semua task selesai
             await Task.WhenAll(tasks);
 
+            // generate waktu yang sudah di booking
+            var roomIds = results.Select(s => s.Radid).ToArray();
+
+            if (roomIds.Any())
+            {
+                var bookRooms = await _repoBooking.GetBookingsByRoomIdsAndDateAsync(roomIds, (DateOnly)entity.WorkDate!);
+                
+                if (bookRooms.Any())
+                {
+                    foreach (var item in results)
+                    {
+                        var bookTimes = bookRooms.Where(q => q.RoomId == item.Radid).Select(q => new { q.Start, q.End }).ToList();
+
+                        List<string> lTimes = new();
+
+                        foreach (var time in bookTimes)
+                        {
+                            var times = _DateTime.GenerateTimeSlots(time.Start, time.End, TimeSpan.FromMinutes(5));
+                            
+                            lTimes.AddRange(times);
+                        }
+
+                        item.ReservedTimes = lTimes;
+                    }
+                }
+
+            }
+            // .generate waktu yang sudah di booking
+
             return results;
         }
 
@@ -150,16 +182,16 @@ namespace _3.BusinessLogic.Services.Implementation
             return result;
         }
 
-        public async Task<List<RoomMergeDetailViewModel>> GetRoomMerge(long id)
+        public async Task<List<RoomMergeDetailViewModel>> GetRoomMerge(string radId)
         {
-            var entities = await _repoModuleBackend.GetRoomMerge(id);
+            var entities = await _repoModuleBackend.GetRoomMerge(radId);
             var result = _mapper.Map<List<RoomMergeDetailViewModel>>(entities);
             return result;
         }
 
-        public async Task<List<RoomMergeDetailViewModel>> GetStatusInvoice(long id)
+        public async Task<List<RoomMergeDetailViewModel>> GetStatusInvoice(string radId)
         {
-            var entities = await _repoModuleBackend.GetRoomMerge(id);
+            var entities = await _repoModuleBackend.GetRoomMerge(radId);
             var result = _mapper.Map<List<RoomMergeDetailViewModel>>(entities);
             return result;
         }
@@ -483,7 +515,7 @@ namespace _3.BusinessLogic.Services.Implementation
                     {
                         // Delete existing data in the `room_detail` table for the specified room ID
 
-                        await _repoModuleBackend.RemoveRoomDetail(item.Id);
+                        await _repoModuleBackend.RemoveRoomDetail(item.Radid);
 
                         // Prepare the list for batch insert
                         var colInsertFac = new List<RoomDetail>();
@@ -519,7 +551,7 @@ namespace _3.BusinessLogic.Services.Implementation
                         {
                             var postMerge = new RoomMergeDetail
                             {
-                                RoomId = entity?.Id,
+                                RoomId = entity?.Radid,
                                 MergeRoomId = mergeRoomId
                             };
                             colInsertMerge.Add(postMerge);
@@ -584,7 +616,7 @@ namespace _3.BusinessLogic.Services.Implementation
 
             var checkRoomModuleLicense = await _repoModuleBackend.CheckRoomModuleLicense();
 
-            var countnew = (checkRoomModuleLicense.Count - 0) + 1;
+            var countnew = checkRoomModuleLicense.Count - 0 + 1;
 
             // Step 4: Check license status
             if (licenseInfo?.Status == "1" || licenseInfo?.Status.ToString() == "1")
@@ -613,6 +645,21 @@ namespace _3.BusinessLogic.Services.Implementation
 
         public async Task<ReturnalModel> UpdateRoom(RoomVMUpdateFRViewModel request, long id)
         {
+
+            DateTime now = DateTime.Now;
+
+            var old_data = await _repo.GetById(id);
+
+            if (old_data == null)
+            {
+                return new ReturnalModel
+                {
+                    Status = ReturnalType.Failed,
+                    StatusCode = (int)HttpStatusCode.NotFound,
+                    Message = "Booked Time feature is disabled, please enable for use this feature."
+                };
+            }
+
             using (var scope = new TransactionScope(
                 TransactionScopeOption.Required,
                 new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
@@ -625,21 +672,19 @@ namespace _3.BusinessLogic.Services.Implementation
 
                 try
                 {
-                    DateTime now = DateTime.Now;
 
-                    var old_data = await GetById(id);
 
                     var item = _mapper.Map<Room>(viewModel);
                     item.IsDeleted = 0;
                     item.UpdatedAt = now;
+                    item.CreatedBy = old_data.CreatedBy;
                     // item.CreatedBy = // uncomment jika auth sudah ada
-                    // item.UpdatedBy = // uncomment jika auth sudah ada
 
                     if (request.FacilityRoomName != null)
                     {
                         // Delete existing data in the `room_detail` table for the specified room ID
 
-                        await _repoModuleBackend.RemoveRoomDetail(item.Id);
+                        await _repoModuleBackend.RemoveRoomDetail(old_data.Radid!);
 
                         // Prepare the list for batch insert
                         var colInsertFac = new List<RoomDetail>();
@@ -675,7 +720,7 @@ namespace _3.BusinessLogic.Services.Implementation
                         {
                             var postMerge = new RoomMergeDetail
                             {
-                                RoomId = id,
+                                RoomId = item.Radid,
                                 MergeRoomId = mergeRoomId
                             };
                             colInsertMerge.Add(postMerge);
@@ -811,7 +856,7 @@ namespace _3.BusinessLogic.Services.Implementation
                         {
                             var postMerge = new RoomMergeDetail
                             {
-                                RoomId = id,
+                                RoomId = request.Radid,
                                 MergeRoomId = mergeRoomId
                             };
                             colInsertMerge.Add(postMerge);

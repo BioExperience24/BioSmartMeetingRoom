@@ -73,7 +73,7 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<NotifBooking> NotifBookings { get; set; }
     public virtual DbSet<NotificationAdmin> NotificationAdmins { get; set; }
     public virtual DbSet<NotificationConfig> NotificationConfigs { get; set; }
-    public virtual DbSet<NotificationDatum> NotificationData { get; set; }
+    public virtual DbSet<NotificationData> NotificationData { get; set; }
     public virtual DbSet<NotificationType> NotificationTypes { get; set; }
     public virtual DbSet<NotificationTypeAdmin> NotificationTypeAdmins { get; set; }
     public virtual DbSet<Pantry> Pantries { get; set; }
@@ -914,6 +914,9 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(100)
                 .HasDefaultValueSql("(NULL)")
                 .HasColumnName("updated_by");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(0)
+                .HasColumnName("is_deleted");
         });
 
         modelBuilder.Entity<BookingInvoiceDetail>(entity =>
@@ -2113,6 +2116,9 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("(NULL)")
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
+            entity.Property(e => e.SortLevel)
+                .HasDefaultValueSql("(NULL)")
+                .HasColumnName("sort_level");
         });
 
         modelBuilder.Entity<LevelDescriptiion>(entity =>
@@ -2672,7 +2678,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Url).HasColumnName("url");
         });
 
-        modelBuilder.Entity<NotificationDatum>(entity =>
+        modelBuilder.Entity<NotificationData>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_notification_data_id");
 

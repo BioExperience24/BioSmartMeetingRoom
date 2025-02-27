@@ -30,6 +30,9 @@ namespace _4.Data.ViewModels
 
         // [JsonPropertyName("is_deleted")]
         // public short IsDeleted { get; set; }
+
+        [JsonPropertyName("sort_level")]
+        public int SortLevel { get; set; }
     }
 
     public class LevelVMUpdateFR

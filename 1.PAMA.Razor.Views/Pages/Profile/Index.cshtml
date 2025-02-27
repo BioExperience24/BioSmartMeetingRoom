@@ -15,7 +15,7 @@
          <div class="container-fluid">
 
             <div class="block-header">
-                <h2><?= strtoupper($pagename) ?></h2>
+                <h2>PROFILE</h2>
             </div>
             <div class="row clearfix">
                 <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
@@ -34,66 +34,58 @@
                                         <label for="">Name*</label>
                                         <div class="form-group">
                                             <div class="form-line">
-                                                <input type="text" autocomplete="off" name="name" required=""  class="form-control" placeholder="Name" value="<?= $profile['name']?>" >
+                                                <input type="text" autocomplete="off" name="name" required=""  class="form-control" placeholder="Name" id="profile_name">
                                             </div>
                                         </div>
                                         <label for="">NPK*</label>
                                         <div class="form-group">
                                             <div class="form-line">
-                                                <input type="text" autocomplete="off" name="nik_display" required=""  class="form-control" placeholder="NPK" value="<?= $profile['nik_display']?>" >
+                                                <input type="text" autocomplete="off" name="nik_display" required=""  class="form-control" placeholder="NPK" id="profile_nik_display" >
                                             </div>
                                         </div>
                                         <label for="">Email</label>
                                         <div class="form-group">
                                             <div class="form-line">
-                                                 <input type="text" autocomplete="off" name="email"  class="form-control" placeholder="Email" value="<?= $profile['email']?>" >
+                                                 <input type="text" autocomplete="off" name="email"  class="form-control" placeholder="Email" id="profile_email">
                                             </div>
                                         </div>
                                         <label for="">No Phone</label>
                                         <div class="form-group">
                                             <div class="form-line">
-                                                 <input type="text" autocomplete="off" name="no_phone"  class="form-control" placeholder="No Phone" value="<?= $profile['no_phone']?>" >
+                                                 <input type="text" autocomplete="off" name="no_phone"  class="form-control" placeholder="No Phone" id="profile_no_phone" >
                                             </div>
                                         </div>
                                         <label for="">No Extension</label>
                                         <div class="form-group">
                                             <div class="form-line">
-                                                 <input type="text" autocomplete="off" name="no_ext"   class="form-control" placeholder="No Extension" value="<?= $profile['no_ext']?>" >
+                                                 <input type="text" autocomplete="off" name="no_ext"   class="form-control" placeholder="No Extension" id="profile_no_ext">
                                             </div>
                                         </div>
                                         <label for="">Gender</label>
                                         <div class="form-group">
-                                        	<select class="form-control"  name="gender" >
-                                        		<?php foreach ($gender as $key => $value): ?>
-                                        			<?php 
-                                        			$selected = ""; 
-                                        			if ($value == $profile['gender']) {
-                                        				$selected = "selected";
-                                        			}
-                                        			?>
-                                        			@* <option <?= $selected?> value="<?= $value?>"><?=  strtoupper($value) ?></option> *@
-                                        		<?php endforeach ?>	
+                                <select class="form-control" name="gender" id="profile_gender">
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
                                         	</select>
                                             
                                         </div>
                                         <label for="">Birth Date</label>
                                         <div class="form-group">
                                             <div class="form-line">
-                                                 <input id="id_birth_date" type="text" autocomplete="off" name="birth_date"  class="form-control" placeholder="Birth Date" value="<?= $profile['birth_date']?>" >
+                                                 <input id="id_birth_date" type="text" autocomplete="off" name="birth_date"  class="form-control" placeholder="Birth Date" id="profile_birth_date" >
                                             </div>
                                         </div>
                                         <label for="">Card  Number</label>
                                         <div class="form-group">
                                             <div class="form-line">
-                                            	 <input type="text" autocomplete="off" name="card_number" class="form-control" placeholder="Card number" value="<?= $profile['card_number']?>" >
+                                            	 <input type="text" autocomplete="off" name="card_number" class="form-control" placeholder="Card number" id="profile_card_number" >
                                                
                                             </div>
                                         </div>
                                         <label for="">Address</label>
                                         <div class="form-group">
                                             <div class="form-line">
-                                            	<textarea name="address" rows="4" class="form-control">
-                                            		<?= $profile['address']?>
+                                            	<textarea name="address" rows="4" class="form-control" id="profile_address">
                                             	</textarea>
                                                
                                             </div>
@@ -120,7 +112,7 @@
                                     <div class="form-group">
                                     	<div class="input-group">
                                             <div class="form-line">
-                                                <input id="id_username" type="text" autocomplete="off" name="username" required=""  class="form-control" placeholder="Username" value="<?= $usernamenya?>"  >
+                                                <input id="id_username" type="text" autocomplete="off" name="username" required=""  class="form-control" placeholder="Username">
                                             </div>
                                             <span class="input-group-addon">
                                             	
@@ -128,7 +120,7 @@
                                         </div>
                                     </div>
                                     <label for="">Grup Access </label>
-                                    <h4 class="font-bold col-red"><?= $group_user?></h4>
+                                    <h4 class="font-bold col-red" id="group_user"></h4>
                                    
                                     <button type="submit" class="btn btn-primary m-t-15 waves-effect">S A V E</button>
                                 </form>
@@ -205,14 +197,21 @@
     <script src="~/assets/theme/plugins/jquery-editable/src/table-edits.js"></script>
     <script src="~/assets/external/daterangepicker/daterangepicker.js"></script>
     <script>
+        @* var authToken = "@Model.AuthToken"; *@
+        var baseUrl = "@Model.BaseUrl"
+
+        var id = "";
+        var userId = 0;
+
         $(function () {
             initStartDate()
+            getProfile();
+            getUserData();
             // $('.datepicker').datepicker();
         })
         function onLock(id, t) {
             // t.find("i .material-icons");
             var selector = $('#' + id);
-            console.log(selector.attr('type'))
 
             if (selector.attr('type') == "password") {
                 selector.attr('type', "text");
@@ -223,9 +222,11 @@
 
             }
         }
+
         function initTable(selector) {
             selector.DataTable();
         }
+
         function clearTable(selector) {
             selector.DataTable().destroy();
         }
@@ -256,12 +257,116 @@
             });
         }
 
+
+    function getProfile() {
+        $.ajax({
+            url: baseUrl + `@Model.GetProfile`,
+            type: "GET",
+            dataType: "json",
+            beforeSend: function (XMLHttpRequest) {
+                // startLoader();
+            },
+            success: function (data) {
+                var col = data.collection;
+                if (data.status == "fail") {
+                    stopLoader()
+                    swalShowNotification('alert-danger', data.msg, 'bottom', 'left')
+                } else if (data.status == "success") {
+
+                    var col = data.collection;
+                    if (data.status == "fail") {
+
+                    } else if (data.status == "success") {
+                        $("#profile_name").val(col.name);
+                        $("#profile_nik_display").val(col.nik_display);
+                        $("#profile_email").val(col.email);
+                        $("#profile_no_phone").val(col.no_phone);
+                        $("#profile_no_ext").val(col.no_ext);
+                        $("#profile_birth_date").val(col.birth_date);
+                        $("#profile_card_number").val(col.card_number);
+                        $("#profile_gender").val(col.gender).change();
+                        $("#profile_address").val(col.address);
+                        $("#id_birth_date").val(col.birth_date);
+
+                        id = col.id;
+                    }
+                }
+            },
+            error: errorAjax,
+
+        })
+        }
+
+        function getUserData() {
+            $.ajax({
+                url: baseUrl + `@Model.GetAuthUser`,
+                type: "GET",
+                dataType: "json",
+                beforeSend: function (XMLHttpRequest) {
+                    // startLoader();
+                },
+                success: function (data) {
+                    var col = data.collection;
+                    if (data.status == "fail") {
+                        stopLoader()
+                        swalShowNotification('alert-danger', data.msg, 'bottom', 'left')
+                    } else if (data.status == "success") {
+
+                        var col = data.collection;
+                        if (data.status == "fail") {
+
+                        } else if (data.status == "success") {
+                            $("#id_username").val(col.username);
+                            getLevels(col.level_id);
+                            userId = col.id;
+                        }
+                    }
+                },
+                error: errorAjax,
+
+            })
+        }
+
+        function getLevels(levelId = 0) {
+            $.ajax({
+                url: baseUrl + `@Model.GetLevels`,
+                type: "GET",
+                dataType: "json",
+                beforeSend: function (XMLHttpRequest) {
+                    // startLoader();
+                },
+                success: function (data) {
+                    var col = data.collection;
+                    if (data.status == "fail") {
+                        stopLoader()
+                        swalShowNotification('alert-danger', data.msg, 'bottom', 'left')
+                    } else if (data.status == "success") {
+
+                        var col = data.collection;
+                        if (data.status == "fail") {
+
+                        } else if (data.status == "success") {
+                            var level = col.find(el => el.id === levelId);
+                            if (level) {
+                                $("#group_user").html(level.name);
+                            } else {
+                                console.error("Level ID not found");
+                            }
+                        }
+                    }
+                },
+                error: errorAjax,
+
+            })
+        }
+
         $('#frm_create').submit(function (e) {
             e.preventDefault();
             var form = $('#frm_create').serialize();
             var bs = $('#id_baseurl').val();
             $.ajax({
-                url: bs + "profile/post/update",
+
+                url: baseUrl + `@Model.UpdateEmployee/` + id,
                 type: "POST",
                 dataType: "json",
                 data: form,
@@ -284,10 +389,16 @@
         })
         $('#frm_username').submit(function (e) {
             e.preventDefault();
+
+            if (typeof userId === "undefined" || userId === null || userId === "") {
+                console.error("Error: userId is not defined!");
+                return;
+            }
+
             var form = $('#frm_username').serialize();
-            var bs = $('#id_baseurl').val();
+
             $.ajax({
-                url: bs + "profile/post/username",
+                url: baseUrl + `@Model.UpdateUsername/` + userId,
                 type: "POST",
                 dataType: "json",
                 data: form,
@@ -295,19 +406,23 @@
                     $('#id_loader').html('<div class="linePreloader"></div>');
                 },
                 success: function (data) {
-                    if (data.status == "success") {
-
-                        Swal("Update Info", data.msg, 'success');
-                        showNotification('alert-success', data.msg, 'top', 'center')
-                    } else {
-                        Swal("Update Info", data.msg, 'warning');
-
-                        showNotification('alert-danger', data.msg, 'top', 'center')
-                    }
                     $('#id_loader').html('');
+
+                    if (data.status == "success") {
+                        
+                        showNotification(data.status == "success" ? 'alert-success' : 'alert-danger', "Success Update username. You will be redirected to login ", 'top', 'center');
+
+                        setTimeout(function () {
+                            window.location.href = "/logout";
+                        }, 3000); // Redirects after 3 second
+                    } else{
+                        Swal.fire("Update Info", data.msg, data.status == "success" ? "success" : "warning");;
+                    }
+
+
                 },
                 error: errorAjax
-            })
+            });
         })
         $('#frm_password').submit(function (e) {
             e.preventDefault();
@@ -329,7 +444,7 @@
             }
             if (check == true) {
                 $.ajax({
-                    url: bs + "profile/post/password",
+                    url: baseUrl + `@Model.UpdatePassword/` + userId,
                     type: "POST",
                     dataType: "json",
                     data: form,
@@ -340,7 +455,7 @@
                         if (data.status == "success") {
                             Swal("Update Info", data.msg, 'success');
                             showNotification('alert-success', data.msg, 'top', 'center')
-                            window.location.reload()
+                            window.location.reload();
                         } else {
                             Swal("Update Info", data.msg, 'warning');
                             showNotification('alert-danger', data.msg, 'top', 'center')

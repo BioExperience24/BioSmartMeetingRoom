@@ -20,7 +20,7 @@ public partial class Booking : BaseLongEntity
 
     public DateOnly Date { get; set; }
 
-    public string RoomId { get; set; } = null!;
+    public string? RoomId { get; set; } = null!;
 
     public string? RoomName { get; set; }
 
@@ -204,6 +204,8 @@ public partial class Booking : BaseLongEntity
     public DateOnly? DateStart { get; set; }
     [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
     public DateOnly? DateEnd { get; set; }
+    [NotMapped]
+    public string? AuthUserNIK { get; set; }
 }
 
 public class BookingChart
@@ -277,6 +279,15 @@ public class BookingMenuDto
 
     [JsonPropertyName("is_child")]
     public int? IsChild { get; set; }
+}
+
+public class BookingWithRoom : Booking
+{
+    public string? RoomName2 { get; set; }
+    public long? RoomPrice { get; set; }
+    public string? RoomWorkStart { get; set; }
+    public string? RoomWorkEnd { get; set; }
+    public List<string>? RoomWorkDay { get; set; }
 }
 
 public class BookingDto
@@ -389,4 +400,54 @@ public class BookingDto
     public string EmailEmployee { get; set; }
     public string PhoneEmployee { get; set; }
     public string ExtEmployee { get; set; }
+}
+
+public class RoomBookingDTO : Room
+{
+    public Room Room { get; set; } = null!;
+    public long? RoomId { get; set; }
+    public string RaName { get; set; } = null!;
+    public long? RaId { get; set; }
+    public string BuildingName { get; set; } = null!;
+    public string BuildingDetail { get; set; } = null!;
+    public string BuildingGoogleMap { get; set; } = null!;
+    public string TypeRoom { get; set; } = null!;
+    public List<TimeBookingDTO> BookedTimes { get; set; } = null!;
+    public List<TimeBookingDTO> DataTime { get; set; } = null!;
+    public List<RoomBookingDTO> MergeRoom { get; set; } = null!;
+
+}
+
+
+public class TimeBookingDTO
+{
+    public long? RoomId { get; set; }
+    public string? RadId { get; set; }
+    public string? TimeArray { get; set; }
+    public int BookedCount { get; set; }
+    public int Canceled { get; set; }
+    public int Expired { get; set; }
+    public int EndEarly { get; set; }
+    public int Duration { get; set; }
+}
+
+public class BookingDataDto : Booking
+{
+    public string RoomName { get; set; }
+    public string RoomDescription { get; set; }
+    public string RoomLocation { get; set; }
+    public int? RoomCapacity { get; set; }
+    public string RoomGoogleMap { get; set; }
+    public string BuildingName { get; set; }
+    public string BuildingDetailAddress { get; set; }
+    public string BuildingGoogleMap { get; set; }
+    public decimal Price { get; set; }
+    public string FormatTimeStart { get; set; }
+    public string FormatTimeEnd { get; set; }
+    public string FormatDate { get; set; }
+    public string PicEmail { get; set; } = null!;
+    public string PicName { get; set; } = null!;
+    public string PicNik { get; set; } = null!;
+    public int? PicVip { get; set; }
+
 }
