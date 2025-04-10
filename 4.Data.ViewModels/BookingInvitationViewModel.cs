@@ -95,6 +95,12 @@ namespace _4.Data.ViewModels
         [JsonPropertyName("position")]
         public string Position { get; set; } = string.Empty;
 
+        [JsonPropertyName("attendance_status")]
+        public string AttendanceStatus { get; set; } = string.Empty;
+        
+        [JsonPropertyName("attendance_reason")]
+        public string AttendanceReason { get; set; } = string.Empty;
+
         [JsonPropertyName("employee_name")]
         public string? EmployeeName { get; set; }
 

@@ -17,7 +17,6 @@ namespace _3.BusinessLogic.Services.Interface
         Task<ReturnalModel> UpdateRoom(RoomVMUpdateFRViewModel vm, long id);
         Task<(string?, string?)> DoUploadAsync(IFormFile? file);
         Task<RoomDetailsViewModel> GetRoomDetailsAsync(string? pagename = "Room");
-        Task<FileReady> GetRoomDetailView(string id, int h = 60);
         Task<List<RoomMergeDetailViewModel>> GetAllRoomMerge();
         Task<List<RoomMergeDetailViewModel>> GetRoomMerge(string id);
         Task<RoomVMUResponseFRViewModel> GetRoomById(long id);

@@ -1,30 +1,41 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER app
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
-
-# This stage is used to build the service project
+# Use the official .NET 8 SDK image to build and publish the app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["PAMA1/PAMA1.csproj", "PAMA1/"]
-RUN dotnet restore "./PAMA1/PAMA1.csproj"
-COPY . .
-WORKDIR "/src/PAMA1"
-RUN dotnet build "./PAMA1.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-# This stage is used to publish the service project to be copied to the final stage
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./PAMA1.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
-FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "PAMA1.dll"]
+
+# Copy project files and restore dependencies
+COPY PAMA_SMeet_Room.sln ./
+COPY 1.PAMA.Razor.Views/*.csproj ./1.PAMA.Razor.Views/
+COPY 2.Web.API.Controllers/*.csproj ./2.Web.API.Controllers/
+COPY 3.BusinessLogic.Services/*.csproj ./3.BusinessLogic.Services/
+COPY 4.Data.ViewModels/*.csproj ./4.Data.ViewModels/
+COPY 5.Helpers.Consumer/*.csproj ./5.Helpers.Consumer/
+COPY 6.Repositories/*.csproj ./6.Repositories/
+COPY 7.Entities.Models/*.csproj ./7.Entities.Models/
+
+RUN dotnet clean
+RUN dotnet restore
+
+# Copy all files and publish
+COPY . ./
+RUN dotnet publish 1.PAMA.Razor.Views/1.PAMA.Razor.Views.csproj -c Release -o out
+
+# Use a smaller runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+
+# Install dependencies for SkiaSharp
+RUN apt-get update && apt-get install -y \
+    libfontconfig1 \
+    libfreetype6 \
+    libharfbuzz0b \
+    libx11-6 \
+    libxext6 \
+    libxrender1 \
+    libxcb1 \
+    libx11-xcb1 \
+    libxrandr2
+
+COPY --from=build /app/out .
+
+EXPOSE 80
+ENTRYPOINT ["dotnet", "1.PAMA.Razor.Views.dll", "--urls", "http://+:80"]

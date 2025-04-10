@@ -169,3 +169,4 @@ ALTER TABLE smart_meeting_room.smart_meeting_room.room_merge_detail ALTER COLUMN
 
 --
 ALTER TABLE smart_meeting_room.booking_invoice ADD is_deleted INT DEFAULT 0;
+ALTER TABLE smart_meeting_room.smart_meeting_room.setting_log_config ADD is_deleted int DEFAULT 0 NULL;

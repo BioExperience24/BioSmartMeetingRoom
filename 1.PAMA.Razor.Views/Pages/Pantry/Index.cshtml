@@ -54,7 +54,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row clearfix">
+                    <div class="row clearfix hidden">
                         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                             <div class="card">
                                 <div class="header">
@@ -124,7 +124,7 @@
                                                 <th style="width: 80px;">#</th>
                                                 <th>Image</th>
                                                 <th style="width: 200px;">Name</th>
-                                                <th style="width: 200px;">Prefix</th>
+                                                <th style="width: 200px;">Unit</th>
                                                 <th>
                                                     <button 
                                                      onclick="createDataMenu($(this))" 
@@ -266,7 +266,7 @@
                                         <input type="text" autocomplete="off" name="name" id="id_crt_menu_name" required=""  class="form-control" placeholder="Menu Name">
                                     </div>
                                 </div>
-                                <label for="">Prefix</label>
+                                <label for="">Unit</label>
                                 <div class="form-group">
                                    <select name="prefix_id" id="id_crt_menu_prefix" class="form-control show-tick"></select>
                                 </div>
@@ -318,7 +318,7 @@
                                         <input type="text" autocomplete="off" name="name" id="id_edt_menu_name" required=""  class="form-control" placeholder="Menu Name">
                                     </div>
                                 </div>
-                                <label for="">Prefix</label>
+                                <label for="">Unit</label>
                                 <div class="form-group">
                                    <select name="prefix_id" id="id_edt_menu_prefix" class="form-control show-tick"></select>
                                 </div>
@@ -1516,7 +1516,7 @@
             form.append('name', name);
             Swal.fire({
                 title: 'Are you sure you want delete it?',
-                text: "You will lose the data prefix " + name + " !",
+                text: "You will lose the data unit " + name + " !",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -1540,7 +1540,7 @@
                         success: function (data) {
                             $('#id_loader').html('');
                             if (data.status == "success") {
-                                showNotification('alert-success', "Succes deleted prefix " + name, 'top', 'center')
+                                showNotification('alert-success', "Succes deleted unit " + name, 'top', 'center')
                                 pantrySatuan()
                             } else {
                                 showNotification('alert-danger', "Data not found", 'bottom', 'left')

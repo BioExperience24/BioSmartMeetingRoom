@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.AccessControl;
+using System.Text.Json;
 using System.Transactions;
 using _6.Repositories.DB;
 using _6.Repositories.Extension;
@@ -82,6 +83,11 @@ public class ModuleBackendRepository
     {
         return await _dbContext.ModuleBackends
             .FirstOrDefaultAsync(m => m.ModuleText == moduleText);
+    }
+    public async Task<SettingSmtp?> GetSmtpSettingTop()
+    {
+        return await _dbContext.SettingSmtps
+            .FirstOrDefaultAsync(m => m.IsEnabled == 1 && m.IsDeleted == 0);
     }
 
     public async Task<NotificationConfig?> GetTopNotificationConfig()
@@ -230,6 +236,15 @@ public class ModuleBackendRepository
     {
         return await _dbSet
             .FirstOrDefaultAsync(m => m.ModuleText == moduleText);
+    }
+
+    public async Task<HttpUrl?> GetHttpUrlTop()
+    {
+        {
+            return await _dbContext.HttpUrls
+                .Where(m => m.IsDeleted == 0 && m.IsEnable == 1)
+                .FirstOrDefaultAsync();
+        }
     }
 
     public async Task<List<object>> GetMenuAsync(string menuName = "", int menuId = 0, long levelId = 0)
@@ -452,39 +467,24 @@ public async Task<(string Error, List<RoomData> Data)> GetRoomDataAsync()
 
     public async Task<List<EmployeeWithAccessInfo>> GetEmployeesWithAccessAsync()
     {
-        // Assuming "filterCondition" represents the equivalent of "$w" in PHP.
-        var query = _dbContext.Employees
-            .Join(
-                _dbContext.Users, // Join table
-                employee => employee.Id, // Foreign key in Employees
-                user => user.EmployeeId, // Key in Users
-                (employee, user) => new EmployeeWithAccessInfo
-                {
-                    Name = employee.Name,
-                    Email = employee.Email,
-                    EmployeeId = employee.Id,
-                    Nik = employee.Nik,
-                    CardNumber = employee.CardNumber,
-                    PhoneNumber = employee.NoPhone,
-                    ExtensionNumber = employee.NoExt,
-                    AccessId = user.AccessId
-                }
-            )
-            .Where(joined => !string.IsNullOrEmpty(joined.AccessId) && joined.AccessId.Contains("4")); // LIKE '%4%'
-
-       var dataEmployee =  await query.Select(result => new EmployeeWithAccessInfo
-        {
-            Name = result.Name,
-            Email = result.Email,
-            EmployeeId = result.EmployeeId,
-            Nik = result.Nik,
-            CardNumber = result.CardNumber,
-            PhoneNumber = result.PhoneNumber,
-            ExtensionNumber = result.ExtensionNumber,
-            AccessId = result.AccessId
-        }).ToListAsync();
-
-        return dataEmployee;
+        var query = from e in _dbContext.Employees
+                    from u in _dbContext.Users.Where(u => u.EmployeeId == e.Id).DefaultIfEmpty()
+                    where (u.LevelId == 1 || u.LevelId == 6)
+                    && e.IsDeleted == 0
+                    && u.IsDeleted == 0
+                    select new EmployeeWithAccessInfo
+                    {
+                        Name = e.Name,
+                        Email = e.Email,
+                        EmployeeId = e.Id!,
+                        Nik = e.Nik,
+                        CardNumber = e.CardNumber,
+                        PhoneNumber = e.NoPhone ?? string.Empty,
+                        ExtensionNumber = e.NoExt ?? string.Empty,
+                        AccessId = u.AccessId ?? string.Empty
+                    };
+        var result = await query.ToListAsync();
+        return result;
     }
 
 public async Task<List<EmployeeWithDetails>> GetEmployeesWithDetailsAsync()
@@ -913,6 +913,13 @@ public async Task<List<EmployeeWithDetails>> GetEmployeesWithDetailsAsync()
     public async Task InsertNotification(NotificationAdmin entity)
     {
         _dbContext.Set<NotificationAdmin>().Add(entity);
+
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task InsertLogAccessRoom(LogAccessRoom entity)
+    {
+        _dbContext.Set<LogAccessRoom>().Add(entity);
 
         await _dbContext.SaveChangesAsync();
     }

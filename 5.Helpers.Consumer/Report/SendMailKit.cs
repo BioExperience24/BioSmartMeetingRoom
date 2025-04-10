@@ -3,9 +3,6 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.AspNetCore.Hosting;
 using MimeKit;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace _4.Helpers.Consumer.Report
 {

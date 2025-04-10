@@ -1,15 +1,15 @@
-using System.Text.Json;
 using _2.BusinessLogic.Services.Interface;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
-using _5.Helpers.Consumer._Response;
 using _5.Helpers.Consumer.EnumType;
-using Controllers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using _5.Helpers.Consumer.Policy;
 
 namespace _1.PAMA.Razor.Views.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class EmployeeController : ControllerBase

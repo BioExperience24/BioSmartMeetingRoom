@@ -2,7 +2,10 @@
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Response;
 using _5.Helpers.Consumer.EnumType;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using _5.Helpers.Consumer.Policy;
 
 namespace Controllers;
 
@@ -12,6 +15,8 @@ namespace Controllers;
 /// <remarks>
 /// Provides endpoints for CRUD operations on invoice configurations.
 /// </remarks>
+
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
 [Route("api/[controller]/[action]")]
 [ApiController]
 public class SettingInvoiceConfigController(ISettingInvoiceConfigService service)

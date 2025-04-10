@@ -1,4 +1,6 @@
-﻿namespace _7.Entities.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace _7.Entities.Models;
 
 public partial class PantryTransaksi : BaseEntity
 {
@@ -96,6 +98,9 @@ public partial class PantryTransaksi : BaseEntity
 
     public string? ApprovedBy { get; set; }
     public DateTime? ApprovedAt { get; set; }
+
+    [NotMapped]
+    public List<string> BookingIds { get; set; } = new();
 }
 
 public class PantryEntryResponse
@@ -151,5 +156,47 @@ public class PantryDetailResponse
 {
     public string Error { get; set; }
     public List<PantryDetailDto> Data { get; set; }
+}
+
+public class PantryTransaksiFilter : PantryTransaksi
+{
+    public DateOnly StartDate { get; set; }
+
+    public DateOnly EndDate { get; set; }
+}
+
+public class PantryTransaksiSelect : PantryTransaksi
+{
+    public string? BookingRoomName { get; set; }
+    public string? BookingTitle { get; set; }
+    public int? BookingIsApprove { get; set; }
+    public int? BookingIsCanceled { get; set; }
+    public DateOnly? BookingDate { get; set; }
+    public DateTime? BookingStart { get; set; }
+    public DateTime? BookingEnd { get; set; }
+}
+
+public class PantryTransaksiOrderApproval
+{
+    public string PantryPackageName { get; set; }
+    public string? PantryTransaksiId { get; set; }
+    public string? BookingId { get; set; }
+    public string? RoomId { get; set; }
+    public string? EmployeeId { get; set; }
+    public string? ApprovedBy { get; set; }
+    public string? BookingTitle { get; set; }
+    public string? RoomName { get; set; }
+    public string? BuildingName { get; set; }
+    public string? BuildingFloorName { get; set; }
+    public string? EmployeeOrganize { get; set; }
+    public string? EmployeeApprove { get; set; }
+    public string? RoomImage { get; set; }
+    public int? OrderStatus { get; set; }
+    public string? OrderStatusName { get; set; }
+    public DateOnly? BookingDate { get; set; }
+    public DateTime? BookingStart { get; set; }
+    public DateTime? BookingEnd { get; set; }
+    public DateTime? ExpiredAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }
 

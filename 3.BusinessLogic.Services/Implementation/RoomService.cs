@@ -12,11 +12,12 @@ namespace _3.BusinessLogic.Services.Implementation
         private readonly RoomRepository _repo;
         private readonly ModuleBackendRepository _repoModuleBackend;
         private readonly IAttachmentListService _attachmentListService;
-        
+
         private readonly BookingRepository _repoBooking;
+        private readonly IS3Service _s3Service;
 
         public RoomService(RoomRepository repo, IMapper mapper,
-        IConfiguration config, IAttachmentListService attachmentListService, ModuleBackendRepository repoModuleBackend, BookingRepository repoBooking) : base(repo, mapper)
+        IConfiguration config, IAttachmentListService attachmentListService, ModuleBackendRepository repoModuleBackend, BookingRepository repoBooking, IS3Service s3Service) : base(repo, mapper)
         {
             _repo = repo;
             _repoModuleBackend = repoModuleBackend;
@@ -28,6 +29,7 @@ namespace _3.BusinessLogic.Services.Implementation
             attachmentListService.SetTypeAllowed(config["UploadFileSetting:imageContentTypeAllowed"]!);
             attachmentListService.SetSizeLimit(Convert.ToInt32(config["UploadFileSetting:imageSizeLimit"] ?? "8")); // MB
             _attachmentListService = attachmentListService;
+            _s3Service = s3Service;
         }
 
         public async Task<IEnumerable<RoomViewModelAlt>> GetAllRoomItemAsync(bool withIsDisabled = true)
@@ -66,10 +68,28 @@ namespace _3.BusinessLogic.Services.Implementation
                     ? request.RoomCategory
                     : "room";
 
-            if (request.Date != "")
+            if (request.RoomCategory == "trainingroom")
             {
-                entity.WorkDay = new List<string>{ _String.ToDayName(request.Date) };
-                entity.WorkDate = DateOnly.Parse(request.Date);
+                DateOnly dateFrom = DateOnly.Parse(request.Date);
+                DateOnly dateUntil = DateOnly.Parse(request.DateUntil);
+                
+                entity.WorkDay = Enumerable
+                    .Range(0, dateUntil.DayNumber - dateFrom.DayNumber + 1)
+                    .Select(offset => dateFrom.AddDays(offset).ToString("dddd").ToUpper())
+                    .Distinct()
+                    .ToList();
+
+                entity.WorkDate = dateFrom;
+                entity.WorkDateUntil = dateUntil;
+                
+            }
+            else 
+            {
+                if (request.Date != "")
+                {
+                    entity.WorkDay = new List<string>{ _String.ToDayName(request.Date) };
+                    entity.WorkDate = DateOnly.Parse(request.Date);
+                }
             }
 
             if (request.BuildingId > 0)
@@ -645,7 +665,6 @@ namespace _3.BusinessLogic.Services.Implementation
 
         public async Task<ReturnalModel> UpdateRoom(RoomVMUpdateFRViewModel request, long id)
         {
-
             DateTime now = DateTime.Now;
 
             var old_data = await _repo.GetById(id);
@@ -819,7 +838,7 @@ namespace _3.BusinessLogic.Services.Implementation
                         item.WorkDay = [];
                     }
 
-                    if(item.IsConfigSettingEnable == 1 && request.ConfigRoomForUsage.Count > 0)
+                    if(item.IsConfigSettingEnable == 1 && request.ConfigRoomForUsage != null && request.ConfigRoomForUsage.Count > 0)
                     {
 
                         // Delete existing data
@@ -827,16 +846,19 @@ namespace _3.BusinessLogic.Services.Implementation
 
                         try
                         {
-                            // Deserialize the JSON data
-                            var dataRoomForUsageDetail = JsonConvert.DeserializeObject<List<RoomForUsageDetailViewModel>>(request?.RoomUsageDetail);
-
-                            var mapper_room_for_usage_detail = _mapper.Map<List<RoomForUsageDetail>>(dataRoomForUsageDetail);
-
-                            // Check if the list has any elements
-                            if (dataRoomForUsageDetail != null && dataRoomForUsageDetail.Count > 0)
+                            if (request?.RoomUsageDetail != null)
                             {
-                                // Insert the new data in batch
-                                _repoModuleBackend.CreateBulkRoomForUsageDetail(mapper_room_for_usage_detail);
+                                // Deserialize the JSON data
+                                var dataRoomForUsageDetail = JsonConvert.DeserializeObject<List<RoomForUsageDetailViewModel>>(request?.RoomUsageDetail);
+
+                                var mapper_room_for_usage_detail = _mapper.Map<List<RoomForUsageDetail>>(dataRoomForUsageDetail);
+
+                                // Check if the list has any elements
+                                if (dataRoomForUsageDetail != null && dataRoomForUsageDetail.Count > 0)
+                                {
+                                    // Insert the new data in batch
+                                    _repoModuleBackend.CreateBulkRoomForUsageDetail(mapper_room_for_usage_detail);
+                                }
                             }
                         }
                         catch (Exception error)
@@ -897,8 +919,6 @@ namespace _3.BusinessLogic.Services.Implementation
             }
         }
 
-
-
         public async Task<(string?, string?)> DoUploadAsync(IFormFile? file)
         {
             string radid = _Random.Numeric(3).ToString();
@@ -908,6 +928,7 @@ namespace _3.BusinessLogic.Services.Implementation
             // Upload file if exists
             if (file != null && file.Length > 0)
             {
+                _attachmentListService.SetTableFolder("images");
                 return await _attachmentListService.FileUploadProcess(file, fn);
             }
 
@@ -915,17 +936,7 @@ namespace _3.BusinessLogic.Services.Implementation
         }
 
 
-        public async Task<FileReady> GetRoomDetailView(string id, int h = 60)
-        {
-            var base64 = await _attachmentListService.GenerateThumbnailBase64(id, h);
-            if (string.IsNullOrEmpty(base64))
-            {
-                base64 = await _attachmentListService.NoImageBase64("pantry.jpeg", h);
-            }
-            MemoryStream dataStream = _attachmentListService.ConvertBase64ToMemoryStream(base64);
-
-            return new FileReady() { FileStream = dataStream, FileName = "Preview Pantry Detail" };
-        }
+        
 
     }
 

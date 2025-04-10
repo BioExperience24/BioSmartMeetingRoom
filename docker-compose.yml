@@ -1,20 +1,30 @@
+version: '3.8'
+
 services:
-  pama-app:
-    image: my-dotnet-app
+  pama-smr:
+    container_name: pama-smr
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: 1.PAMA.Razor.Views/Dockerfile
     ports:
-      - "8080:5000"  # Map container port 5000 to host port 8080
+      - "8080:8080"
+      - "8081:8081"
     environment:
-      - ASPNETCORE_URLS=http://0.0.0.0:5000
-    restart: always
+      - ASPNETCORE_ENVIRONMENT=Production
     volumes:
-      - attachment-data:/app/attachments  # Map volume to container path
-    networks:
-      - pama-network
-networks:
-  pama-network:
-    driver: bridge
-volumes:
-  attachment-data:
+      - ~/.aws:/root/.aws:ro 
+    restart: always
+
+  pama-api:
+    container_name: pama-api
+    build:
+      context: .
+      dockerfile: 2.Web.API.Controllers/Dockerfile
+    ports:
+      - "8082:8080"
+      - "8083:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    volumes:
+      - ~/.aws:/root/.aws:ro 
+    restart: always

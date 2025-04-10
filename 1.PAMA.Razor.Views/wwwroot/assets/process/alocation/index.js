@@ -5,56 +5,56 @@ var gType = [];
 var gChecked = {};
 var gEmployee = {};
 var nload = 0;
-$(function(){
+$(function () {
     initType();
-    setTimeout(function(){
+    setTimeout(function () {
 
     }, 2000)
     getEmployee()
     // getRoom();
-}) 
-function clickSubmit(id){
-    $('#'+id).click();
+})
+function clickSubmit(id) {
+    $('#' + id).click();
 }
-function getModule(){
+function getModule() {
     var modules = $('#id_modules').val();
     return JSON.parse(modules)
 }
-function initTable(selector){
+function initTable(selector) {
     selector.DataTable();
 }
-function clearTable(selector){
+function clearTable(selector) {
     selector.DataTable().destroy();
 }
-function select_enable(){
+function select_enable() {
     $('select').selectpicker("refresh");
     $('select').selectpicker("initialize");
 }
-function enable_datetimepicker(){
+function enable_datetimepicker() {
     $('.timepicker').bootstrapMaterialDatePicker({
         format: 'HH:mm',
         clearButton: true,
         date: false
     });
 }
-function createData_type(){
-    
+function createData_type() {
+
     $('#id_mdl_create_type').modal('show');
     select_enable()
     // $('.ip').inputmask('099.099.099.099', { placeholder: '___.___.___.___' });
 }
-function createData_alocation(){
-    
+function createData_alocation() {
+
     $('#id_mdl_create_alocation').modal('show');
     var html1 = "";
     $.each(gType, (index, item) => {
-        html1 += '<option value="'+item.id+'">'+item.name+'</option>';
+        html1 += '<option value="' + item.id + '">' + item.name + '</option>';
     });
     $('#id_crt_type').html(html1)
     // enable_datetimepicker()
     select_enable()
 }
-function openData(id,data, name = ""){
+function openData(id, data, name = "") {
     var html = '';
     var dataloop = [];
     gChecked = {};
@@ -63,95 +63,95 @@ function openData(id,data, name = ""){
         dataloop.push(item.nik);
     });
     // console.log(dataloop)
-    $.each(gEmployee, (index, item)=>{
+    $.each(gEmployee, (index, item) => {
         console.log(item)
-        if(dataloop.indexOf(item.nik) > -1){
+        if (dataloop.indexOf(item.nik) > -1) {
             gChecked[item.nik] = {
-                nik : item.nik,
-                status : 1,
+                nik: item.nik,
+                status: 1,
             }
-            html += '<tr data-check="check-'+item.nik+'" onclick="clickListAssign($(this))">';
-            html += '<td  data-check="check-'+item.nik+'" onclick="clickListAssign($(this))" style="width:50px;"><input onchange="onCheckRoom($(this))" type="checkbox" name="employee-'+item.nik+'" class="filled-in" id="check-'+item.nik+'" checked value="'+item.nik+'">\
-            <label for="check-'+item.nik+'"></label></td>'
-            html += '<td>'+item.name+'</td>'
+            html += '<tr data-check="check-' + item.nik + '" onclick="clickListAssign($(this))">';
+            html += '<td  data-check="check-' + item.nik + '" onclick="clickListAssign($(this))" style="width:50px;"><input onchange="onCheckRoom($(this))" type="checkbox" name="employee-' + item.nik + '" class="filled-in" id="check-' + item.nik + '" checked value="' + item.nik + '">\
+            <label for="check-'+ item.nik + '"></label></td>'
+            html += '<td>' + item.name + '</td>'
             html += '</tr>';
-            
-        }else{
+
+        } else {
             gChecked[item.nik] = {
-                nik : item.nik,
-                status : 0,
+                nik: item.nik,
+                status: 0,
             }
-            html += '<tr data-check="check-'+item.nik+'" onclick="clickListAssign($(this))">';
-            html += '<td  data-check="check-'+item.nik+'" onclick="clickListAssign($(this))" style="width:50px;"><input onchange="onCheckRoom($(this))" type="checkbox" name="employee-'+item.nik+'" class="filled-in" id="check-'+item.nik+'" value="'+item.nik+'">\
-            <label for="check-'+item.nik+'"></label></td>'
-            html += '<td>'+item.name+'</td>'
+            html += '<tr data-check="check-' + item.nik + '" onclick="clickListAssign($(this))">';
+            html += '<td  data-check="check-' + item.nik + '" onclick="clickListAssign($(this))" style="width:50px;"><input onchange="onCheckRoom($(this))" type="checkbox" name="employee-' + item.nik + '" class="filled-in" id="check-' + item.nik + '" value="' + item.nik + '">\
+            <label for="check-'+ item.nik + '"></label></td>'
+            html += '<td>' + item.name + '</td>'
             html += '</tr>';
-            
+
         }
     });
     $('#id_access_assign_id').val(id)
     $('#id_list_assign tbody').html(html)
     $('#id_mdl_assign').modal('show');
-    $('#id_assign_title').html('<u>'+name+'</br>');
+    $('#id_assign_title').html('<u>' + name + '</br>');
     initTable($('#id_list_assign'));
     select_enable()
     // $('.ip').inputmask('099.099.099.099', { placeholder: '___.___.___.___' });
 }
-function clickListAssign(t){
+function clickListAssign(t) {
     var idstr = t.data('check');
-    $('#'+idstr).click();
+    $('#' + idstr).click();
 }
-function onCheckRoom(t){
+function onCheckRoom(t) {
     var ck = t.is(":checked");
     gChecked[t.val()]['nik'] = t.val();
     gChecked[t.val()]['status'] = ck == true ? 1 : 0;
 }
-function getEmployee(){
+function getEmployee() {
     var bs = $('#id_baseurl').val();
     $.ajax({
         // url : bs+"employee/get/data",
-        url : ajax.url.get_employees,
+        url: ajax.url.get_employees,
         // type : "POST",
-        type : "GET",
+        type: "GET",
         dataType: "json",
-        beforeSend: function(){
+        beforeSend: function () {
         },
-        success:function(data){
-            if(data.status == "success"){
-                gEmployee= data.collection
-            }else{
-                showNotification('alert-danger', data.msg,'top','center')
+        success: function (data) {
+            if (data.status == "success") {
+                gEmployee = data.collection
+            } else {
+                showNotification('alert-danger', data.msg, 'top', 'center')
             }
         },
         error: errorAjax
     })
 }
-function assignData(t){
+function assignData(t) {
     var html = '';
     var bs = $('#id_baseurl').val();
     var id = t.data('id');
     var name = t.data('name');
     $.ajax({
-        url : bs+"alocation/get/data/assign/"+id,
-        type : "POST",
+        url: bs + "alocation/get/data/assign/" + id,
+        type: "POST",
         dataType: "json",
-        beforeSend: function(){
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success:function(data){
-            if(data.status == "success"){
-                openData(id,data.collection, name);
-            }else{
-                showNotification('alert-danger', data.msg,'top','center')
+        success: function (data) {
+            if (data.status == "success") {
+                openData(id, data.collection, name);
+            } else {
+                showNotification('alert-danger', data.msg, 'top', 'center')
             }
             $('#id_loader').html('');
         },
         error: errorAjax
     })
 }
-$('#frm_assign').submit(function(e){
+$('#frm_assign').submit(function (e) {
     e.preventDefault();
-    var form =  $('#frm_assign').serialize();
+    var form = $('#frm_assign').serialize();
     var formData = new FormData();
     var strChecked = JSON.stringify(gChecked);
     var id = $('#id_access_assign_id').val();
@@ -159,7 +159,7 @@ $('#frm_assign').submit(function(e){
     formData.append("alocation", id);
     var bs = $('#id_baseurl').val();
     Swal.fire({
-        title:'Are you sure you want save it?',
+        title: 'Are you sure you want save it?',
         text: "",
         type: "warning",
         showCancelButton: true,
@@ -168,120 +168,120 @@ $('#frm_assign').submit(function(e){
         confirmButtonText: 'Save !',
         cancelButtonText: 'Cancel !',
         reverseButtons: true
-        }).then((result) => {
-            if (result.value) {
-                gChecked = {};
-                // var bs = $('#id_baseurl').val();
-                $.ajax({
-                    url : bs+"alocation/post/assign",
-                    type : "POST",
-                    dataType: "json",
-                    data:  formData,
-                    processData: false,
-                    contentType: false,
-                    beforeSend: function(){
-                        $('#id_loader').html('<div class="linePreloader"></div>');
-                    },
-                    success:function(data){
-                        if(data.status == "success"){
-                            initAlocation();
-                            $('#id_mdl_assign').modal('hide');
-                              showNotification('alert-success', data.msg,'top','center')
-                        }else{
-                              showNotification('alert-danger', data.msg,'top','center')
-                        }
-                        $('#id_loader').html('');
-                    },
-                    error: errorAjax
-                })
-            }
-        else{
+    }).then((result) => {
+        if (result.value) {
+            gChecked = {};
+            // var bs = $('#id_baseurl').val();
+            $.ajax({
+                url: bs + "alocation/post/assign",
+                type: "POST",
+                dataType: "json",
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    if (data.status == "success") {
+                        initAlocation();
+                        $('#id_mdl_assign').modal('hide');
+                        showNotification('alert-success', data.msg, 'top', 'center')
+                    } else {
+                        showNotification('alert-danger', data.msg, 'top', 'center')
+                    }
+                    $('#id_loader').html('');
+                },
+                error: errorAjax
+            })
+        }
+        else {
 
         }
     })
-    
-}) 
-$('#frm_create_type').submit(function(e){
+
+})
+$('#frm_create_type').submit(function (e) {
     e.preventDefault();
-    var form =  $('#frm_create_type').serialize();
+    var form = $('#frm_create_type').serialize();
     var bs = $('#id_baseurl').val();
     $.ajax({
         // url : bs+"alocation/post/create/type",
-        url : ajax.url.post_create_type,
-        type : "POST",
+        url: ajax.url.post_create_type,
+        type: "POST",
         dataType: "json",
-        data:  form,
-        beforeSend: function(){
+        data: form,
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success:function(data){
-            if(data.status == "success"){
+        success: function (data) {
+            if (data.status == "success") {
                 initType()
                 $('#frm_create_type')[0].reset();
                 $('#id_mdl_create_type').modal('hide');
-                showNotification('alert-success', data.msg,'top','center')
-            }else{
-                showNotification('alert-danger', data.msg,'top','center')
+                showNotification('alert-success', data.msg, 'top', 'center')
+            } else {
+                showNotification('alert-danger', data.msg, 'top', 'center')
             }
             $('#id_loader').html('');
-            },
+        },
         error: errorAjax
     })
-}) 
-$('#frm_create_alocation').submit(function(e){
+})
+$('#frm_create_alocation').submit(function (e) {
     e.preventDefault();
-    var form =  $('#frm_create_alocation').serialize();
+    var form = $('#frm_create_alocation').serialize();
     var bs = $('#id_baseurl').val();
     $.ajax({
         // url : bs+"alocation/post/create/alocation",
-        url : ajax.url.post_create_alocation,
-        type : "POST",
+        url: ajax.url.post_create_alocation,
+        type: "POST",
         dataType: "json",
-        data:  form,
-        beforeSend: function(){
+        data: form,
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success:function(data){
-            if(data.status == "success"){
+        success: function (data) {
+            if (data.status == "success") {
                 initAlocation()
                 $('#frm_create_alocation')[0].reset();
                 $('#id_mdl_create_alocation').modal('hide');
-                showNotification('alert-success', data.msg,'top','center')
-            }else{
-                showNotification('alert-danger', data.msg,'top','center')
+                showNotification('alert-success', data.msg, 'top', 'center')
+            } else {
+                showNotification('alert-danger', data.msg, 'top', 'center')
             }
             $('#id_loader').html('');
-            },
+        },
         error: errorAjax
     })
-})   
-$('#frm_update').submit(function(e){
+})
+$('#frm_update').submit(function (e) {
     e.preventDefault();
     var form = $('#frm_update').serialize();
     var id = $('#id_edt_id').val()
     var bs = $('#id_baseurl').val();
     $.ajax({
-        url : bs+"access/post/update/"+id,
-        type : "POST",
+        url: bs + "access/post/update/" + id,
+        type: "POST",
         dataType: "json",
         contentType: false,
         cache: false,
-        processData:false,
+        processData: false,
         // data : form,
-        data:  new FormData(this),
-        beforeSend: function(){
+        data: new FormData(this),
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success:function(data){
-            if(data.status == "success"){
+        success: function (data) {
+            if (data.status == "success") {
                 $('#frm_update')[0].reset();
                 $('#id_edt_room').html("");
                 $('#id_edt_channel').html("")
                 $('#id_mdl_update').modal('hide');
                 init();
-                showNotification('alert-success', data.msg,'top','center')
-            }else{
-                showNotification('alert-danger', data.msg,'top','center')
+                showNotification('alert-success', data.msg, 'top', 'center')
+            } else {
+                showNotification('alert-danger', data.msg, 'top', 'center')
             }
             $('#id_loader').html('');
         },
@@ -289,26 +289,26 @@ $('#frm_update').submit(function(e){
     })
 })
 
-function initAlocation(){
+function initAlocation() {
     var bs = $('#id_baseurl').val();
     $.ajax({
         // url : bs+"alocation/get/data/alocation",
-        url : ajax.url.get_alocations,
-        type : "GET",
+        url: ajax.url.get_alocations,
+        type: "GET",
         dataType: "json",
-        beforeSend: function(){
+        beforeSend: function () {
         },
-        success:function(data){
-            var arInvoice = ["Disabled", "Enabled"]; 
-            if(data.status == "success"){
-               gAlocation = data.collection;
-               clearTable($('#tbldataAlocation'));
+        success: function (data) {
+            var arInvoice = ["Disabled", "Enabled"];
+            if (data.status == "success") {
+                gAlocation = data.collection;
+                clearTable($('#tbldataAlocation'));
                 var html = "";
                 var nn = 0;
-                $.each(data.collection, function(index, item){
+                $.each(data.collection, function (index, item) {
                     nn++;
-                    var invoice = item.invoice_status == 0 || item.invoice_status == null ? "Disabled":"Enabled";
-                    html += '<tr data-id="'+item.id+'">'
+                    var invoice = item.invoice_status == 0 || item.invoice_status == null ? "Disabled" : "Enabled";
+                    html += '<tr data-id="' + item.id + '">'
                     html += '<td>';
                     html += '<a class="btn btn-info waves-effect edit" title="Edit">\
                               <i class="material-icons">mode_edit</i>\
@@ -316,14 +316,14 @@ function initAlocation(){
                            ';
                     html += ' <button \
                          onclick="removeDataAlocation($(this))" \
-                         data-id="'+item.id+'" \
-                         data-name="'+item.name+'" \
+                         data-id="'+ item.id + '" \
+                         data-name="'+ item.name + '" \
                          type="button" class="btn btn-danger waves-effect"><i class="material-icons">delete</i> </button> ';
                     html += '</td>';
-                    html += '<td data-field="department_code">'+item.department_code+'</td>';
-                    html += '<td data-field="name">'+item.name+'</td>';
-                    html += '<td data-field="type">'+item.type_name+'</td>';
-                    html += '<td data-field="invoice_status">'+invoice+'</td>';
+                    html += '<td data-field="department_code">' + item.department_code + '</td>';
+                    html += '<td data-field="name">' + item.name + '</td>';
+                    html += '<td data-field="type">' + item.type_name + '</td>';
+                    //html += '<td data-field="invoice_status">' + invoice + '</td>';
                     // html += '<td>';
                     // html += '<button \
                     //      onclick="assignData($(this))" \
@@ -331,8 +331,8 @@ function initAlocation(){
                     //      data-name="'+item.name+'" \
                     //      type="button" class="btn btn-info waves-effect">Assign Employee</button>';
                     // html += '</td>';
-                    
-                    
+
+
                     html += '</tr>';
                 })
                 $('#tbldataAlocation tbody').html(html);
@@ -340,8 +340,8 @@ function initAlocation(){
                 $.each(gType, (index, item) => {
                     ntype.push(
                         {
-                            id:item.id,
-                            name:item.name,
+                            id: item.id,
+                            name: item.name,
                         }
                     )
                     // ntype.push(item.name)
@@ -349,99 +349,99 @@ function initAlocation(){
                 // console.log(ntype)
                 $('#tbldataAlocation  tr').editable({
                     dropdowns: {
-                      type: ntype,
-                      invoice_status: arInvoice,
+                        type: ntype,
+                        invoice_status: arInvoice,
                     },
                     dblclick: true,
                     button: true, // enable edit buttons
                     buttonSelector: ".edit", // CSS selector for edit buttons
-                    edit: function(values) {
-                      $(".edit i", this)
-                        .html('save')
-                        .attr('title', 'Save');
+                    edit: function (values) {
+                        $(".edit i", this)
+                            .html('save')
+                            .attr('title', 'Save');
                         // $("<span>Hello world ASA!</span>").insertAfter(".asd");
-                      // $(".edit i", this).parent().append('Some text');
+                        // $(".edit i", this).parent().append('Some text');
                     },
-                    save: function(values) {
-                      var xxx = "Are you sure to change this data?";
-                      // var xxx = "if you change the invoice to enable, then the department will be charged at the meeting. <br>";
-                      // xxx += "if you change the invoice to disable, then the department will not be charged at the meeting. ";
-                      Swal.fire({
-                      title: 'Attention !',
-                      html: xxx,
-                      icon: 'warning',
-                      showCancelButton: true,
-                      confirmButtonColor: '#3085d6',
-                      reverseButtons: true,
-                      cancelButtonColor: '#d33',
-                      confirmButtonText: 'Yes, change it!'
+                    save: function (values) {
+                        var xxx = "Are you sure to change this data?";
+                        // var xxx = "if you change the invoice to enable, then the department will be charged at the meeting. <br>";
+                        // xxx += "if you change the invoice to disable, then the department will not be charged at the meeting. ";
+                        Swal.fire({
+                            title: 'Attention !',
+                            html: xxx,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            reverseButtons: true,
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, change it!'
 
-                    }).then((result) => {
-                      if (result.value) {
+                        }).then((result) => {
+                            if (result.value) {
+                                $(".edit i", this)
+                                    .html('mode_edit')
+                                    .attr('title', 'Edit');
+                                var id = $(this).data('id');
+                                values['id'] = id;
+                                values['invoice_status'] = values['invoice_status'] == "Disabled" ? 0 : 1;
+                                // console.log(values)
+                                // $.post(bs+'alocation/post/update/alocation', values);
+                                $.post(ajax.url.post_update_alocation, values);
+                                Swal.fire(
+                                    'Change alocation list!',
+                                    'changes made successfully',
+                                    'success'
+                                )
+                            } else {
+                                $(".edit i", this)
+                                    .html('mode_edit')
+                                    .attr('title', 'Edit');
+                            }
+                        })
+
+                        // showNotification('alert-success', "Succes deleted access control "+name ,'top','center')
+                    },
+                    cancel: function (values) {
                         $(".edit i", this)
                             .html('mode_edit')
                             .attr('title', 'Edit');
-                            var id = $(this).data('id');
-                            values['id'] = id;
-                            values['invoice_status'] = values['invoice_status'] == "Disabled" ? 0 : 1;
-                            // console.log(values)
-                            // $.post(bs+'alocation/post/update/alocation', values);
-                            $.post(ajax.url.post_update_alocation, values);
-                            Swal.fire(
-                              'Change alocation list!',
-                              'changes made successfully',
-                              'success'
-                            )
-                      }else{
-                         $(".edit i", this)
-                            .html('mode_edit')
-                            .attr('title', 'Edit');
-                      }
-                    })
-                      
-                        // showNotification('alert-success', "Succes deleted access control "+name ,'top','center')
-                    },
-                    cancel: function(values) {
-                      $(".edit i", this)
-                        .html('mode_edit')
-                        .attr('title', 'Edit');
                     }
-                  });
+                });
                 initTable($('#tbldataAlocation'));
-            }else{
+            } else {
                 var msg = "Your session is expired, login again !!!";
-                showNotification('alert-danger', msg,'top','center')
+                showNotification('alert-danger', msg, 'top', 'center')
             }
             $('#id_loader').html('');
         },
         error: errorAjax
     })
 }
-function initType(){
+function initType() {
     var bs = $('#id_baseurl').val();
     $.ajax({
         // url : bs+"alocation/get/data/type",
-        url : ajax.url.get_types,
-        type : "GET",
+        url: ajax.url.get_types,
+        type: "GET",
         dataType: "json",
-        beforeSend: function(){
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success:function(data){
-            if(data.status == "success"){
-                var arInvoice = ["Disabled", "Enabled"]; 
-               gType = data.collection;
-               if(nload==0){
+        success: function (data) {
+            if (data.status == "success") {
+                var arInvoice = ["Disabled", "Enabled"];
+                gType = data.collection;
+                if (nload == 0) {
                     initAlocation();
-               }
-               nload++;
-               clearTable($('#tbldataType'));
+                }
+                nload++;
+                clearTable($('#tbldataType'));
                 var html = "";
                 var nn = 0;
-                $.each(data.collection, function(index, item){
+                $.each(data.collection, function (index, item) {
                     nn++;
-                    var invoice = item.invoice_status == 0 || item.invoice_status == null ? "Disabled":"Enabled";
-                    html += '<tr data-id="'+item.id+'">'
+                    var invoice = item.invoice_status == 0 || item.invoice_status == null ? "Disabled" : "Enabled";
+                    html += '<tr data-id="' + item.id + '">'
                     html += '<td>';
                     html += '<a class="btn btn-info waves-effect edit" title="Edit">\
                               <i class="material-icons">mode_edit</i>\
@@ -449,16 +449,16 @@ function initType(){
                            ';
                     html += ' <button \
                          onclick="removeDataType($(this))" \
-                         data-id="'+item.id+'" \
-                         data-name="'+item.name+'" \
+                         data-id="'+ item.id + '" \
+                         data-name="'+ item.name + '" \
                          type="button" class="btn btn-danger waves-effect"><i class="material-icons">delete</i> </button> ';
                     html += '</td>';
-                    html += '<td>'+item.id+'</td>';
-                    html += '<td data-field="name">'+item.name+'</td>';
-                    html += '<td  data-field="invoice_status">'+invoice+'</td>';
-                    html += '<td>';
-                   
-                    
+                    html += '<td>' + item.id + '</td>';
+                    html += '<td data-field="name">' + item.name + '</td>';
+                    //html += '<td  data-field="invoice_status">' + invoice + '</td>';
+                    //html += '<td>';
+
+
                     html += '</tr>';
                 })
                 $('#tbldataType tbody').html(html);
@@ -470,60 +470,60 @@ function initType(){
                     dblclick: true,
                     button: true, // enable edit buttons
                     buttonSelector: ".edit", // CSS selector for edit buttons
-                    edit: function(values) {
-                      $(".edit i", this)
-                        .html('save')
-                        .attr('title', 'Save');
+                    edit: function (values) {
+                        $(".edit i", this)
+                            .html('save')
+                            .attr('title', 'Save');
                         // select_enable();
                         // $("<span>Hello world ASA!</span>").insertAfter(".asd");
-                      // $(".edit i", this).parent().append('Some text');
+                        // $(".edit i", this).parent().append('Some text');
                     },
-                    save: function(values) {
-                      
+                    save: function (values) {
+
                         var xxx = "Are you sure to change this data?";
                         // var xxx = "if you change the invoice to enable, then the allocation will be charged at the meeting. <br>";
-                          // xxx += "if you change the invoice to disable, then the allocation will not be charged at the meeting. ";
-                          Swal.fire({
-                          title: 'Are you sure?',
-                          html: xxx,
-                          icon: 'warning',
-                          showCancelButton: true,
-                          confirmButtonColor: '#3085d6',
-                          cancelButtonColor: '#d33',
-                          confirmButtonText: 'Yes, change it!'
+                        // xxx += "if you change the invoice to disable, then the allocation will not be charged at the meeting. ";
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            html: xxx,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, change it!'
                         }).then((result) => {
-                          if (result.value) {
-                            $(".edit i", this)
-                            .html('mode_edit')
-                            .attr('title', 'Edit');
-                            var id = $(this).data('id');
-                            values['id'] = id;
-                            values['invoice_status'] = values['invoice_status'] == "Disabled" ? 0 : 1;
-                            // $.post(bs+'alocation/post/update/type', values);
-                            $.post(ajax.url.post_update_type, values);
+                            if (result.value) {
+                                $(".edit i", this)
+                                    .html('mode_edit')
+                                    .attr('title', 'Edit');
+                                var id = $(this).data('id');
+                                values['id'] = id;
+                                values['invoice_status'] = values['invoice_status'] == "Disabled" ? 0 : 1;
+                                // $.post(bs+'alocation/post/update/type', values);
+                                $.post(ajax.url.post_update_type, values);
                                 Swal.fire(
-                                  'Change alocation type!',
-                                  'changes made successfully',
-                                  'success'
+                                    'Change alocation type!',
+                                    'changes made successfully',
+                                    'success'
                                 )
-                          }else{
-                             $(".edit i", this)
-                                .html('mode_edit')
-                                .attr('title', 'Edit');
-                          }
+                            } else {
+                                $(".edit i", this)
+                                    .html('mode_edit')
+                                    .attr('title', 'Edit');
+                            }
                         })
                         // showNotification('alert-success', "Succes deleted access control "+name ,'top','center')
                     },
-                    cancel: function(values) {
-                      $(".edit i", this)
-                        .html('mode_edit')
-                        .attr('title', 'Edit');
+                    cancel: function (values) {
+                        $(".edit i", this)
+                            .html('mode_edit')
+                            .attr('title', 'Edit');
                     }
-                  });
+                });
                 initTable($('#tbldataType'));
-            }else{
+            } else {
                 var msg = "Your session is expired, login again !!!";
-                showNotification('alert-danger', msg,'top','center')
+                showNotification('alert-danger', msg, 'top', 'center')
             }
             $('#id_loader').html('');
         },
@@ -531,24 +531,24 @@ function initType(){
     })
 }
 
-function checkInArrayLoop(radid, myArray, key =""){
+function checkInArrayLoop(radid, myArray, key = "") {
     var ret = false;
-    for(var x in myArray){
-        if(radid == myArray[x][key] ){
+    for (var x in myArray) {
+        if (radid == myArray[x][key]) {
             ret = true;
         }
     }
     return ret;
 }
-function removeDataType(t){
+function removeDataType(t) {
     var id = t.data('id');
     var name = t.data('name');
     var form = new FormData();
     form.append('id', id);
     form.append('name', name);
     Swal.fire({
-        title:'Are you sure you want delete it?',
-        text: "You will lose the data division "+name+" !",
+        title: 'Are you sure you want delete it?',
+        text: "You will lose the data division " + name + " !",
         type: "warning",
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
@@ -556,47 +556,47 @@ function removeDataType(t){
         confirmButtonText: 'Delete !',
         cancelButtonText: 'Cancel !',
         reverseButtons: true
-        }).then((result) => {
-            if (result.value) {
-                var bs = $('#id_baseurl').val();
-                $.ajax({
-                    // url : bs+"alocation/post/delete/type",
-                    url : ajax.url.post_delete_type,
-                    type: "POST",
-                    data : form,
-                    processData: false,
-                    contentType: false,
-                    dataType :"json",
-                    beforeSend: function(){
-                        $('#id_loader').html('<div class="linePreloader"></div>');
-                    },
-                    success:function(data){
-                        $('#id_loader').html('');
-                        if (data.status == "success") {
-                            showNotification('alert-success', "Succes deleted alocation type "+name ,'top','center')
-                            initType();
-                        }else{
-                            showNotification('alert-danger', "Data not found",'bottom','left')
-                        }
-                    },
-                    error: errorAjax,
-                })
-            }
-        else{
+    }).then((result) => {
+        if (result.value) {
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                // url : bs+"alocation/post/delete/type",
+                url: ajax.url.post_delete_type,
+                type: "POST",
+                data: form,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    $('#id_loader').html('');
+                    if (data.status == "success") {
+                        showNotification('alert-success', "Succes deleted alocation type " + name, 'top', 'center')
+                        initType();
+                    } else {
+                        showNotification('alert-danger', "Data not found", 'bottom', 'left')
+                    }
+                },
+                error: errorAjax,
+            })
+        }
+        else {
 
         }
     })
-    
+
 }
-function removeDataAlocation(t){
+function removeDataAlocation(t) {
     var id = t.data('id');
     var name = t.data('name');
     var form = new FormData();
     form.append('id', id);
     form.append('name', name);
     Swal.fire({
-        title:'Are you sure you want delete it?',
-        text: "You will lose the data departement "+name+" !",
+        title: 'Are you sure you want delete it?',
+        text: "You will lose the data departement " + name + " !",
         type: "warning",
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
@@ -604,46 +604,46 @@ function removeDataAlocation(t){
         confirmButtonText: 'Delete !',
         cancelButtonText: 'Cancel !',
         reverseButtons: true
-        }).then((result) => {
-            if (result.value) {
-                var bs = $('#id_baseurl').val();
-                $.ajax({
-                    // url : bs+"alocation/post/delete/alocation",
-                    url : ajax.url.post_delete_alocation,
-                    type: "POST",
-                    data : form,
-                    processData: false,
-                    contentType: false,
-                    dataType :"json",
-                    beforeSend: function(){
-                        $('#id_loader').html('<div class="linePreloader"></div>');
-                    },
-                    success:function(data){
-                        $('#id_loader').html('');
-                        if (data.status == "success") {
-                            showNotification('alert-success', "Succes deleted alocation type "+name ,'top','center')
-                            initAlocation();
-                        }else{
-                            showNotification('alert-danger', "Data not found",'bottom','left')
-                        }
-                    },
-                    error: errorAjax,
-                })
-            }
-        else{
+    }).then((result) => {
+        if (result.value) {
+            var bs = $('#id_baseurl').val();
+            $.ajax({
+                // url : bs+"alocation/post/delete/alocation",
+                url: ajax.url.post_delete_alocation,
+                type: "POST",
+                data: form,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                beforeSend: function () {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success: function (data) {
+                    $('#id_loader').html('');
+                    if (data.status == "success") {
+                        showNotification('alert-success', "Succes deleted alocation type " + name, 'top', 'center')
+                        initAlocation();
+                    } else {
+                        showNotification('alert-danger', "Data not found", 'bottom', 'left')
+                    }
+                },
+                error: errorAjax,
+            })
+        }
+        else {
 
         }
     })
-    
+
 }
 
-function errorAjax(xhr, ajaxOptions, thrownError){
+function errorAjax(xhr, ajaxOptions, thrownError) {
     $('#id_loader').html('');
-    if(ajaxOptions == "parsererror"){
+    if (ajaxOptions == "parsererror") {
         var msg = "Status Code 500, Error Server bad parsing";
-        showNotification('alert-danger', msg,'bottom','left')
-    }else{
-        var msg ="Status Code "+ xhr.status + " Please check your connection !!!";
-        showNotification('alert-danger', msg,'bottom','left')
+        showNotification('alert-danger', msg, 'bottom', 'left')
+    } else {
+        var msg = "Status Code " + xhr.status + " Please check your connection !!!";
+        showNotification('alert-danger', msg, 'bottom', 'left')
     }
 }

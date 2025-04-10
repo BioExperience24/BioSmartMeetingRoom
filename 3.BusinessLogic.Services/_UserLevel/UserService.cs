@@ -235,19 +235,41 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
         }
     }
 
-    public async Task<ReturnalModel> CheckLogin(LoginModel request)
+    //make sure, before this method called with isWebiew is true, the function already check the request is validated
+    public async Task<ReturnalModel> CheckLogin(LoginModel request, bool isWebview = false)
     {
         ReturnalModel ret = new();
-        var encryptPass = _Base64.Encrypt(request.Password.Trim());
-        var user = await _repo.GetUserByUsernamePassword(request.Username, encryptPass);
+        User? user = null; // Ensure `user` is accessible outside blocks
+
+        if (!isWebview)
+        {
+            var encryptPass = _Base64.Encrypt(request.Password.Trim());
+            user = await _repo.GetUserByUsernamePassword(request.Username, encryptPass);
+
+            if (user == null)
+            {
+                return new ReturnalModel
+                {
+                    Title = ReturnalType.Failed,
+                    Status = ReturnalType.Failed,
+                    Message = "Invalid username or password.",
+                    StatusCode = (int)HttpStatusCode.BadRequest
+                };
+            }
+        }
+        else
+        {
+            user = await _repo.GetUserByUsername(request.Username);
+        }
 
         if (user == null)
         {
-            ret.Title = ReturnalType.Failed;
-            ret.Status = ReturnalType.Failed;
-            ret.Message = "Invalid username or password.";
-            ret.StatusCode = (int)HttpStatusCode.BadRequest;
-            return ret;
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Failed,
+                Message = "User not found.",
+                StatusCode = (int)HttpStatusCode.BadRequest
+            };
         }
 
         var getLevel = await _levelService.GetLevel(user.LevelId);
@@ -293,7 +315,8 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
         ret.Collection = userVM;
         return ret;
     }
-    public async Task<ReturnalModel> RequestToken(LoginModel request)
+
+    public async Task<ReturnalModel> RequestToken(LoginModel request, bool isWebview = false)
     {
         var cek = await CheckLogin(request);
         if (cek.Collection == null || cek.Status != ReturnalType.Success)
@@ -302,7 +325,7 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
         }
 
         var userVM = (UserViewModel)cek.Collection;
-        userVM.Token = CreateToken(userVM);
+        userVM.Token = CreateToken(userVM, isWebview);
         var ret = new ReturnalModel
         {
             Message = "Login successful!",
@@ -311,17 +334,54 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
         return ret;
     }
 
-    public string CreateToken(UserViewModel getValidUser)
+
+    public async Task<ReturnalModel> WebviewLogin(LoginWebviewModel request)
+    {
+        var checkUsername = await _repo.GetUserByUsernameWithFilter(request.Username);
+
+        if (checkUsername == null || checkUsername.EmployeeId != request.Nik)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Failed,
+                Message = "Login failed, user not found",
+                StatusCode = (int)HttpStatusCode.BadRequest
+            };
+        }
+
+        var mapToLogin = new LoginModel
+        {
+            Username = checkUsername.Username,
+            Password = ""
+        };
+
+        var cek = await CheckLogin(mapToLogin, true);
+        if (cek.Collection == null || cek.Status != ReturnalType.Success)
+        {
+            return cek;
+        }
+
+        var userVM = (UserViewModel)cek.Collection;
+        userVM.Token = CreateToken(userVM, true);
+        var ret = new ReturnalModel
+        {
+            Message = "Login successful!",
+            Collection = userVM
+        };
+        return ret;
+    }
+
+    public string CreateToken(UserViewModel getValidUser, bool isWebview = false)
     {
         string token;
         var claim = new List<Claim> {
-                //new (JwtRegisteredClaimNames.Sub, getValidUser.Id?.ToString() ?? "InvalidUser"),
-                new (ClaimTypes.NameIdentifier, getValidUser.Id?.ToString() ?? "InvalidUser"),
-                new (ClaimTypes.Name, getValidUser.Username),
-                new (ClaimTypes.Role, getValidUser.LevelId.ToString() ?? "0"),
-                new (ClaimTypes.Actor, getValidUser.AccessId ?? "#"),
-                new (ClaimTypes.UserData, getValidUser.Nik ?? "Nik")
-            };
+            new (ClaimTypes.NameIdentifier, getValidUser.Id?.ToString() ?? "InvalidUser"),
+            new (ClaimTypes.Name, getValidUser.Username),
+            new (ClaimTypes.Role, getValidUser.LevelId.ToString() ?? "0"),
+            new (ClaimTypes.Actor, getValidUser.AccessId ?? "#"),
+            new (ClaimTypes.UserData, getValidUser.Nik ?? "Nik"),
+            new ("IsWebview", isWebview ? "true" : "false")
+        };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenManagement.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

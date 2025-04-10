@@ -26,60 +26,71 @@ var gUpdatedData = []; // [{room_id,room_usage_id, min_cap}]
 
 
 var gMaximumDurationMeeting = [
-    {value:60,name: "1 hrs"},
-    {value:120,name: "2 hrs"},
-    {value:180,name: "3 hrs"},
-    {value:240,name: "4 hrs"},
-    {value:300,name: "5 hrs"},
-    {value:360,name: "6 hrs"},
-    {value:420,name: "7 hrs"},
-    {value:480,name: "8 hrs"},
-    {value:540,name: "9 hrs"},
-    {value:600,name: "10 hrs"},
-    {value:660,name: "11 hrs"},
-    {value:720,name: "12 hrs"},
-    {value:0,name: " Unlimited"},
+    { value: 60, name: "1 hrs" },
+    { value: 120, name: "2 hrs" },
+    { value: 180, name: "3 hrs" },
+    { value: 240, name: "4 hrs" },
+    { value: 300, name: "5 hrs" },
+    { value: 360, name: "6 hrs" },
+    { value: 420, name: "7 hrs" },
+    { value: 480, name: "8 hrs" },
+    { value: 540, name: "9 hrs" },
+    { value: 600, name: "10 hrs" },
+    { value: 660, name: "11 hrs" },
+    { value: 720, name: "12 hrs" },
+    { value: 0, name: " Unlimited" },
 ];
 
 var gMinimumDurationMeeting = [
-    {value:15,name: "15 mins"},
-    {value:30,name: "30 mins"},
-    {value:45,name: "45 mins"},
-    {value:60,name: "1 hrs"},
+    { value: 15, name: "15 mins" },
+    { value: 30, name: "30 mins" },
+    { value: 45, name: "45 mins" },
+    { value: 60, name: "1 hrs" },
 ];
 
 var gReleaseTimeout = [
-    {value:5,name: "5 mins"},
-    {value:10,name: "10 mins"},
-    {value:15,name: "15 mins"},
-    {value:20,name: "20 mins"},
-    {value:25,name: "25 mins"},
-    {value:30,name: "30 mins"},
+    { value: 5, name: "5 mins" },
+    { value: 10, name: "10 mins" },
+    { value: 15, name: "15 mins" },
+    { value: 20, name: "20 mins" },
+    { value: 25, name: "25 mins" },
+    { value: 30, name: "30 mins" },
 ];
 
 var gAdvanceMeeting = [
-    {value:1,name: "1 days"},
-    {value:3,name: "3 days"},
-    {value:7,name: "7 days"},
-    {value:14,name: "14 days"},
-    {value:30,name: "30 days"},
-    {value:60,name: "60 days"},
-    {value:90,name: "90 days"},
-    {value:120,name: "120 days"},
-    {value:150,name: "150 days"},
-    {value:180,name: "180 days"},
-    {value:210,name: "210 days"},
-    {value:240,name: "240 days"},
-    {value:270,name: "270 days"},
-    {value:300,name: "300 days"},
-    {value:330,name: "330 days"},
-    {value:365,name: "365 days"},
+    { value: 1, name: "1 days" },
+    { value: 3, name: "3 days" },
+    { value: 7, name: "7 days" },
+    { value: 14, name: "14 days" },
+    { value: 30, name: "30 days" },
+    { value: 60, name: "60 days" },
+    { value: 90, name: "90 days" },
+    { value: 120, name: "120 days" },
+    { value: 150, name: "150 days" },
+    { value: 180, name: "180 days" },
+    { value: 210, name: "210 days" },
+    { value: 240, name: "240 days" },
+    { value: 270, name: "270 days" },
+    { value: 300, name: "300 days" },
+    { value: 330, name: "330 days" },
+    { value: 365, name: "365 days" },
 ];
 
 var dataTB;
 $('[data-toggle="tooltip"]').tooltip({
-        container: 'body'
+    container: 'body'
 });
+
+
+function handleKindRoomChange(id_kind_room) {
+    $('#' + id_kind_room).change(function () {
+        if ($(this).val() === 'trainingroom') {
+            $('.allow-recurring').show();
+        } else {
+            $('.allow-recurring').hide();
+        }
+    }).trigger('change'); // Trigger on load to apply initial state
+}
 
 function roomUserCheckin() {
     var c = [];
@@ -87,15 +98,15 @@ function roomUserCheckin() {
     try {
         var coldata = JSON.parse(stringData);
         c = coldata;
-    } catch (error) {}
+    } catch (error) { }
     return c;
 }
-function selectGlobal(list = [], key = "",value ){
+function selectGlobal(list = [], key = "", value) {
     var html = ``;
-    for(var x in list){
+    for (var x in list) {
         var s = "";
-        if(key != ""){
-            s = list[x][key] == value? "selected" : '';
+        if (key != "") {
+            s = list[x][key] == value ? "selected" : '';
         }
 
         html += `<option ${s} value="${list[x].value}">${list[x].name}</option>`;
@@ -109,13 +120,14 @@ function approvalUser() {
     try {
         var apUser = JSON.parse(apUserString);
         for (var x in apUser) {
-            var acc = apUser[x].access_id;
-            var spAcc = acc.split("#");
-            if (spAcc.includes("4")) {
-                c.push(apUser[x]);
-            }
+            // var acc = apUser[x].access_id;
+            // var spAcc = acc.split("#");
+            // if (spAcc.includes("4")) {
+            //     c.push(apUser[x]);
+            // }
+            c.push(apUser[x]);
         }
-    } catch (error) {}
+    } catch (error) { }
 
     return c;
 }
@@ -128,7 +140,7 @@ function permissionUser() {
             var acc = apUser[x].access_id;
             c.push(apUser[x]);
         }
-    } catch (error) {}
+    } catch (error) { }
 
     return c;
 
@@ -148,7 +160,7 @@ try {
 var gDatalistRoom = [];
 
 
-$(function() {
+$(function () {
     init();
     initSingle();
     getAutomation();
@@ -156,14 +168,14 @@ $(function() {
     intrTime();
     initDrop();
 })
-function generateTableUsage(){
-    var html =  ``;
-    var n=0
-    for(var x in gRoomForUsageGenerate){
+function generateTableUsage() {
+    var html = ``;
+    var n = 0
+    for (var x in gRoomForUsageGenerate) {
         n++;
         var xxr = gRoomForUsageGenerate[x];
         var srUsage = getSinglegRoomForUsage(xxr.room_usage_id)
-        if(srUsage == null){continue;}
+        if (srUsage == null) { continue; }
         html += `<tr>`;
         html += `<td>${n}</td>`;
         html += `<td>${srUsage.name}</td>`;
@@ -172,7 +184,7 @@ function generateTableUsage(){
     }
     return html;
 }
-function onTypeCapTableUsage(t){
+function onTypeCapTableUsage(t) {
     var s = t.val();
     var num = t.data('num');
     var id = t.data('id');
@@ -198,10 +210,10 @@ function ocCrtRoomForUsage() {
 
         //console.log(gRoomForUsageGenerate)
         //if (find == false) {
-            coll.push({
-                room_usage_id: valuee[i],
-                min_cap: 0,
-            })
+        coll.push({
+            room_usage_id: valuee[i],
+            min_cap: 0,
+        })
         //}
 
     }
@@ -237,10 +249,10 @@ function ocEdtRoomForUsage() {
     var html = generateTableUsage();
     $('#id_edt_adv_tbl_room_for_usage tbody').html(html)
 }
-function getSinglegRoomForUsage(value){
+function getSinglegRoomForUsage(value) {
     var r = null;
     for (var xi in gRoomForUsage) {
-        if(value == gRoomForUsage[xi].id){
+        if (value == gRoomForUsage[xi].id) {
             r = gRoomForUsage[xi];
             break;
         }
@@ -255,7 +267,7 @@ function clickSubmit(id) {
 
 function intrTime() {
     setInterval(
-        function() {
+        function () {
             var tm = moment().format('HH:mm A');
             $('#time1').html(tm);
         }, 500
@@ -382,11 +394,11 @@ $('#id_edt_adv_is_realease_checkin_timeout').change(function () {
 
 
 
-$("#ck_all").on( "click", function(e) {
-    if ($(this).is( ":checked" )) {
-         dataTB.rows(  ).select();        
+$("#ck_all").on("click", function (e) {
+    if ($(this).is(":checked")) {
+        dataTB.rows().select();
     } else {
-         dataTB.rows(  ).deselect(); 
+        dataTB.rows().deselect();
     }
     // console.log(dataTB.rows({selected:true}).data().length)
 });
@@ -397,64 +409,64 @@ function getModule() {
     return JSON.parse(modules)
 }
 function initTable(selector) {
-    dataTB  = selector.DataTable({
-    "scrollX":        true,
-    "scrollCollapse": true,
-    "fixedHeader":    true,
-    paging:           false,
-    // searching:        false,
-    // bFilter :         false,
-    info:             false,
-    // scrollResize:     true,
-    order: [[ 1, "asc" ]],
-    // lengthMenu: [[5, 10, 20, 100,-1], [5, 10, 20,100, 'ALL']],
-    fixedColumns: {
-        leftColumns: 2,
-        rightColumns: 1
-    },
-    columnDefs: [
-        {
-            orderable: false,
-            className: 'select-checkbox',
-            targets: 0,
-            searchable: false,
+    dataTB = selector.DataTable({
+        "scrollX": true,
+        "scrollCollapse": true,
+        "fixedHeader": true,
+        paging: false,
+        // searching:        false,
+        // bFilter :         false,
+        info: false,
+        // scrollResize:     true,
+        order: [[1, "asc"]],
+        // lengthMenu: [[5, 10, 20, 100,-1], [5, 10, 20,100, 'ALL']],
+        fixedColumns: {
+            leftColumns: 2,
+            rightColumns: 1
         },
-        {
-            orderable: true,
-           
+        columnDefs: [
+            {
+                orderable: false,
+                className: 'select-checkbox',
+                targets: 0,
+                searchable: false,
+            },
+            {
+                orderable: true,
+
+            },
+        ],
+        select: {
+            style: 'multi',
+            selector: 'td:first-child'
         },
-    ],
-    select: {
-        style:    'multi',
-        selector: 'td:first-child'
-    },
-    }).on('deselect.dt', function(e, dt, type, indexes) {
+    }).on('deselect.dt', function (e, dt, type, indexes) {
         // console.log(dataTB.rows({selected:true}).data().length)
-       
-        if(dataTB.rows({selected:true}).data().length < count_room ){
+
+        if (dataTB.rows({ selected: true }).data().length < count_room) {
             $('#ck_all').attr("checked", false);
         }
-    }).on('select.dt', function(e, dt, type, indexes) {
-        console.log(dataTB.rows({selected:true}).data().length, count_room)
+    }).on('select.dt', function (e, dt, type, indexes) {
+        console.log(dataTB.rows({ selected: true }).data().length, count_room)
         // $('#ck_all').find(".filled-in")
-        if(dataTB.rows({selected:true}).data().length == count_room ){
+        if (dataTB.rows({ selected: true }).data().length == count_room) {
             $('#ck_all').attr("checked", true);
         }
     });
 
-    $('#id_search').on( 'keyup', function () {
+    $('#id_search').on('keyup', function () {
         // console.log(this.value)
         dataTB
-            .columns( 3 )
-            .search( this.value )
+            .columns(3)
+            .search(this.value)
             .draw();
-    } );
+    });
     $('#tbldata_wrapper').find('#tbldata_filter').hide()
 
 }
 
 function clearTable(selector) {
-    if(dataTB == null){return;}
+    if (dataTB == null) { return; }
     dataTB.destroy();
 }
 
@@ -472,259 +484,276 @@ function enable_datetimepicker() {
 }
 
 function createData() {
-    initDrop();
-    $('#id_area_add_merge').hide();
-    $('#id_mdl_create').modal('show');
-    $('#id_crt_room').html('');
-    $('#id_crt_devices').html('');
+  initDrop();
+  $("#id_area_add_merge").hide();
+  $("#id_mdl_create").modal("show");
+  $("#id_crt_room").html("");
+  $("#id_crt_devices").html("");
+  var html_automation = "";
+  html_automation += "<option value=''>Please choose a automation ...</option>";
+  for (var i in gAutomation) {
+    html_automation +=
+      "<option value=" +
+      gAutomation[i].id +
+      ">" +
+      gAutomation[i].name +
+      "</option>";
+  }
 
-    var html_automation = "";
-    html_automation += "<option value=''>Please choose a automation ...</option>";
-    for (var i in gAutomation) {
-        html_automation += "<option value=" + gAutomation[i].id + ">" + gAutomation[i].name + "</option>";
-    }
+  var html_building = "";
+  html_building += "";
+  for (var i in gBuilding) {
+    html_building +=
+      "<option value=" +
+      gBuilding[i].id +
+      ">" +
+      gBuilding[i].name +
+      "</option>";
+  }
 
-    var html_building = "";
-    html_building += "";
-    for (var i in gBuilding) {
-        html_building += "<option value=" + gBuilding[i].id + ">" + gBuilding[i].name + "</option>";
-    }
+  var html_floor = "<option value=''>Choose building first...</option>";
 
-    var html_floor = "";
-    html_floor += "";
-    for (var i in gFloor) {
-        html_floor += "<option value=" + gFloor[i].id + ">" + gFloor[i].name + "</option>";
-    }
+  var html_facility = "";
+  html_facility += "<option value=''>Please choose a facility ...</option>";
+  for (var i in gFacility) {
+    html_facility +=
+      "<option value='" +
+      gFacility[i]["id"] +
+      "'>" +
+      gFacility[i]["name"] +
+      "</option>";
+  }
 
-    var html_facility = "";
-    html_facility += "<option value=''>Please choose a facility ...</option>";
-    for (var i in gFacility) {
-        html_facility += "<option value='" + gFacility[i]['id'] + "'>" + gFacility[i]['name'] + "</option>";
-    }
+  var html_typeroom = "";
+  html_typeroom += "";
+  for (var i in typeRoom) {
+    html_typeroom +=
+      "<option value=" +
+      typeRoom[i].value +
+      ">" +
+      typeRoom[i].text +
+      "</option>";
+  }
+  $("#id_crt_automation").html(html_automation);
+  $("#id_crt_facility_room").html(html_facility);
+  $("#id_crt_building_id").html(html_building);
+  $("#id_crt_type_room").html(html_typeroom);
+  $("#id_crt_floor_id").html(html_floor);
 
-    var html_typeroom = "";
-    html_typeroom += "";
-    for (var i in typeRoom) {
-        html_typeroom += "<option value=" + typeRoom[i].value + ">" + typeRoom[i].text + "</option>";
-    }
-    $('#id_crt_automation').html(html_automation);
-    $('#id_crt_facility_room').html(html_facility);
-    $('#id_crt_building_id').html(html_building);
-    $('#id_crt_type_room').html(html_typeroom);
-    $('#id_crt_floor_id').html(html_floor);
+  handleKindRoomChange("id_crt_kind_room");
+  //
+  //
+  //
+  // ADVANCED
+  //
+  //var is_config_enable = input["is_config_setting_enable"] - 0;
+  //var is_config_adv_approval = input["is_enable_approval"] - 0;
+  //var is_config_adv_permission = input["is_enable_permission"] - 0;
+  //var is_config_adv_checkin = input["is_enable_checkin"] - 0;
+  //var is_config_adv_recurring = input["is_enable_recurring"] - 0;
 
-    //
-    //
-    //
-    // ADVANCED
-    //
-    //var is_config_enable = input["is_config_setting_enable"] - 0;
-    //var is_config_adv_approval = input["is_enable_approval"] - 0;
-    //var is_config_adv_permission = input["is_enable_permission"] - 0;
-    //var is_config_adv_checkin = input["is_enable_checkin"] - 0;
-    //var is_config_adv_recurring = input["is_enable_recurring"] - 0;
+  //var editRoomForUsage = input["room_data_usage"];
 
-    //var editRoomForUsage = input["room_data_usage"];
+  //// console.log(input['is_config_setting_enable'] )
+  //if (is_config_enable != 1) {
+  //    advanceCrtRoomDisabled();
+  //} else {
+  //advanceCrtRoomEnabled();
+  //}
+  //var config_room_for_usage = input["config_room_for_usage"];
+  //var sp_config_room_for_usage = config_room_for_usage.split(",");
 
-    //// console.log(input['is_config_setting_enable'] )
-    //if (is_config_enable != 1) {
-    //    advanceCrtRoomDisabled();
-    //} else {
-        //advanceCrtRoomEnabled();
+  var html_adv_room_for_usage = "";
+  for (var i in gRoomForUsage) {
+    var rrrr_g = gRoomForUsage[i].name;
+    var rrrr_g_id = gRoomForUsage[i].id;
+    var s = "";
+    //if (sp_config_room_for_usage.indexOf(rrrr_g_id) >= 0) {
+    //    s = "selected";
     //}
-    //var config_room_for_usage = input["config_room_for_usage"];
-    //var sp_config_room_for_usage = config_room_for_usage.split(",");
+    html_adv_room_for_usage +=
+      "<option " + s + " value='" + rrrr_g_id + "'>" + rrrr_g + "</option>";
+  }
+  $("#id_crt_adv_room_for_usage").html(html_adv_room_for_usage);
+  //
 
-    var html_adv_room_for_usage = "";
-    for (var i in gRoomForUsage) {
-        var rrrr_g = gRoomForUsage[i].name;
-        var rrrr_g_id = gRoomForUsage[i].id;
-        var s = "";
-        //if (sp_config_room_for_usage.indexOf(rrrr_g_id) >= 0) {
-        //    s = "selected";
-        //}
-        html_adv_room_for_usage +=
-            "<option " + s + " value='" + rrrr_g_id + "'>" + rrrr_g + "</option>";
-    }
-    $("#id_crt_adv_room_for_usage").html(html_adv_room_for_usage);
-    //
+  //var html_adv_tbl_room_for_usage = "";
+  //gRoomForUsageGenerate = editRoomForUsage;
+  //if (is_config_enable == 1) {
+  var html_adv_tbl_room_for_usage = generateTableUsage();
+  //}
+  $("#id_crt_adv_tbl_room_for_usage tbody").html(html_adv_tbl_room_for_usage);
 
-    //var html_adv_tbl_room_for_usage = "";
-    //gRoomForUsageGenerate = editRoomForUsage;
-    //if (is_config_enable == 1) {
-        var html_adv_tbl_room_for_usage = generateTableUsage();
+  // Recurreing
+  //if (is_config_adv_recurring == 1 && is_config_enable == 1) {
+  //    $("#id_crt_adv_is_enable_recurring").attr("checked", true);
+  //} else {
+  $("#id_crt_adv_is_enable_recurring").attr("checked", true);
+  //}
+
+  // APPROVAL
+  //
+  //if (is_config_adv_approval == 1 && is_config_enable == 1) {
+  //    $("#id_crt_adv_config_approval_user").removeAttr("disabled");
+  //    $("#id_crt_adv_is_enable_approval").attr("checked", true);
+  //} else {
+
+  //if ($("#id_crt_adv_is_enable_checkin")[0].checked) {
+  //    $("#id_crt_adv_config_permission_checkin").removeAttr("disabled");
+  //}
+  //if ($("#id_crt_adv_is_enable_permission")[0].checked) {
+  //    $("#id_edt_adv_config_permission_user").removeAttr("disabled");
+  //}
+  //}
+  var config_approval_user = "";
+  //input["config_approval_user"] == null ? "" : input["config_approval_user"];
+  var html_adv_approval_user = "";
+  //var sp_config_approval_user = config_approval_user.split(",");
+  for (var iu in gUserApproval) {
+    var rrrr_g = gUserApproval[iu].employee_id;
+    var rrrr_g_name = gUserApproval[iu].name;
+    var s = "";
+    //if (sp_config_approval_user.indexOf(rrrr_g) >= 0) {
+    //    s = "selected";
     //}
-    $("#id_crt_adv_tbl_room_for_usage tbody").html(html_adv_tbl_room_for_usage);
+    html_adv_approval_user +=
+      "<option " + s + " value='" + rrrr_g + "'>" + rrrr_g_name + "</option>";
+  }
+  $("#id_crt_adv_config_approval_user").html(html_adv_approval_user);
 
-    // Recurreing
-    //if (is_config_adv_recurring == 1 && is_config_enable == 1) {
-    //    $("#id_crt_adv_is_enable_recurring").attr("checked", true);
-    //} else {
-        $("#id_crt_adv_is_enable_recurring").attr("checked", true);
+  // PERMISSION
+  //
+  //if (is_config_adv_permission == 1 && is_config_enable == 1) {
+  //    $("#id_crt_adv_config_permission_user").removeAttr("disabled");
+  //    $("#id_crt_adv_is_enable_permission").attr("checked", true);
+  //} else {
+  //$("#id_crt_adv_config_permission_user").attr("disabled", true);
+  //$("#id_crt_adv_is_enable_permission").attr("checked", false);
+  //}
+
+  var config_permission_user = "";
+  //input["config_permission_user"] == null
+  //    ? ""
+  //    : input["config_permission_user"];
+  var html_adv_permission_user = "";
+  //var sp_config_permission_user = config_permission_user.split(",");
+  for (var iu in gUserPermission) {
+    var rrrr_g = gUserPermission[iu].id;
+    var rrrr_g_name = gUserPermission[iu].name;
+    var s = "";
+    //if (sp_config_permission_user.indexOf(rrrr_g) >= 0) {
+    //    s = "selected";
     //}
+    html_adv_permission_user +=
+      "<option " + s + " value='" + rrrr_g + "'>" + rrrr_g_name + "</option>";
+  }
+  $("#id_crt_adv_config_permission_user").html(html_adv_permission_user);
+  //
+  // CHECKIN PERMISSION
+  //
+  // $('#id_crt_adv_config_permission_end').removeAttr();
+  var config_permission_checkin = "";
+  //input["config_permission_checkin"] == null
+  //    ? 0
+  //    : input["config_permission_checkin"];
+  //var config_permission_end = input["config_permission_end"];
+  //var is_realease_checkin_timeout = input["is_realease_checkin_timeout"] - 0;
+  // console.log(is_config_adv_checkin,is_config_enable, is_realease_checkin_timeout )
+  //if (is_config_adv_checkin == 1 && is_config_enable == 1) {
+  //    $("#id_crt_adv_config_permission_checkin").removeAttr("disabled");
+  //    $("#id_crt_adv_is_enable_checkin").attr("checked", true);
+  //    $("#id_crt_adv_is_realease_checkin_timeout").removeAttr("disabled");
+  //    if (is_realease_checkin_timeout == 1) {
+  //        $("#id_crt_adv_is_realease_checkin_timeout").attr("checked", true);
+  //        $("#id_crt_adv_config_release_room_checkin_timeout").removeAttr(
+  //            "disabled"
+  //        );
+  //    } else {
+  //        $("#id_crt_adv_is_realease_checkin_timeout").attr("checked", false);
+  //        $("#id_crt_adv_config_release_room_checkin_timeout").attr(
+  //            "disabled",
+  //            true
+  //        );
+  //    }
+  //}
+  //else {
+  $("#id_crt_adv_is_enable_checkin").attr("checked", false);
+  $("#id_crt_adv_config_permission_checkin").attr("disabled", true);
+  $("#id_crt_adv_config_permission_end").removeAttr("disabled");
+  $("#id_crt_adv_is_realease_checkin_timeout").attr("disabled", true);
+  //}
+  var html_adv_permission_checkin = "";
+  var html_adv_permission_end_permission = "";
+  // var sp_config_permission_user = config_permission_checkin.split(",");
+  for (var iu in gRoomUserCheckin) {
+    var rrrr_g = gRoomUserCheckin[iu];
+    var s = "";
+    //config_permission_checkin == rrrr_g.key ? "selected" : "";
+    html_adv_permission_checkin +=
+      "<option " +
+      s +
+      " value='" +
+      rrrr_g.key +
+      "'>" +
+      rrrr_g.name +
+      "</option>";
+  }
 
-    // APPROVAL
-    //
-    //if (is_config_adv_approval == 1 && is_config_enable == 1) {
-    //    $("#id_crt_adv_config_approval_user").removeAttr("disabled");
-    //    $("#id_crt_adv_is_enable_approval").attr("checked", true);
-    //} else {
+  for (var iuen in gRoomUserCheckin) {
+    var rrrr_g = gRoomUserCheckin[iuen];
+    var s = "";
+    //config_permission_end == rrrr_g.key ? "selected" : "";
+    html_adv_permission_end_permission +=
+      "<option " +
+      s +
+      " value='" +
+      rrrr_g.key +
+      "'>" +
+      rrrr_g.name +
+      "</option>";
+  }
+  $("#id_crt_adv_config_permission_checkin").html(html_adv_permission_checkin);
+  $("#id_crt_adv_config_permission_end").html(
+    html_adv_permission_end_permission
+  );
+  var html_adv_config_min_duration = selectGlobal(
+    gMinimumDurationMeeting,
+    "value"
+    //,
+    //input["config_min_duration"] - 0
+  );
+  var html_adv_config_max_duration = selectGlobal(
+    gMaximumDurationMeeting,
+    "value"
+    //,
+    //input["config_max_duration"] - 0
+  );
+  var html_adv_config_advance_booking = selectGlobal(
+    gAdvanceMeeting,
+    "value"
+    //,
+    //input["config_advance_booking"] - 0
+  );
+  var html_adv_config_release_room_checkin_timeout = selectGlobal(
+    gReleaseTimeout,
+    "value"
+    //,
+    //input["config_release_room_checkin_timeout"] - 0
+  );
 
-    //if ($("#id_crt_adv_is_enable_checkin")[0].checked) {
-    //    $("#id_crt_adv_config_permission_checkin").removeAttr("disabled");
-    //}
-    //if ($("#id_crt_adv_is_enable_permission")[0].checked) {
-    //    $("#id_edt_adv_config_permission_user").removeAttr("disabled");
-    //}
-    //}
-    var config_approval_user = ""
-        //input["config_approval_user"] == null ? "" : input["config_approval_user"];
-    var html_adv_approval_user = "";
-    //var sp_config_approval_user = config_approval_user.split(",");
-    for (var iu in gUserApproval) {
-        var rrrr_g = gUserApproval[iu].employee_id;
-        var rrrr_g_name = gUserApproval[iu].name;
-        var s = "";
-        //if (sp_config_approval_user.indexOf(rrrr_g) >= 0) {
-        //    s = "selected";
-        //}
-        html_adv_approval_user +=
-            "<option " + s + " value='" + rrrr_g + "'>" + rrrr_g_name + "</option>";
-    }
-    $("#id_crt_adv_config_approval_user").html(html_adv_approval_user);
+  $("#id_crt_adv_config_min_duration").html(html_adv_config_min_duration);
+  $("#id_crt_adv_config_max_duration").html(html_adv_config_max_duration);
+  $("#id_crt_adv_config_advance_booking").html(html_adv_config_advance_booking);
+  $("#id_crt_adv_config_release_room_checkin_timeout").html(
+    html_adv_config_release_room_checkin_timeout
+  );
 
-    // PERMISSION
-    //
-    //if (is_config_adv_permission == 1 && is_config_enable == 1) {
-    //    $("#id_crt_adv_config_permission_user").removeAttr("disabled");
-    //    $("#id_crt_adv_is_enable_permission").attr("checked", true);
-    //} else {
-        //$("#id_crt_adv_config_permission_user").attr("disabled", true);
-        //$("#id_crt_adv_is_enable_permission").attr("checked", false);
-    //}
+  initTypeRoom("add", "id_crt_type_room", "id_crt_merge_room");
 
-    var config_permission_user = ""
-        //input["config_permission_user"] == null
-        //    ? ""
-        //    : input["config_permission_user"];
-    var html_adv_permission_user = "";
-    //var sp_config_permission_user = config_permission_user.split(",");
-    for (var iu in gUserPermission) {
-        var rrrr_g = gUserPermission[iu].id;
-        var rrrr_g_name = gUserPermission[iu].name;
-        var s = "";
-        //if (sp_config_permission_user.indexOf(rrrr_g) >= 0) {
-        //    s = "selected";
-        //}
-        html_adv_permission_user +=
-            "<option " + s + " value='" + rrrr_g + "'>" + rrrr_g_name + "</option>";
-    }
-    $("#id_crt_adv_config_permission_user").html(html_adv_permission_user);
-    //
-    // CHECKIN PERMISSION
-    //
-    // $('#id_crt_adv_config_permission_end').removeAttr();
-    var config_permission_checkin = ""
-        //input["config_permission_checkin"] == null
-        //    ? 0
-        //    : input["config_permission_checkin"];
-    //var config_permission_end = input["config_permission_end"];
-    //var is_realease_checkin_timeout = input["is_realease_checkin_timeout"] - 0;
-    // console.log(is_config_adv_checkin,is_config_enable, is_realease_checkin_timeout )
-    //if (is_config_adv_checkin == 1 && is_config_enable == 1) {
-    //    $("#id_crt_adv_config_permission_checkin").removeAttr("disabled");
-    //    $("#id_crt_adv_is_enable_checkin").attr("checked", true);
-    //    $("#id_crt_adv_is_realease_checkin_timeout").removeAttr("disabled");
-    //    if (is_realease_checkin_timeout == 1) {
-    //        $("#id_crt_adv_is_realease_checkin_timeout").attr("checked", true);
-    //        $("#id_crt_adv_config_release_room_checkin_timeout").removeAttr(
-    //            "disabled"
-    //        );
-    //    } else {
-    //        $("#id_crt_adv_is_realease_checkin_timeout").attr("checked", false);
-    //        $("#id_crt_adv_config_release_room_checkin_timeout").attr(
-    //            "disabled",
-    //            true
-    //        );
-    //    }
-    //}
-    //else {
-        $("#id_crt_adv_is_enable_checkin").attr("checked", false);
-        $("#id_crt_adv_config_permission_checkin").attr("disabled", true);
-        $("#id_crt_adv_config_permission_end").removeAttr("disabled");
-        $("#id_crt_adv_is_realease_checkin_timeout").attr("disabled", true);
-    //}
-    var html_adv_permission_checkin = "";
-    var html_adv_permission_end_permission = "";
-    // var sp_config_permission_user = config_permission_checkin.split(",");
-    for (var iu in gRoomUserCheckin) {
-        var rrrr_g = gRoomUserCheckin[iu];
-        var s = ""
-            //config_permission_checkin == rrrr_g.key ? "selected" : "";
-        html_adv_permission_checkin +=
-            "<option " +
-            s +
-            " value='" +
-            rrrr_g.key +
-            "'>" +
-            rrrr_g.name +
-            "</option>";
-    }
+  enable_datetimepicker();
+  select_enable();
 
-    for (var iuen in gRoomUserCheckin) {
-        var rrrr_g = gRoomUserCheckin[iuen];
-        var s = ""
-            //config_permission_end == rrrr_g.key ? "selected" : "";
-        html_adv_permission_end_permission +=
-            "<option " +
-            s +
-            " value='" +
-            rrrr_g.key +
-            "'>" +
-            rrrr_g.name +
-            "</option>";
-    }
-    $("#id_crt_adv_config_permission_checkin").html(html_adv_permission_checkin);
-    $("#id_crt_adv_config_permission_end").html(
-        html_adv_permission_end_permission
-    );
-    var html_adv_config_min_duration = selectGlobal(
-        gMinimumDurationMeeting,
-        "value"
-        //,
-        //input["config_min_duration"] - 0
-    );
-    var html_adv_config_max_duration = selectGlobal(
-        gMaximumDurationMeeting,
-        "value"
-        //,
-        //input["config_max_duration"] - 0
-    );
-    var html_adv_config_advance_booking = selectGlobal(
-        gAdvanceMeeting,
-        "value"
-        //,
-        //input["config_advance_booking"] - 0
-    );
-    var html_adv_config_release_room_checkin_timeout = selectGlobal(
-        gReleaseTimeout,
-        "value"
-        //,
-        //input["config_release_room_checkin_timeout"] - 0
-    );
-
-    $("#id_crt_adv_config_min_duration").html(html_adv_config_min_duration);
-    $("#id_crt_adv_config_max_duration").html(html_adv_config_max_duration);
-    $("#id_crt_adv_config_advance_booking").html(html_adv_config_advance_booking);
-    $("#id_crt_adv_config_release_room_checkin_timeout").html(
-        html_adv_config_release_room_checkin_timeout
-    );
-
-
-    initTypeRoom('add', 'id_crt_type_room', 'id_crt_merge_room');
-
-    enable_datetimepicker();
-    select_enable();
+  showHideApprovalConfig($("#id_crt_kind_room").val(), "crt");
 }
 
 function openIntData(roomid = "", type = "") {
@@ -737,10 +766,10 @@ function openIntData(roomid = "", type = "") {
             roomid: roomid,
             type: type,
         },
-        beforeSend: function() {
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success: function(data) {
+        success: function (data) {
             if (data.status == "success") {
                 var col = data.collection;
                 $('#id_mdl_integration').modal('show');
@@ -796,10 +825,10 @@ function submitIntegration() {
         type: "POST",
         dataType: "json",
         data: f,
-        beforeSend: function() {
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success: function(data) {
+        success: function (data) {
             if (data.status == "success") {
                 $('#frm_integration')[0].reset();
                 $('#id_mdl_integration').modal('hide');
@@ -823,10 +852,10 @@ function getAutomation() {
         url: "api/Automation/GetAll",
         type: "GET",
         dataType: "json",
-        beforeSend: function() {
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success: function(data) {
+        success: function (data) {
             if (data.status == "success") {
                 gAutomation = data.collection;
             } else {
@@ -846,10 +875,10 @@ function getFacility() {
         url: "api/Facility/GetAll",
         type: "GET",
         dataType: "json",
-        beforeSend: function() {
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success: function(data) {
+        success: function (data) {
             if (data.status == "success") {
                 gFacility = [];
                 // $.each(data.collection, function(index, item){
@@ -984,27 +1013,27 @@ function init() {
     var bs = $('#id_baseurl').val();
     var modules = getModule();
     $.ajax({
-        url:"api/Room/GetRoomData",
+        url: "api/Room/GetRoomData",
         type: "GET",
         dataType: "json",
-        beforeSend: function() {
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success: function(data) {
+        success: function (data) {
             if (data.status == "success") {
                 clearTable($('#tbldata'));
                 var html = "";
                 var nn = 0;
                 $('#id_count_total').html(data.collection.length);
-                count_room  = data.collection.length;
+                count_room = data.collection.length;
                 gInitRoom = data.collection;
-                $.each(data.collection, function(index, item) {
+                $.each(data.collection, function (index, item) {
                     nn++;
                     var automation = item.is_automation == 0 ? "Unactive" : "Active";
                     var price = item.price == null || item.price == "" ? 0 : item.price;
                     var ra_name = item.ra_name == null ? "" : item.ra_name
-                    html += '<tr data-id="'+item.radid+'">'
-                    html += '<td data-id="'+item.radid+'"></td>';
+                    html += '<tr data-id="' + item.radid + '">'
+                    html += '<td data-id="' + item.radid + '"></td>';
                     html += '<td>' + nn + '</td>';
                     var imgp = item.image == "" || item.image == null ? defaultImage : item.image;
                     html += '<td> <a href="javascript:void(0);" class="thumbnail"><img src="/api/Room/GetRoomDetailView/' + imgp + '?h=80&noCache=false" style="height:64px;" class="img-responsive"></a></td>';
@@ -1014,9 +1043,9 @@ function init() {
                     html += '<td>' + item.work_time + '</td>';
                     // html += '<td>'+item.work_day+'</td>';
                     // 
-                    if (modules['price']['is_enabled'] == 1) {
+                    /* if (modules['price']['is_enabled'] == 1) {
                         html += '<td>' + numeral(price).format('$ 0,0.00'); + '</td>';
-                    }
+                    } */
                     //if (modules['int_365']['is_enabled'] == 1 || modules['int_google']['is_enabled'] == 1) {
                     //    html += '<td>';
                     //    if (modules['int_365']['is_enabled'] == 1) {
@@ -1038,15 +1067,15 @@ function init() {
                     //}
                     html += '<td>' + enabledRoom[item.is_disabled] + '</td>';
                     html += '<td>';
-                     html += `<button 
+                    html += `<button 
                                  onclick="editData($(this))"   data-id="${item.id}"   data-name="${item.name}" 
                                  data-ra_id="${item.ra_id}" 
                                  type="button" class="btn btn-info waves-effect"><i class="material-icons">edit</i></button>&nbsp;`
-                     html += `<button 
+                    html += `<button 
                                  onclick="removeData($(this))"   data-id="${item.id}" data-name="${item.name}" 
                                  data-ra_id="${item.ra_id}" 
                                  type="button" class="btn btn-danger waves-effect"><i class="material-icons">delete</i></button>&nbsp;`
-                    
+
                     //if (modules['int_365']['is_enabled'] == 1 || modules['int_google']['is_enabled'] == 1) {
                     //    html += `&nbsp; <div class="btn-group">
                     //                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -1090,8 +1119,8 @@ function initSingle() {
         url: "api/Room/GetSingle",
         type: "GET",
         dataType: "json",
-        beforeSend: function() {},
-        success: function(data) {
+        beforeSend: function () { },
+        success: function (data) {
             gDatalistRoom = [];
             if (data.status == "success") {
                 gDatalistRoom = data.collection;
@@ -1123,7 +1152,7 @@ async function getRoomForUsageDetail(id) {
         return [];
     }
 }
-    
+
 
 
 function editData(t) {
@@ -1136,10 +1165,10 @@ function editData(t) {
         url: "api/Room/GetRoomById/" + id,
         type: "GET",
         dataType: "json",
-        beforeSend: function() {
+        beforeSend: function () {
             $('#id_loader').html('<div class="linePreloader"></div>');
         },
-        success: function(data) {
+        success: function (data) {
             // $('#id_edt_image2_old_div').html("")
             if (data.status == "success") {
 
@@ -1171,7 +1200,7 @@ function editData(t) {
                     }
                 }
                 $('#id_edt_is_disabled').html(dataR)
-               
+
                 $('#id_edt_image_old').attr("src", imap);
                 $('#id_edt_radid').val(input['radid']);
                 $('#id_edt_name').val(input['name']);
@@ -1205,18 +1234,19 @@ function editData(t) {
                 var html_active = "";
                 var html_typeroom = "";
                 var html_building = "";
+                var html_floor = "";
 
 
 
                 if (modules['automation']['is_enabled'] == 1) {
                     var active = ["Off", "On"];
-                    $.each(active, function(index, item) {
+                    $.each(active, function (index, item) {
                         var sl = "";
                         if (input['is_automation'] == index) { sl = "selected" }
                         html_active += "<option " + sl + " value=" + index + ">" + item + "</option>";
                     });
                     html_aut += "<option value=''>Please choose a automation ...</option>";
-                    $.each(gAutomation, function(index, item) {
+                    $.each(gAutomation, function (index, item) {
                         var sl = "";
                         if (input['automation_id'] == item.id) {
                             sl = "selected";
@@ -1225,17 +1255,15 @@ function editData(t) {
                     });
                 }
 
-                $.each(typeRoom, function(index, item) {
+                $.each(typeRoom, function (index, item) {
                     var sl = item.value == input['type_room'] ? "selected" : "";
 
                     html_typeroom += "<option " + sl + " value=" + item.value + ">" + item.text + "</option>";
                 });
 
 
-
-
                 var workday = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
-                $.each(workday, function(index, item) {
+                $.each(workday, function (index, item) {
                     var sl = "";
                     if (wrkdaydb_array.indexOf(item.toUpperCase()) >= 0) {
                         sl = "selected";
@@ -1257,22 +1285,48 @@ function editData(t) {
                 }
 
 
+                // for (var i in gFloor) {
+                //     html_floor += "<option value=" + gFloor[i].id + ">" + gFloor[i].name + "</option>";
+                // }
+
+                for (var i in gFloor) {
+                    if (input["building_id"] == gFloor[i].building_id) {
+                      if (input["floor_id"] == gFloor[i].id) {
+                        html_floor +=
+                          "<option selected value=" +
+                          gFloor[i].id +
+                          ">" +
+                          gFloor[i].name +
+                          "</option>";
+                      } else {
+                        html_floor +=
+                          "<option value=" +
+                          gFloor[i].id +
+                          ">" +
+                          gFloor[i].name +
+                          "</option>";
+                      }
+                    }
+                }
+
                 $('#id_edt_building_id').html(html_building)
                 $('#id_edt_automation').html(html_aut);
                 $('#id_edt_workday').html(html_wkd);
                 $('#id_edt_automation_active').html(html_active);
                 $('#id_edt_facility_room').html(html_facility);
                 $('#id_edt_type_room').html(html_typeroom);
+                $('#id_edt_type_room').html(html_typeroom);
+                $('#id_edt_floor_id').html(html_floor);
                 // 
                 // 
                 // 
                 // ADVANCED
                 // 
-                var is_config_enable = input['is_config_setting_enable']-0;
-                var is_config_adv_approval = input['is_enable_approval'] -0;
-                var is_config_adv_permission = input['is_enable_permission'] -0;
-                var is_config_adv_checkin = input['is_enable_checkin'] -0;
-                var is_config_adv_recurring = input['is_enable_recurring'] -0;
+                var is_config_enable = input['is_config_setting_enable'] - 0;
+                var is_config_adv_approval = input['is_enable_approval'] - 0;
+                var is_config_adv_permission = input['is_enable_permission'] - 0;
+                var is_config_adv_checkin = input['is_enable_checkin'] - 0;
+                var is_config_adv_recurring = input['is_enable_recurring'] - 0;
 
 
 
@@ -1329,7 +1383,7 @@ function editData(t) {
                     $('#id_edt_adv_config_approval_user').attr("disabled", true);
                     $('#id_edt_adv_is_enable_approval').attr("checked", false);
                 }
-                var config_approval_user = input['config_approval_user'] == null ? "" :  input['config_approval_user'];
+                var config_approval_user = input['config_approval_user'] == null ? "" : input['config_approval_user'];
                 var html_adv_approval_user = "";
                 var sp_config_approval_user = config_approval_user //.split(",");
                 for (var iu in gUserApproval) {
@@ -1352,7 +1406,7 @@ function editData(t) {
                     $('#id_edt_adv_config_permission_user').attr("disabled", true);
                     $('#id_edt_adv_is_enable_permission').attr("checked", false);
                 }
-                var config_permission_user = input['config_permission_user'] == null ? "":input['config_permission_user']  ;
+                var config_permission_user = input['config_permission_user'] == null ? "" : input['config_permission_user'];
                 var html_adv_permission_user = "";
                 var sp_config_permission_user = config_permission_user //.split(",");
                 for (var iu in gUserPermission) {
@@ -1371,16 +1425,16 @@ function editData(t) {
                 // $('#id_edt_adv_config_permission_end').removeAttr();
                 var config_permission_checkin = input['config_permission_checkin'] == null ? 0 : input['config_permission_checkin'];
                 var config_permission_end = input['config_permission_end'];
-                var is_realease_checkin_timeout = input['is_realease_checkin_timeout'] -0;
+                var is_realease_checkin_timeout = input['is_realease_checkin_timeout'] - 0;
                 // console.log(is_config_adv_checkin,is_config_enable, is_realease_checkin_timeout )
                 if (is_config_adv_checkin == 1 && is_config_enable == 1) {
                     $('#id_edt_adv_config_permission_checkin').removeAttr('disabled');
                     $('#id_edt_adv_is_enable_checkin').attr("checked", true);
                     $('#id_edt_adv_is_realease_checkin_timeout').removeAttr('disabled');
-                    if(is_realease_checkin_timeout == 1){
+                    if (is_realease_checkin_timeout == 1) {
                         $('#id_edt_adv_is_realease_checkin_timeout').attr("checked", true);
                         $('#id_edt_adv_config_release_room_checkin_timeout').removeAttr('disabled');
-                    }else{
+                    } else {
                         $('#id_edt_adv_is_realease_checkin_timeout').attr("checked", false);
                         $('#id_edt_adv_config_release_room_checkin_timeout').attr("disabled", true);
                     }
@@ -1395,21 +1449,21 @@ function editData(t) {
                 // var sp_config_permission_user = config_permission_checkin.split(",");
                 for (var iu in gRoomUserCheckin) {
                     var rrrr_g = gRoomUserCheckin[iu];
-                    var s = config_permission_checkin ==  rrrr_g.key ? "selected":"";
+                    var s = config_permission_checkin == rrrr_g.key ? "selected" : "";
                     html_adv_permission_checkin += "<option " + s + " value='" + rrrr_g.key + "'>" + rrrr_g.name + "</option>";
                 }
 
                 for (var iuen in gRoomUserCheckin) {
                     var rrrr_g = gRoomUserCheckin[iuen];
-                    var s = config_permission_end ==  rrrr_g.key ? "selected":"";
+                    var s = config_permission_end == rrrr_g.key ? "selected" : "";
                     html_adv_permission_end_permission += "<option " + s + " value='" + rrrr_g.key + "'>" + rrrr_g.name + "</option>";
                 }
                 $('#id_edt_adv_config_permission_checkin').html(html_adv_permission_checkin);
                 $('#id_edt_adv_config_permission_end').html(html_adv_permission_end_permission);
-                var html_adv_config_min_duration = selectGlobal(gMinimumDurationMeeting,"value", input['config_min_duration']-0);
-                var html_adv_config_max_duration = selectGlobal(gMaximumDurationMeeting,"value", input['config_max_duration']-0);
-                var html_adv_config_advance_booking = selectGlobal(gAdvanceMeeting,"value", input['config_advance_booking']-0);
-                var html_adv_config_release_room_checkin_timeout = selectGlobal(gReleaseTimeout,"value", input['config_release_room_checkin_timeout']-0);
+                var html_adv_config_min_duration = selectGlobal(gMinimumDurationMeeting, "value", input['config_min_duration'] - 0);
+                var html_adv_config_max_duration = selectGlobal(gMaximumDurationMeeting, "value", input['config_max_duration'] - 0);
+                var html_adv_config_advance_booking = selectGlobal(gAdvanceMeeting, "value", input['config_advance_booking'] - 0);
+                var html_adv_config_release_room_checkin_timeout = selectGlobal(gReleaseTimeout, "value", input['config_release_room_checkin_timeout'] - 0);
 
                 $('#id_edt_adv_config_min_duration').html(html_adv_config_min_duration);
                 $('#id_edt_adv_config_max_duration').html(html_adv_config_max_duration);
@@ -1424,13 +1478,14 @@ function editData(t) {
                 initKindRoom('id_edt_kind_room', data.collection.kind_room);
                 ocEdtRoomForUsage()
 
+                showHideApprovalConfig($("#id_edt_kind_room").val(), "edt");
                 $('#id_mdl_update').modal('show');
             } else {
                 var msg = "Your session is expired, login again !!!";
                 swalShowNotification('alert-danger', msg, 'top', 'center')
             }
             $('#id_loader').html('');
-
+            handleKindRoomChange('id_edt_kind_room');
         },
         error: errorAjax
     })
@@ -1497,7 +1552,7 @@ function advanceEdtRoomDisabled() {
     $('#id_edt_adv_config_max_duration').attr("disabled", true);
     $('#id_edt_adv_config_advance_booking').attr("disabled", true);
     $('#id_edt_adv_is_enable_recurring').attr("disabled", true);
-     $('#id_edt_adv_tbl_room_for_usage').hide();
+    $('#id_edt_adv_tbl_room_for_usage').hide();
 
 
 
@@ -1521,7 +1576,7 @@ function advanceCrtRoomEnabled() {
     $("#id_crt_adv_tbl_room_for_usage").show();
 
 
-    
+
 
     //if ($("#id_crt_adv_is_enable_approval")[0].checked) {
     //    $("#id_crt_adv_config_approval_user").removeAttr("disabled");
@@ -1552,29 +1607,29 @@ function advanceEdtRoomEnabled() {
     $('#id_edt_adv_is_enable_recurring').removeAttr('disabled');
     $('#id_edt_adv_tbl_room_for_usage').show();
 
-    if($('#id_edt_adv_is_enable_approval')[0].checked){
+    if ($('#id_edt_adv_is_enable_approval')[0].checked) {
         $('#id_edt_adv_config_approval_user').removeAttr('disabled');
     }
-    if($('#id_edt_adv_is_enable_checkin')[0].checked){
+    if ($('#id_edt_adv_is_enable_checkin')[0].checked) {
         $('#id_edt_adv_config_permission_checkin').removeAttr('disabled');
     }
-    if($('#id_edt_adv_is_enable_permission')[0].checked){
+    if ($('#id_edt_adv_is_enable_permission')[0].checked) {
         $('#id_edt_adv_config_permission_user').removeAttr('disabled');
     }
 
     $('#id_panel_checkin_edt').show();
 }
 
-function removeAll(){
-    var co = dataTB.rows({selected:true}).data().length;
+function removeAll() {
+    var co = dataTB.rows({ selected: true }).data().length;
     var dataRoll = dataTB.rows('.selected').indexes();
     var colRadid = [];
     var colMs365 = [];
     var colGoogle = [];
     var num = 0;
     var idsToDelete = [];
-    for(var i = 0; i < dataRoll.length;i++){
-         var indexx = dataRoll[i];
+    for (var i = 0; i < dataRoll.length; i++) {
+        var indexx = dataRoll[i];
         var row = gInitRoom[indexx];
 
         idsToDelete.push(row.id);
@@ -1583,9 +1638,9 @@ function removeAll(){
         colMs365.push(row.config_microsoft);
         colGoogle.push(row.config_google);
     }
-    var strcolRadid     = colRadid.join(",");
-    var strcolMs365     = colMs365.join(",");
-    var strcolGoogle    = colGoogle.join(",");
+    var strcolRadid = colRadid.join(",");
+    var strcolMs365 = colMs365.join(",");
+    var strcolGoogle = colGoogle.join(",");
     Swal.fire({
         title: 'Are you sure you want remove this data?',
         type: "warning",
@@ -1603,18 +1658,18 @@ function removeAll(){
                 url: "api/Room/DeleteItemsByIds?ids=" + queryIds,
                 type: "DELETE",
                 data: {
-                    data : strcolRadid,
-                    ms365 : strcolMs365,
-                    google : strcolGoogle,
+                    data: strcolRadid,
+                    ms365: strcolMs365,
+                    google: strcolGoogle,
                 },
                 dataType: "json",
-                beforeSend: function() {
+                beforeSend: function () {
                     $('#id_loader').html('<div class="linePreloader"></div>');
                 },
-                success: function(data) {
+                success: function (data) {
                     $('#id_loader').html('');
                     if (data.status == "success") {
-                        
+
                         swalShowNotification('alert-success', "Succes delete room selected ", 'top', 'center')
                         init();
                     } else {
@@ -1652,10 +1707,10 @@ function removeData(t) {
                 processData: false,
                 contentType: false,
                 dataType: "json",
-                beforeSend: function() {
+                beforeSend: function () {
                     $('#id_loader').html('<div class="linePreloader"></div>');
                 },
-                success: function(data) {
+                success: function (data) {
                     $('#id_loader').html('');
                     if (data.status == "success") {
                         swalShowNotification('alert-success', "Succes deleted room " + name, 'top', 'center')
@@ -1696,10 +1751,10 @@ function removeIntegrationRoom() {
                 type: "POST",
                 data: f,
                 dataType: "json",
-                beforeSend: function() {
+                beforeSend: function () {
                     $('#id_loader').html('<div class="linePreloader"></div>');
                 },
-                success: function(data) {
+                success: function (data) {
                     $('#id_loader').html('');
                     if (data.status == "success") {
                         $('#frm_integration')[0].reset();

@@ -12,6 +12,21 @@ $('#id_crt_building_id').on('change', function(){
     $('#id_crt_floor_id').html(html_floor);
     select_enable();
 })
+$("#id_edt_building_id").on("change", function () {
+  var v = $("#id_edt_building_id").val();
+  //console.log(v);
+  var html_floor = "";
+  html_floor += "";
+  // console.log(html_floor);
+  for (var i in gFloor) {
+    if (v == gFloor[i].building_id) {
+      html_floor +=
+        "<option value=" + gFloor[i].id + ">" + gFloor[i].name + "</option>";
+    }
+  }
+  $("#id_edt_floor_id").html(html_floor);
+  select_enable();
+});
 
 $('#frm_create').submit(function(e) {
     e.preventDefault();
@@ -299,3 +314,25 @@ $('#frm_integration').submit(function(e) {
 
     // gFacility = data.collection
 })
+
+$("#id_crt_kind_room").on('change', function() {
+    const t = $(this);
+    showHideApprovalConfig(t.val(), "crt");
+});
+
+$("#id_edt_kind_room").on('change', function() {
+    const t = $(this);
+    showHideApprovalConfig(t.val(), "edt");
+});
+
+function showHideApprovalConfig(value="", type="crt") {
+    let parent = $(`#id_${type}_adv_is_enable_approval`).parents("div.row.clearfix")[0]
+    if (value != "specialroom") {
+        $(`#id_${type}_adv_is_enable_approval`).prop("checked", false).trigger("change");
+        $(`#id_${type}_adv_config_approval_user`).val("").trigger("change");
+        $(`#id_${type}_adv_config_approval_user`).selectpicker("refresh");
+        $(parent).hide();
+    } else {
+        $(parent).show();
+    }
+}

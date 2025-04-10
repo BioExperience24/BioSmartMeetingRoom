@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace _1.PAMA.Razor.Views.Pages.ReportUsage
 {
     [Authorize]
+    [RejectWebviewUser]
     [PermissionAccess]
     public class IndexModel(IConfiguration config) : PageModel
     {

@@ -1,11 +1,13 @@
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
+using _5.Helpers.Consumer.Policy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _1.PAMA.Razor.Views.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
     [ApiController]
     [Route("api/[controller]/[action]")]
     public class AccessChannelController : ControllerBase

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace _4.Data.ViewModels;
 public class DisplayLoginRequest
@@ -65,4 +66,14 @@ public class SerialRequest
 {
     [BindProperty(Name = "serial")]
     public string Serial { get; set; }
+}
+public class DisplayScheduledFRViewModel : SerialRequest
+{
+    [BindProperty(Name = "date")]
+    public string? Date { get; set; }
+
+    [BindProperty(Name = "time")]
+    public string? Time { get; set; }
+    [BindProperty(Name = "timezone")]
+    public string Timezone { get; set; } = string.Empty;
 }

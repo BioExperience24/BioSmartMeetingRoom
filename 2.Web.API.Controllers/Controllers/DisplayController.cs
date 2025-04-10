@@ -1,14 +1,19 @@
 ﻿using _2.Web.API.Controllers;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
+using _5.Helpers.Consumer.Policy;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Controllers;
 
 [AccessIdAuthorize("2")]
+[ApiExplorerSettings(GroupName = "pama_smeet")]
+[Authorize(Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
 [ApiController]
 [Route("api")]
-public class DisplayController(IAPIMainDisplayService _service)
+public class DisplayController(IAPIMainDisplayService _service, IRoomDisplayService _roomDisplayService, IMapper _mapper)
     : ControllerBase
 {
 
@@ -64,7 +69,23 @@ public class DisplayController(IAPIMainDisplayService _service)
     [HttpPost("display/check-serial")]
     public async Task<IActionResult> DisplayCheckSerial(SerialRequest request)
     {
-        ReturnalModel ret = new();
+        ReturnalModel ret = await _service.CheckSerialIsAlready(request.Serial);
+        return StatusCode(ret.StatusCode, ret);
+    }
+
+    [HttpPost("display/update-serial-sync")]
+    public async Task<IActionResult> DisplayUpdateSerialSync(DisplayUpdateSerialSyncFRViewModel request)
+    {
+
+        ReturnalModel ret = await _roomDisplayService.DisplayUpdateSerialSync(request);
+        return StatusCode(ret.StatusCode, ret);
+    }
+
+
+    [HttpPost("display-information/list")]
+    public async Task<IActionResult> DisplayScheduled(DisplayScheduledFRViewModel request)
+    {
+        ReturnalModel ret = await _service.GetScheduledDisplay(request);
         return StatusCode(ret.StatusCode, ret);
     }
 
@@ -81,4 +102,5 @@ public class DisplayController(IAPIMainDisplayService _service)
         ReturnalModel ret = await _service.DisplayMeetingWithMoreRoomOccupiedListDisplay(request);
         return StatusCode(ret.StatusCode, ret);
     }
+
 }

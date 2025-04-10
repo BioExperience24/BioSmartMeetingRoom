@@ -6,10 +6,12 @@ using _5.Helpers.Consumer.EnumType;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using _5.Helpers.Consumer.Policy;
+
 
 namespace _1.PAMA.Razor.Views.Controllers
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class BookingController : ControllerBase
@@ -150,6 +152,31 @@ namespace _1.PAMA.Razor.Views.Controllers
             return StatusCode(ret.StatusCode, ret);
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> CancelAllBooking([FromForm] BookingVMCancelAllFR request)
+        {
+            BookingVMCancelAllFR req = new BookingVMCancelAllFR
+            {
+                Id = request.Id,
+                BookingId = request.BookingId,
+                Name = request.Name,
+                Reason = request.Reason,
+            };
+
+            ReturnalModel ret = new();
+            if (!request.IsAll)
+            {
+                ret = await _processService.CancelBookingAsync(req);
+            }
+            else
+            {
+                ret = await _processService.CancelAllBookingAsync(req);
+            }
+            
+            return StatusCode(ret.StatusCode, ret);
+        }
+
         [HttpPost]
         public async Task<IActionResult> EndMeeting([FromForm] BookingVMEndMeetingFR request)
         {
@@ -171,6 +198,56 @@ namespace _1.PAMA.Razor.Views.Controllers
         {
             ReturnalModel ret = await _processService.SetExtendMeetingAsync(request);
 
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBookingWithApprovalDataTables([FromQuery] BookingVMNeedApprovalDataTableFR request)
+        {
+            ReturnalModel ret = new();
+
+            ret.Collection = await _processService.GetAllItemWithApprovalDataTablesAsync(request);
+
+            return StatusCode(ret.StatusCode, ret);            
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ProcessMeetingApproval([FromForm] BookingVMApprovalFR request)
+        {
+            ReturnalModel ret = await _processService.ProcessMeetingApprovalAsync(request);
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmAttendance([FromForm] BookingVMConfirmAttendanceFR request)
+        {
+            ReturnalModel ret = await _processService.ConfirmAttendanceAsync(request);
+            
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AdditionalAttendees([FromForm] BookingVMAdditionalAttendeesFR request)
+        {
+            ReturnalModel ret = await _processService.AdditionalAttendeesAsync(request);
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetInProgressBooking()
+        {
+            ReturnalModel ret = await _processService.GetOngoingBookingAsync();
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateNewOrder([FromForm] BookingVMCreateNewOrderFR request)
+        {
+            ReturnalModel ret = await _processService.CreateNewOrderAsync(request);
+            
             return StatusCode(ret.StatusCode, ret);
         }
     }

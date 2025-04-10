@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using _2.BusinessLogic.Services.Interface;
 using _4.Helpers.Consumer;
@@ -7,6 +8,7 @@ using _5.Helpers.Consumer;
 using _5.Helpers.Consumer._QRCodeGenerator;
 using _5.Helpers.Consumer.Custom;
 using _5.Helpers.Consumer.EnumType;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -17,6 +19,7 @@ public class APIMainDisplayService(
     IConfiguration _config, 
     IHttpContextAccessor context,
     APICaller _apiCaller,
+    AccessControlRepository _accessControlRepository,
     BookingRepository _repo,
     BookingInvitationRepository _repoBI,
     EmployeeRepository _employeeRepository,
@@ -30,10 +33,10 @@ public class APIMainDisplayService(
     BookingInvoiceRepository _bookingInvoiceRepository,
     SendingEmailRepository _sendingEmailRepository,
     SendingNotifRepository _sendingNotifRepository,
+    SettingLogConfigRepository _settingLogConfigRepository,
     IPantryTransaksiService _pantryTransaksiService,
     IAttachmentListService _attachmentListService,
-    IExportReport _exp,
-    IManualConfigService _manualConfigService
+    IExportReport _exp
     )
     : IAPIMainDisplayService
 {
@@ -597,8 +600,8 @@ public class APIMainDisplayService(
 
         var alocation = new FastBookAlocationVMDefaultFR
         {
-            Id = getDataPic.DepartmentId,
-            Name = getDataPic.DepartmentName
+            Id = getDataPic.AlocationId,
+            Name = getDataPic.AlocationName
         };
 
         short isMerge = viewModel.IsMerge ?? 0;
@@ -655,23 +658,19 @@ public class APIMainDisplayService(
         var time1 = DateTime.Now;
         if (!string.IsNullOrEmpty(viewModel.StartTime))
         {
-            string dateTimeString = viewModel.Date + " " + viewModel.StartTime;
+            string dateTimeString = $"{viewModel.Date:yyyy-MM-dd} {viewModel.StartTime}";
 
-            if (DateTime.TryParseExact(dateTimeString,
-                                       new[] { "yyyy-MM-dd HH:mm:ss", "dd/MM/yyyy HH:mm:ss", "MM/dd/yyyy HH:mm:ss" },
-                                       CultureInfo.InvariantCulture,
-                                       DateTimeStyles.None,
-                                       out DateTime parsedDateTime))
+            try
             {
-                time1 = parsedDateTime;
+                time1 = _String.ToDateTime(dateTimeString, "yyyy-MM-dd HH:mm:ss");
             }
-            else
+            catch (FormatException)
             {
                 return new ReturnalModel
                 {
                     Title = ReturnalType.Failed,
                     Status = ReturnalType.Failed,
-                    StatusCode = (int)HttpStatusCode.NotFound,
+                    StatusCode = (int)HttpStatusCode.BadRequest,
                     Message = $"Invalid date format: {dateTimeString}"
                 };
             }
@@ -729,14 +728,14 @@ public class APIMainDisplayService(
             await _repo.ChecBookingConditionPerRoomAsync(ruangan, ckServerDate, ckServerStart, ckServerEnd);
         }
 
-        var internalDataRow = viewModel.InternalData ?? new List<EmployeeViewModel>();
+        var internalDataRow = viewModel.InternalData ?? new List<FastBookListlDataInternalFRViewModel>();
         var internalData = _mapper.Map<List<FastBookEmployeeViewModel>>(internalDataRow); ;
-        var externalData = viewModel.ExternalData ?? new List<FastBookBookingInvitationViewModel>();
+        var externalData = viewModel.ExternalData ?? new List<FastBookListlDataExternalFRViewModel>();
         var nikArray = internalData.Select(i => i.Nik).ToList();
 
-        var rowInternalData = nikArray.Count > 0 ? (await _employeeRepository.GetNikEmployeeByPic(nikArray))?.Where(e => e != null).ToList() ?? new List<Employee>() : new List<Employee>();
+        var rowInternalData = nikArray.Count > 0 ? (await _employeeRepository.GetNikEmployeeByPic(nikArray))?.Where(e => e != null).Cast<Employee>().ToList() ?? new List<Employee>() : new List<Employee>();
 
-        var rowInternal = _mapper.Map<List<EmployeeViewModel>>(rowInternalData); ;
+        var rowInternal = _mapper.Map<List<FastBookEmployeeViewModel>>(rowInternalData); ;
         // START MODULE PANTRY
         await _pantryTransaksiService.CreatePantryOrderAsync(databook, id);
         // END MODULE PANTRY
@@ -749,8 +748,8 @@ public class APIMainDisplayService(
 
         var internalBatch = new List<FastBookBookingInvitationViewModel>();
         var eksternalBatch = new List<FastBookBookingInvitationViewModel>();
-        var dataEmailInternalData = rowInternal;
-        var dataEmailInternal = _mapper.Map<List<FastBookBookingInvitationViewModel>>(rowInternal);
+        // var dataEmailInternalData = rowInternal;
+        var dataEmailInternal = _mapper.Map<List<FastBookEmployeeViewModel>>(rowInternal);
         var dataEmailEksternal = new List<FastBookBookingInvitationViewModel>();
         var dataEmailInternalArray = new List<object>();
         var data = new FastBookBookingViewModel();  // DATA BOOKING
@@ -774,8 +773,10 @@ public class APIMainDisplayService(
         data.MergeRoom = JsonConvert.SerializeObject(dataMergeRoomWidthJson);
         data.Timezone = viewModel.Timezone!;
         data.BookingDevices = "display";
-        data.IsDeleted = 0;
         data.BookingType = "general";
+        data.IsDeleted = 0;
+        data.UpdatedAt = DateTime.Now;
+        data.Note = viewModel.Note ?? "";
 
         var serverStart = DateTime.SpecifyKind(DateTime.ParseExact(viewModel.StartTime!, "HH:mm:ss", CultureInfo.InvariantCulture), DateTimeKind.Utc);
         var serverEnd = serverStart.AddMinutes(timeDuration);
@@ -798,6 +799,7 @@ public class APIMainDisplayService(
         var qrInvitationPic = $"{id}_{invitationPic.PinRoom}";
 
         var qrCodeInvitationBase64 = _QRCodeGenerator.GenerateQRBase64(qrInvitationPic);
+        _attachmentListService.SetTableFolder("qr");
         await _attachmentListService.ProcessBase64ToBlob(qrCodeInvitationBase64, $"{qrInvitationPic}.png");
 
         // START ATTENDEES AREA
@@ -814,21 +816,20 @@ public class APIMainDisplayService(
             listPinRoom.Add(numStrInternal);
         }
 
-        var dataGenerateInternal = FastBook.CreateInternalBatch(data, listPinRoom, internalData, nikPic, true);
+        var dataGenerateInternal = FastBook.CreateInternalBatch(data, listPinRoom, rowInternal, nikPic, true);
         internalBatch = dataGenerateInternal.InternalBatch;
-        // dataEmailInternal = _mapper.Map<List<BookingInvitationViewModel>>(dataGenerateInternal.DataEmailInternal);
+        var newDataEmailInternal = _mapper.Map<List<FastBookEmployeeViewModel>>(dataGenerateInternal.DataEmailInternal);
         
-
         // insert of PIC invitation
-        var ipicemail = new FastBookBookingInvitationViewModel
+        var ipicemail = new FastBookEmployeeViewModel
         {
             Nik = getDataPic.Nik,
             Name = getDataPic.Name,
             IsPic = 1,
             Email = getDataPic.Email,
-            PinRoom = invitationPic.PinRoom
+            Pin = invitationPic.PinRoom
         };
-        dataEmailInternal.Add(ipicemail);
+        newDataEmailInternal.Add(ipicemail);
 
         var listPinRoomExternal = new List<string>();
         foreach (var val in externalData)
@@ -844,12 +845,12 @@ public class APIMainDisplayService(
 
         var dataGenerateExternal = FastBook.CreateExternalBatch(data, listPinRoomExternal, externalData, nikPic);
         eksternalBatch = dataGenerateExternal.eksternalBatch;
-        dataEmailEksternal = dataGenerateExternal.dataEmailEksternal;
+        var newDataEmailEksternal = dataGenerateExternal.dataEmailEksternal;
 
         var dataToSend = new
         {
-            InternalEmails = dataEmailInternal,
-            ExternalEmails = dataEmailEksternal
+            InternalEmails = newDataEmailInternal,
+            ExternalEmails = newDataEmailEksternal
         };
 
         var batchSendingEmail = JsonConvert.SerializeObject(dataToSend);
@@ -862,11 +863,16 @@ public class APIMainDisplayService(
         await _repoBI.Create(fastBookinvitationPic);
         if (internalBatch.Count > 0)
         {
-            var internalBatchData = _mapper.Map<List<BookingInvitation>>(internalBatch); 
+            var internalBatchData = _mapper.Map<List<BookingInvitation>>(internalBatch);
             await _repoBI.CreateBulk(internalBatchData);
 
         }
+        if (eksternalBatch.Count > 0)
+        {
+            var externalBatchData = _mapper.Map<List<BookingInvitation>>(eksternalBatch);
+            await _repoBI.CreateBulk(externalBatchData);
 
+        }
 
         // =========================================================================
         // START 365
@@ -882,7 +888,7 @@ public class APIMainDisplayService(
             var ck365 = await _repoModuleBackend.GetIntegration365TopByStatus();
             if (ck365.Any())
             {
-                var res365 = await CreateEvent365(data, room, ms365, dataEmailInternal, dataEmailEksternal);
+                var res365 = await CreateEvent365(data, room, ms365, newDataEmailInternal, dataEmailEksternal);
                 try
                 {
                     // var jres365 = JsonConvert.DeserializeObject<BookingViewModel>(res365.Collection);
@@ -942,7 +948,7 @@ public class APIMainDisplayService(
         await _sendingNotifRepository.AddAsync(sendingNotifData);
 
         var notifCollectData = new List<NotificationData>();
-        notifCollectData = CreateNotifikasiCollectData(id, dataEmailInternal, data, DateTime.Now);
+        notifCollectData = CreateNotifikasiCollectData(id, newDataEmailInternal, data, DateTime.Now);
 
         var typeNotif = 1; // notification_type 1=booking
         var notifInsert = false; // notification_type 1=booking
@@ -987,18 +993,18 @@ public class APIMainDisplayService(
         }
 
         var dataBooking = getBooking;
-        dataBooking.FormatTimeStart = FormatTime(waktuTimeStart);
-        dataBooking.FormatTimeEnd = FormatTime(waktuTimeEnd);
+        dataBooking.FormatTimeStart = waktuTimeStart;
+        dataBooking.FormatTimeEnd = waktuTimeEnd;
         dataBooking.FormatDate = FormatDate(tanggalMeeting);
 
         // MODULE EMAIL
-        if (modules_email?.IsEnabled == 1 && data.IsAlive == 1 && sendNotif)
+        if (modules_email?.IsEnabled == 1  && sendNotif)
         {
-            foreach (var people in dataEmailInternal)
+            foreach (var people in dataToSend.InternalEmails)
             {
                 await SendEmail("invitation", dataBooking, people, isExternal: false);
             }
-            foreach (var people in dataEmailEksternal)
+            foreach (var people in dataToSend.ExternalEmails)
             {
                 await SendEmail("invitation", dataBooking, people, isExternal: true);
 
@@ -1015,7 +1021,7 @@ public class APIMainDisplayService(
         {
             var notificationTitle = $"Invitation Meeting of {meetingTitle}";
             var notificationBody = $"{FormatDate(meetingDate)} {FormatTime(meetingStart)}-{FormatTime(meetingEnd)} at {roomName}";
-            await PushNotificationAsync(notificationTitle, notificationBody, dataEmailInternal, typeNotif, notifInsert);
+            await PushNotificationAsync(notificationTitle, notificationBody, newDataEmailInternal, typeNotif, notifInsert);
             await InsertNotifAdminApiAsync(12, "Create meeting", meetingTitle, ipicemail.Nik);
         }
  
@@ -1039,14 +1045,14 @@ public class APIMainDisplayService(
         if (string.IsNullOrEmpty(timeString))
             return string.Empty;
 
-        string[] parts = timeString.Split(':');
+        string[] parts = timeString.Replace('.', ':').Split(':'); // Normalize separators
         if (parts.Length < 2)
             return timeString; // Return as is if format is incorrect
 
         string hours = parts[0].PadLeft(2, '0'); // Ensure two-digit hour
-        string minutes = parts[1];
+        string minutes = parts[1].PadLeft(2, '0'); // Ensure two-digit minutes
 
-        return $"{hours}:{minutes}";
+        return $"{hours}:{minutes}"; // Return as string, not TimeOnly
     }
 
     private static string FormatDate(string dateString)
@@ -1062,34 +1068,120 @@ public class APIMainDisplayService(
         return dateString; // Return original string if parsing fails
     }
 
-    private async Task<ReturnalModel> CheckSerialIsAlready(string serial)
+    public async Task<ReturnalModel> CheckSerialIsAlready(string serial)
     {
-        if (!string.IsNullOrEmpty(serial))
+        if (string.IsNullOrEmpty(serial))
         {
-            var fetch = await _repoRoomDisplayRepository.GetDisplaySerialBySerialNumber(serial!);
-            if (fetch?.DisplaySerial == null)
+            return new ReturnalModel
             {
-                return new ReturnalModel
-                {
-                    Status = ReturnalType.Failed,
-                    Message = "Display not available/registered"
-                };
-            }
-            if (fetch.Enabled == 0)
+                Status = ReturnalType.Failed,
+                Title = "Failed",
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = "Serial is required"
+            };
+        }
+
+        var fetchData = await _repoRoomDisplayRepository.GetDisplaySerialBySerialNumber(serial);
+        var fetch = _mapper.Map<RoomDisplayViewModel>(fetchData);
+
+        if (fetch?.DisplaySerial == null)
+        {
+            return new ReturnalModel
             {
-                return new ReturnalModel
-                {
-                    Status = ReturnalType.Failed,
-                    Message = "Display is disabled"
-                };
-            }
+                Status = ReturnalType.Failed,
+                Title = "Failed",
+                StatusCode = StatusCodes.Status404NotFound,
+                Message = "Display not available/registered"
+            };
+        }
+
+        if (fetch.Enabled == 0)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Failed,
+                Title = "Failed",
+                StatusCode = StatusCodes.Status400BadRequest,
+                Message = "Display is disabled"
+            };
+        }
+
+        var fetchRoomData = await _repoRoomDisplayRepository.GetDataRoomDisplayByListID(fetch.Id);
+        fetch.RoomSelectData = _mapper.Map<List<RoomDisplayInformationViewModel>>(fetchRoomData);
+
+        return new ReturnalModel
+        {
+            Status = ReturnalType.Success,
+            Collection = fetch,
+            Message = "Get success"
+        };
+    }
+
+    public async Task<ReturnalModel> GetScheduledDisplay(DisplayScheduledFRViewModel request)
+    {
+        string defaultTimezone = _config?["OTHER_SETTING:DefaultTimeZone"] ?? "Asia/Jakarta";
+        string timezone = !string.IsNullOrWhiteSpace(request.Timezone) ? request.Timezone : defaultTimezone;
+
+        DateTime parsedDate; // Declare it outside to avoid scope issues
+
+        try
+        {
+            // Convert input date and time to DateTime object
+            DateTime localDateTime = DateTime.ParseExact($"{request.Date} {request.Time}", "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+
+            // Convert to server time zone
+            TimeZoneInfo sourceTimeZone = TimeZoneInfo.FindSystemTimeZoneById(timezone);
+            TimeZoneInfo serverTimeZone = TimeZoneInfo.FindSystemTimeZoneById(defaultTimezone);
+
+            DateTime serverDateTime = TimeZoneInfo.ConvertTime(localDateTime, sourceTimeZone, serverTimeZone);
+
+            // Format the converted date/time for database query
+            request.Date = serverDateTime.ToString("yyyy-MM-dd");
+            request.Time = serverDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // Parse it into a DateTime object
+            parsedDate = serverDateTime.Date;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Failed,
+                Message = "Invalid timezone provided."
+            };
+        }
+        catch (FormatException)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Failed,
+                Message = "Invalid date/time format."
+            };
+        }
+
+        // Fetch data from the repository
+        var fetchData = await _repoRoomDisplayRepository.GetMeetingDisplayInformation(parsedDate, request.Serial);
+
+        // Check if data retrieval was successful
+        if (fetchData != null)
+        {
+            var fetchMap = _mapper.Map<List<RoomDisplayInformationMeetingViewModel>>(fetchData);
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Success,
+                Collection = fetchMap,
+                Message = "Success get data to active"
+            };
         }
 
         return new ReturnalModel
         {
-            Status = ReturnalType.Success
+            Status = ReturnalType.Failed,
+            Message = "Failed error a active"
         };
     }
+
+
 
     private async Task<long> CalculateReservationCost(FastBookBookingViewModel databook, FastBookRoomViewModel room)
     {
@@ -1112,18 +1204,60 @@ public class APIMainDisplayService(
         var modulesPrice = await _repoModuleBackend.GetModuleByTextAsync(ModuleBackendTextModule.Price);
         var modulesInvoice = await _repoModuleBackend.GetModuleByTextAsync(ModuleBackendTextModule.Invoice);
 
-        if (modulesInvoice?.IsEnabled != 1 || modulesPrice?.IsEnabled != 1 || databook.IsAlive != 1)
-            return string.Empty;
-
         long reservationCost = await CalculateReservationCost(databook, room);
         string invoiceFormat = await GenerateInvoiceFormatAsync(databook, alocation);
 
         if (string.IsNullOrEmpty(invoiceFormat))
             return string.Empty;
 
-        var newInvoice = FastBook.CreateBookingInvoice(databook, alocation, reservationCost, invoiceFormat);
-        var mapNewInvoice = _mapper.Map<BookingInvoice>(newInvoice);
-        await _bookingInvoiceRepository.Create(mapNewInvoice);
+        var nikUser = context?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+        string formatInvoice = string.Empty;
+        if (modulesInvoice?.IsEnabled == 1 && modulesPrice?.IsEnabled == 1)
+        {
+            string years = databook.Date.ToString("yyyy");
+            string y_years = databook.Date.ToString("yy");
+            string months = databook.Date.ToString("MM");
+            string days = databook.Date.ToString("dd");
+
+            var rowInvoice = await _repo.GetMaxOrderNumberAsync(years);
+
+            string invAlocationID = $"{alocation.Id}-E-Meeting";
+
+            if (string.IsNullOrEmpty(rowInvoice?.NoOrder))
+            {
+                string newNoUrut = "001";
+                formatInvoice = $"{newNoUrut}/{invAlocationID}/{months}/{y_years}";
+            }
+            else
+            {
+                string oldNoInv = rowInvoice.NoOrder;
+                string[] spOldInv = oldNoInv.Split('/');
+                int noUrut = int.Parse(spOldInv[0]) + 1;
+                string newNoUrut = noUrut.ToString("D3");
+                formatInvoice = $"{newNoUrut}/{invAlocationID}/{months}/{y_years}";
+            }
+        }
+
+        if (modulesInvoice?.IsEnabled == 1 && modulesPrice?.IsEnabled == 1 && databook.IsAlive == 1)
+        {
+            var dataInvoice = new BookingInvoice
+            {
+                InvoiceNo = _Random.Numeric(10, true).ToString(),
+                InvoiceFormat = formatInvoice,
+                BookingId = databook.BookingId,
+                RentCost = reservationCost,
+                Alocation = alocation.Id,
+                TimeBefore = DateTime.Now,
+                CreatedAt = DateTime.Now,
+                CreatedBy = nikUser,
+                InvoiceStatus = "0" // before send
+            };
+            await _bookingInvoiceRepository.Create(dataInvoice);
+        }
+
+        // var newInvoice = FastBook.CreateBookingInvoice(databook, alocation, reservationCost, invoiceFormat);
+        // var mapNewInvoice = _mapper.Map<BookingInvoice>(newInvoice);
+        // await _bookingInvoiceRepository.Create(mapNewInvoice);
 
         return invoiceFormat;
     }
@@ -1178,7 +1312,7 @@ public class APIMainDisplayService(
     }
 
     public  async Task<ReturnalModel> CreateEvent365(FastBookBookingViewModel databook, FastBookRoomViewModel room,
-         Integration365 ms365, List<FastBookBookingInvitationViewModel> invInternal, List<FastBookBookingInvitationViewModel> invExternal)
+         Integration365 ms365, List<FastBookEmployeeViewModel> invInternal, List<FastBookBookingInvitationViewModel> invExternal)
     {
         var ex = "";
         var body = JsonConvert.DeserializeObject<Dictionary<string, object>>(ex);
@@ -1303,7 +1437,6 @@ public class APIMainDisplayService(
 
         try
         {
-            // ✅ Get HttpClient from APICaller
             var client = _apiCaller.GetHttpClient();
 
             var request = new HttpRequestMessage(HttpMethod.Post, _apiCaller.baseurl + url)
@@ -1346,7 +1479,7 @@ public class APIMainDisplayService(
         }
     }
 
-    private List<NotificationData> CreateNotifikasiCollectData(string bookingId, List<FastBookBookingInvitationViewModel> dataEmailInternal, FastBookBookingViewModel data, DateTime datetime)
+    private List<NotificationData> CreateNotifikasiCollectData(string bookingId, List<FastBookEmployeeViewModel> dataEmailInternal, FastBookBookingViewModel data, DateTime datetime)
     {
         var notifCollectData = new List<NotificationData>();
 
@@ -1402,7 +1535,7 @@ public class APIMainDisplayService(
     public async Task<string?> SendEmail(
         string typeEmail,
         BookingDataDto? booking,
-        FastBookBookingInvitationViewModel? people,
+        FastBookEmployeeViewModel? people,
         bool isExternal)
     {
         if (booking == null || people == null || string.IsNullOrEmpty(people.Email))
@@ -1414,17 +1547,10 @@ public class APIMainDisplayService(
         if (isExternal)
         {
             var modules = await _repoModuleBackend.GetModuleByTextAsync(ModuleBackendTextModule.Email);
-            if (modules?.IsEnabled == 1)
+            if (modules?.IsEnabled != 1)
             {
                 return null;
             }
-        }
-
-        // Prepare SMTP settings
-        var config = _manualConfigService.GetSMTPSetting();
-        if (config == null)
-        {
-            return "SMTP configuration missing";
         }
 
         // Get email template data
@@ -1434,9 +1560,10 @@ public class APIMainDisplayService(
             return "Template not found";
         }
 
-        var rootPath = Directory.GetCurrentDirectory();
-        var templateFolderPath = Path.Combine(rootPath, "_4.Helpers.Consumer.Report");
-        var templatePath = Path.Combine(templateFolderPath, GetTemplateFileName(typeEmail));
+        // var rootPath = Directory.GetCurrentDirectory();
+        // var templateFolderPath = Path.Combine(rootPath, "5.Helpers.Consumer");
+        // var templatePath = Path.Combine(templateFolderPath, GetTemplateFileName(typeEmail));
+        var templatePath = FastBook.GetPathEmailTemplate(typeEmail);
 
         if (!File.Exists(templatePath))
         {
@@ -1446,10 +1573,10 @@ public class APIMainDisplayService(
         string emailBody = await File.ReadAllTextAsync(templatePath);
 
         // Prepare participant URLs
-        string baseUrl = _config["App:BaseUrl"] ?? "";
+        string baseUrl = _config["ApiUrls:BaseUrl"] ?? "";
         string participantUrl = isExternal
-            ? $"{baseUrl}/participant/eksternal/booking/{booking.BookingId}/email/{people.Email}/attendance"
-            : $"{baseUrl}/participant/internal/booking/{booking.BookingId}/employee/{people.Nik}/attendance";
+            ? $"{baseUrl}participant/eksternal/booking/{booking.BookingId}/email/{people.Email}/attendance"
+            : $"{baseUrl}participant/internal/booking/{booking.BookingId}/employee/{people.Nik}/attendance";
 
         string urlHadir = $"{participantUrl}/1";
         string urlTidakHadir = $"{participantUrl}/0";
@@ -1462,6 +1589,7 @@ public class APIMainDisplayService(
             .Replace("%tanggal_text%", template.DateText)
             .Replace("%tempat_text%", template.Room)
             .Replace("%location_text%", template.DetailLocation)
+            .Replace("%room_text%", template.Room)
             .Replace("%content_text%", template.ContentText)
             .Replace("%greeting_text%", template.GreetingText)
             .Replace("%attendance%", template.AttendanceText)
@@ -1485,82 +1613,85 @@ public class APIMainDisplayService(
 
         string mapLinksHtml = string.Join(" - ", mapLinks);
 
-        // QR Code
-        string imageQRName = $"{booking.BookingId}_{people.PinRoom}";
-        string qrImageUrl = $"{baseUrl}/assets/qr/{imageQRName}.png";
-        string qrImagePath = $"assets/qr/{imageQRName}.png";
 
-        string b64QrCode = await _attachmentListService.GenerateThumbnailBase64(qrImagePath) ?? "";
-        string qrHtml = $"<img title='QR CODE' alt='QR CODE' src='{b64QrCode}' style='width:205px;height:205px;' />";
+        string tempDir = _config["UploadFileSetting:attachmentFolder"] ?? "";
+
+        // Generate QR code paths
+        string imageQRName = $"{booking.BookingId}_{people.Pin}";
+        string bucketName = _config["AwsSetting:Bucket"] ?? string.Empty;
+        string bucketUrlTemplate = _config["AwsSetting:BucketUrl"] ?? string.Empty;
+
+        string awsImageUrl = bucketUrlTemplate.Replace("{bucket}", bucketName);
+
+        string qrImageUrl = awsImageUrl + $"qr/{imageQRName}.png";
+
+        // string b64QrCode = await _attachmentListService.GenerateThumbnailBase64(qrImagePath) ?? "";
+        string qrHtml = $"<img title='QR CODE' alt='QR CODE' src='{qrImageUrl}' style='width:205px;height:205px;' />";
         qrHtml += $"<br><a title='QR CODE' target='__blank' alt='QR CODE' href='{qrImageUrl}'>Click this if QR not show</a>";
+
+        var startDate = FormatDate(booking.FormatTimeStart.Split(' ')[0]);
+        var endDate = FormatDate(booking.FormatTimeEnd.Split(' ')[0]);
+        var timeStart = FormatTime(booking.FormatTimeStart.Split(' ')[1]);
+        var timeEnd = FormatTime(booking.FormatTimeEnd.Split(' ')[1]);
 
         // Replace placeholders with actual values
         emailBody = emailBody
             .Replace("%penyelenggara%", booking.Pic ?? "")
             .Replace("%kepada%", people.Name ?? "")
             .Replace("%agenda%", booking.Title ?? "")
-            .Replace("%tanggal%", $"{booking.FormatDate} {booking.FormatTimeStart}-{booking.FormatTimeEnd}")
+            .Replace("%tanggal%", $"{startDate} - {endDate}")
+            .Replace("%waktu%", $"{timeStart} - {timeEnd}")
+            .Replace("%room%", $"{booking.RoomName}")
             .Replace("%tempat%", $"{building}{booking.RoomName}")
             .Replace("%location%", $"{buildingLocation}{booking.RoomLocation}")
             .Replace("%link_map%", mapLinksHtml)
             .Replace("%qrtattendance%", qrHtml)
             .Replace("%urlAttendance%", urlHadir)
             .Replace("%urlNotAttendance%", urlTidakHadir)
-            .Replace("%orginizer%", people.Name ?? "");
+            .Replace("%orginizer%", people.Name ?? "")
+            .Replace("%pin%", people.Pin);
 
         // Validate email address before sending
-        if (!people.Email.Contains("@"))
-        {
-            return "Invalid email address";
-        }
 
-        // Prepare email recipient list
-        var emailRecipients = new List<MailInfo>
-    {
-        new MailInfo { Address = people.Email }
-    };
+        var emailBodyJson = new SendMailViewModel();
 
         // Configure email settings
-        config.To = emailRecipients;
-        config.Subject = $"{template.TitleOfText} {booking.Title} - {booking.FormatDate} {booking.FormatTimeStart}-{booking.FormatTimeEnd}";
-        config.HtmlBody = emailBody;
-        config.FromAddress ??= config.FromName;
+        emailBodyJson.Name = people.Name;
+        emailBodyJson.To = people.Email;
+        emailBodyJson.Subject = $"{template.TitleOfText} {booking.Title}";
+        emailBodyJson.Body = emailBody;
+        emailBodyJson.IsHtml = true;
 
-        // Send email
-        await _exp.SendMailReport(config);
+        var getHttpUrl = await _repoModuleBackend.GetHttpUrlTop();
+        var url = getHttpUrl.Url;
+
+        // Ensure headers are not null or empty before deserialization
+        Dictionary<string, string> headerDictionary = new();
+
+        if (!string.IsNullOrEmpty(getHttpUrl.Headers))
+        {
+            try
+            {
+                var headers = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(getHttpUrl.Headers);
+                headerDictionary = headers?.SelectMany(dict => dict).ToDictionary(kv => kv.Key, kv => kv.Value) ?? new Dictionary<string, string>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deserializing headers: {ex.Message}");
+            }
+        }
+        
+
+        await CurlPostNotifAsync(headerDictionary, url, emailBodyJson);
+        
 
         return null;
-    }
-
-    private string GetTemplateFileName(string typeEmail)
-    {
-        return typeEmail switch
-        {
-            "invitation" => "template_email.html",
-            "reschedule" => "template_email_re.html",
-            "cancel" => "template_email_batal.html",
-            _ => throw new ArgumentException("Invalid email type")
-        };
-    }
-
-
-    bool IsValidEmail(string email)
-    {
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(email);
-            return addr.Address == email;
-        }
-        catch
-        {
-            return false;
-        }
     }
 
     public async Task PushNotificationAsync(
         string title,
         string body = null,
-        List<FastBookBookingInvitationViewModel>? batch = null,
+        List<FastBookEmployeeViewModel>? batch = null,
         int typeNotif = 1,
         bool insert = true)
     {
@@ -1574,12 +1705,12 @@ public class APIMainDisplayService(
         {
             var config = new NotificationConfig
             {
-                Url = configNotif.Url,
-                Authorization = configNotif.Authorization,
-                Active = Convert.ToInt32(configNotif.Active)
+                Url = configNotif?.Url,
+                Authorization = configNotif?.Authorization,
+                Active = Convert.ToInt32(configNotif?.Active)
             };
 
-            string topic = configNotif.Topics + recipient.Nik;
+            string topic = configNotif?.Topics + recipient.Nik;
             var payload = Fcmtopics(topic, title, body);
             var sendMsg = await FcmSendMessageAsync(config, payload);
 
@@ -1648,16 +1779,14 @@ public class APIMainDisplayService(
         }
     }
 
-    private async Task<string> CurlPostNotifAsync(dynamic headers, string url, string payload)
+    private async Task<string> CurlPostNotifAsync(dynamic headers, string url, object payload)
     {
         using (var httpClient = new HttpClient())
         {
-            httpClient.DefaultRequestHeaders.Add("Authorization", headers.Authorization);
 
-            var content = new StringContent(payload, Encoding.UTF8, headers.ContentType);
-            var response = await httpClient.PostAsync(url, content);
+            var response = await _apiCaller.POSTHttpRequest(url, payload, headers);
 
-            return await response.Content.ReadAsStringAsync();
+            return response;
         }
     }
 
@@ -1680,7 +1809,7 @@ public class APIMainDisplayService(
         await _repoModuleBackend.InsertNotification(notification);
     }
 
-    public async Task BookingLockerForAttendeesAsync(string bookingId, List<EmployeeViewModel> dataEmailInternal, object data, DateTime datetime)
+    public async Task BookingLockerForAttendeesAsync(string bookingId, List<FastBookEmployeeViewModel> dataEmailInternal, object data, DateTime datetime)
     {
         var dataLockerSystem = new List<string>();
         foreach (var vlo in dataEmailInternal)
@@ -1726,4 +1855,239 @@ public class APIMainDisplayService(
         }
     }
 
+    public async Task<FileReady> GetQrCodeDetailView(string id, int h = 60)
+    {
+        _attachmentListService.SetTableFolder("qr");
+        var base64 = await _attachmentListService.GenerateThumbnailBase64(id, h);
+        if (string.IsNullOrEmpty(base64))
+        {
+            base64 = await _attachmentListService.NoImageBase64("qr.png", h);
+        }
+        MemoryStream dataStream = _attachmentListService.ConvertBase64ToMemoryStream(base64);
+
+        return new FileReady() { FileStream = dataStream, FileName = "Preview QR Detail" };
+    }
+
+    public async Task<ReturnalModel> CheckDoorOpenMeetingPin(CheckDoorOpenMeetingPinFRViewModel request)
+    {
+        var ret = new ReturnalModel();
+
+        var rules = await _repoSettingRuleBooking.GetSettingRuleBookingTopOne();
+        int doorBefore = rules?.NotifUnuseBeforeMeeting ?? 0;
+
+        // Combine date and time into a DateTime object
+        DateTime dateTime;
+        string dateTimeString = $"{request.Date} {request.Time}".Trim();
+
+        string[] formats = {
+            "yyyy-MM-dd HH:mm:ss",  // Expected format
+            "dd/MM/yyyy HH.mm",     // Format detected in your error message
+            "dd/MM/yyyy HH:mm",     // Another possible variation
+            "yyyy-MM-dd HH:mm",     // Without seconds
+            "dd/MM/yyyy HH.mm:ss",  // Similar issue with dots
+            "yyyy-MM-dd HH.mm"      // Similar issue with dots
+        };
+
+        if (!DateTime.TryParseExact(dateTimeString, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
+        {
+            ret.Status = ReturnalType.Failed;
+            ret.Message = $"Invalid date or time format. Expected one of {string.Join(", ", formats)}, but got '{dateTimeString}'";
+            ret.StatusCode = (int)HttpStatusCode.BadRequest;
+            return ret;
+        }
+
+        // Calculate start and end times
+        DateTime startSum = dateTime.AddMinutes(doorBefore);
+        DateTime endSum = dateTime.AddMinutes(-doorBefore);
+
+        // No need to convert to string and back to DateTime
+        DateTime startSumFormatted = startSum;
+        DateTime endSumFormatted = endSum;
+
+
+        var settingRuleBooking = await _repoBI.CheckDoorOpenMeetingPin(request.Date, startSumFormatted, endSumFormatted, request.Pin, request.RadId);
+
+        var message = "";
+        
+        if (settingRuleBooking != null)
+        {
+            var openDoor = await OpenDoor(request.RadId, request.Pin);
+            if (openDoor.Status == ReturnalType.Success){
+                var getMessage = await _settingLogConfigRepository.GetListByIdAsync(3);
+                if(getMessage.Count() <= 0){
+                    message = "Pin have permission";
+                }else{
+                    message = getMessage.FirstOrDefault()?.Text ?? "Default message";
+                }
+
+                await InsertLogPin(settingRuleBooking.BookingId, request.RadId, 0, request.Pin, dateTime, message, 1);
+
+                ret.Message = message;
+                return ret;
+
+            }else{
+
+                var getMessage = await _settingLogConfigRepository.GetListByIdAsync(2);
+                if (getMessage.Count() <= 0)
+                {
+                    message = "Access door not connected";
+                }
+                else
+                {
+                    message = getMessage.FirstOrDefault()?.Text ?? "Default message";
+                }
+
+                await InsertLogPin(settingRuleBooking.BookingId, request.RadId, 0, request.Pin, dateTime, message, 2);
+
+                ret.Status = ReturnalType.Failed;
+                ret.Message = message;
+                ret.StatusCode = (int)HttpStatusCode.BadRequest;
+                return ret;
+            }
+        }else{
+			// route 2 with default pin
+
+            if (Array.Exists(DefaultPin.Values, pin => pin == request.Pin))
+            {
+
+                var getMessage = await _settingLogConfigRepository.GetListByIdAsync(3);
+                if (getMessage.Count() <= 0)
+                {
+                    message = "Pin default have permission";
+                }
+                else
+                {
+                    message = getMessage.FirstOrDefault()?.Text ?? "Default message";
+                }
+
+                await InsertLogPin("", request.RadId, 0, request.Pin, dateTime, message, 1);
+                ret.Message = message;
+                return ret;
+            }else
+            {
+                var pinDefault = await _repoSettingRuleBooking.GetSettingRuleBookingByPinDefault(request.RadId);
+
+                if(pinDefault != null){
+
+                    var openDoor = await OpenDoor(request.RadId, request.Pin);
+
+                    if (openDoor.Status == ReturnalType.Success)
+                    {
+                        var getMessage = await _settingLogConfigRepository.GetListByIdAsync(3);
+                        if (getMessage.Count() <= 0)
+                        {
+                            message = "Pin default have permission";
+                        }
+                        else
+                        {
+                            message = getMessage.FirstOrDefault()?.Text ?? "Default message";
+                        }
+
+                        await InsertLogPin("", request.RadId, 0, request.Pin, dateTime, message, 1);
+
+                        ret.Message = message;
+                        return ret;
+
+                    }else{
+
+                        var getMessage = await _settingLogConfigRepository.GetListByIdAsync(2);
+                        if (getMessage.Count() <= 0)
+                        {
+                            message = "Access door not connected";
+                        }
+                        else
+                        {
+                            message = getMessage.FirstOrDefault()?.Text ?? "Default message";
+                        }
+
+                        await InsertLogPin("", request.RadId, 0, request.Pin, dateTime, message, 2);
+                        ret.Status = ReturnalType.Failed;
+                        ret.Message = message;
+                        ret.StatusCode = (int)HttpStatusCode.BadRequest;
+                        return ret;
+                    }
+
+                }else{
+
+                    var getMessage = await _settingLogConfigRepository.GetListByIdAsync(1);
+                    if (getMessage.Count() <= 0)
+                    {
+                        message = "Pin not have permission";
+                    }
+                    else
+                    {
+                        message = getMessage.FirstOrDefault()?.Text ?? "Default message";
+                    }
+
+                    await InsertLogPin("", request.RadId, 0, request.Pin, dateTime, message, 2);
+
+                    ret.Status = ReturnalType.Failed;
+                    ret.Message = message;
+                    ret.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return ret;
+                }
+
+            }
+
+        }
+    }
+
+    private async Task<ReturnalModel> OpenDoor(string radId, string pin, string model = "")
+    {
+        var ret = new ReturnalModel();
+        var port = _config["App:PortRuleBooking"];
+
+        var settingRuleBooking = await _accessControlRepository.CheckDataDoorOpen(radId, EnumAccessControlModelControl.Reader);
+
+        if (settingRuleBooking != null)
+        {
+
+            if (settingRuleBooking.Type == EnumAccessControlType.Falco || settingRuleBooking.Type == EnumAccessControlType.FalcoId)
+            {
+                var urlApiFalco = _config["ApiUrls:URLApiFalco"];
+                var xmlBody = FastBook.FalcoPulseData(settingRuleBooking.IpController, settingRuleBooking.Channel);
+                await _apiCaller.POSTHttpRequest(urlApiFalco!, xmlBody, null, null, "text/xml");
+
+                return ret;
+            }
+            else if (settingRuleBooking.Type == EnumAccessControlType.Custom || settingRuleBooking.Type == EnumAccessControlType.CustId)
+            {
+                var url = $"http://{settingRuleBooking.IpController}{port}/api/door/ON{settingRuleBooking.Channel}/{settingRuleBooking.Delay}";
+                var apiDoor = await _apiCaller.TryGETRequest(url);
+                if (int.TryParse(apiDoor, out int apiDoorResult) && apiDoorResult > 0 || apiDoor == null)
+                {
+                    ret.Status = ReturnalType.Failed;
+                    ret.Message = $"Error when fetch to: {url}";
+                    ret.StatusCode = (int)HttpStatusCode.InternalServerError;
+                }
+
+                return ret;
+            }
+        }else{
+
+            ret.Status = ReturnalType.Failed;
+            ret.Message = $"Error when fetch to Open Door PIN";
+            ret.StatusCode = (int)HttpStatusCode.InternalServerError;
+        }
+
+        return ret;
+    }
+    private async Task InsertLogPin(string bookingId, string roomId, int isDefault, string pin, DateTime dateTime, string message, int status)
+    {
+
+        var nikUser = context?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+        var logEntry = new LogAccessRoom
+        {
+            BookingId = bookingId,
+            RoomId = roomId,
+            IsDefault = isDefault,
+            Pin = pin,
+            Datetime = dateTime,
+            Msg = message,
+            Status = status,
+            Nik = nikUser
+        };
+
+        await _repoModuleBackend.InsertLogAccessRoom(logEntry);
+    }
 }

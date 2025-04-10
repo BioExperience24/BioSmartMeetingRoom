@@ -54,4 +54,15 @@ public partial class RoomDisplay : BaseLongEntity
     public string? Name { get; set; }
     
     public string? Description { get; set; }
+
+    public long? BuildingId { get; set; }
+
+    public long? FloorId { get; set; }
+}
+
+public class RoomDisplaySelect : RoomDisplay
+{
+    public string? RoomName { get; set; }
+    public string? BuildingName { get; set; }
+    public string? FloorName { get; set; }
 }

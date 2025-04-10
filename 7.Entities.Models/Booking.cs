@@ -195,8 +195,12 @@ public partial class Booking : BaseLongEntity
     public DateTime? ServerEnd { get; set; }
 
     public string BookingType { get; set; } = "general";
-    
+
     public int IsPrivate { get; set; }
+
+    public string? RecurringId { get; set; }
+    
+    public short IsRecurring { get; set; }
 
     [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
     public long BuildingId { get; set; }
@@ -206,6 +210,10 @@ public partial class Booking : BaseLongEntity
     public DateOnly? DateEnd { get; set; }
     [NotMapped]
     public string? AuthUserNIK { get; set; }
+    [NotMapped]
+    public string? SortColumn { get; set; }
+    [NotMapped]
+    public string? SortDir { get; set; }
 }
 
 public class BookingChart
@@ -239,7 +247,7 @@ public class BookingReportUsage
 public class BookingDataTable
 {
     public IEnumerable<BookingReportUsage>? Collection { get; set; }
-    public int RecordsTotal { get; set; } 
+    public int RecordsTotal { get; set; }
     public int RecordsFiltered { get; set; }
 }
 
@@ -288,6 +296,20 @@ public class BookingWithRoom : Booking
     public string? RoomWorkStart { get; set; }
     public string? RoomWorkEnd { get; set; }
     public List<string>? RoomWorkDay { get; set; }
+}
+
+public class BookingMailData
+{
+    public string Agenda { get; set; } = string.Empty;
+    public DateOnly Date { get; set; }
+    public DateTime Start { get; set; }
+    public DateTime End { get; set; }
+    public string RoomName { get; set; } = string.Empty;
+    public string BuildingName { get; set; } = string.Empty;
+    public string BuildingAddress { get; set; } = string.Empty;
+    public string BuildingMapLink { get; set; } = string.Empty;
+    public string BuildingFloorName { get; set; } = string.Empty;
+    public List<BookingInvitation> Participants { get; set; } = new List<BookingInvitation>();
 }
 
 public class BookingDto
@@ -450,4 +472,16 @@ public class BookingDataDto : Booking
     public string PicNik { get; set; } = null!;
     public int? PicVip { get; set; }
 
+}
+
+public class BookingOpenDataMeeting
+{
+    public long? Id { get; set; }
+    public string BookingId { get; set; }
+    public string? RoomId { get; set; }
+    public string RoomName { get; set; }
+    public string GroupAccess { get; set; }
+    public string? IpController { get; set; }
+    public int? Channel { get; set; }
+    public string Type { get; set; }
 }

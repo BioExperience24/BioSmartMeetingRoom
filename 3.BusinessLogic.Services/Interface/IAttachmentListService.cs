@@ -16,4 +16,5 @@ public interface IAttachmentListService
     MemoryStream ConvertBase64ToMemoryStream(string base64String);
 
     Task<long> ProcessBase64ToBlob(string base64, string filename);
+    Task<(string?, string?)> FileUploadToWWWroot(IFormFile? file, string folder, string fileName);
 }

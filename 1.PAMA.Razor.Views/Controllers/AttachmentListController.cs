@@ -1,6 +1,9 @@
 ﻿using _2.BusinessLogic.Services.Interface;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using _5.Helpers.Consumer.Policy;
+
 
 namespace _1.API.Controllers.Controllers;
 
@@ -12,6 +15,7 @@ namespace _1.API.Controllers.Controllers;
 /// </remarks>
 /// <param name="service"></param>
 /// <param name="placemarkService"></param>
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
 [Route("api/[controller]/[action]")]
 [ApiController]
 public class AttachmentListController(IAttachmentListService service) : ControllerBase

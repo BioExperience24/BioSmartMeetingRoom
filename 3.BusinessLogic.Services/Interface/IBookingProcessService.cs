@@ -10,8 +10,15 @@ namespace _3.BusinessLogic.Services.Interface
         Task<ReturnalModel> CheckRescheduleDateAsync(string bookingId, DateOnly date, string roomId);
         Task<ReturnalModel> RescheduleBookingAsync(BookingVMRescheduleFR request);
         Task<ReturnalModel> CancelBookingAsync(BookingVMCancelFR request);
+        Task<ReturnalModel> CancelAllBookingAsync(BookingVMCancelFR request);
         Task<ReturnalModel> EndMeetingAsync(BookingVMEndMeetingFR request);
         Task<ReturnalModel> CheckExtendMeetingTimeAsync(BookingVMCheckExtendMeetingFR request);
         Task<ReturnalModel> SetExtendMeetingAsync(BookingVMExtendMeetingFR request);
+        Task<DataTableResponse> GetAllItemWithApprovalDataTablesAsync(BookingVMNeedApprovalDataTableFR request);
+        Task<ReturnalModel> ProcessMeetingApprovalAsync(BookingVMApprovalFR request);
+        Task<ReturnalModel> ConfirmAttendanceAsync(BookingVMConfirmAttendanceFR request);
+        Task<ReturnalModel> AdditionalAttendeesAsync(BookingVMAdditionalAttendeesFR request);
+        Task<ReturnalModel> GetOngoingBookingAsync();
+        Task<ReturnalModel> CreateNewOrderAsync(BookingVMCreateNewOrderFR request);
     }
 }

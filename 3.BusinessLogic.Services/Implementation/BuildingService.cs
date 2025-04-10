@@ -1,6 +1,7 @@
 using System.Transactions;
 using _2.BusinessLogic.Services.Interface;
 using _5.Helpers.Consumer._Encryption;
+using _5.Helpers.Consumer._Encryption._Secure;
 
 namespace _3.BusinessLogic.Services.Implementation
 {
@@ -10,8 +11,9 @@ namespace _3.BusinessLogic.Services.Implementation
         private readonly IMapper __mapper;
         private readonly IAttachmentListService _attachmentListService;
         private readonly _Aes _aes;
+        private readonly ISecureService _secureService;
 
-        public BuildingService(BuildingRepository repo, IMapper mapper, IAttachmentListService attachmentListService, IConfiguration config) 
+        public BuildingService(BuildingRepository repo, IMapper mapper, IAttachmentListService attachmentListService, IConfiguration config, ISecureService secureService) 
             : base(repo, mapper)
         { 
             _repo = repo;
@@ -24,7 +26,9 @@ namespace _3.BusinessLogic.Services.Implementation
             attachmentListService.SetSizeLimit(Convert.ToInt32(config["UploadFileSetting:imageSizeLimit"] ?? "8")); // MB
             _attachmentListService = attachmentListService;
 
-            _aes = new _Aes(config["EncryptSetting:AesKeyEncryptor"] ?? "SUp3RsEcr3tKeY!!");
+            _aes = new _Aes(config["EncryptSetting:AesKeyEncryptor"] ?? "VeRYV3rYSUp3RdUuP3RrRsEcr3tKeY!!");
+
+            _secureService = secureService;
         }
 
         public async Task<IEnumerable<BuildingViewModel>> GetAllItemAsync(long? excludeId = null)
@@ -42,7 +46,8 @@ namespace _3.BusinessLogic.Services.Implementation
 
                 if (item.Id != null)
                 {
-                    item.Encrypt = _aes.Encrypt(item.Id.ToString()!);
+                    // item.Encrypt = _aes.Encrypt(item.Id.ToString()!);
+                    item.Encrypt = _secureService.Encrypt(item.Id.ToString()!);
                 }
             }).ToList();
 
@@ -69,7 +74,8 @@ namespace _3.BusinessLogic.Services.Implementation
 
             if (result.Id != null)
             {
-                result.Encrypt = _aes.Encrypt(result.Id.ToString()!);
+                // result.Encrypt = _aes.Encrypt(result.Id.ToString()!);
+                result.Encrypt = _secureService.Encrypt(result.Id.ToString()!);
             }
 
             return result;

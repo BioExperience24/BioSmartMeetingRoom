@@ -59,3 +59,6 @@ ALTER TABLE smart_meeting_room.smart_meeting_room.pantry_transaksi ADD approved_
 
 INSERT INTO smart_meeting_room.smart_meeting_room.pantry_transaksi_status (id, name) 
 VALUES (5, 'Reject');
+
+--ganti dari int ke long
+ALTER TABLE smart_meeting_room.smart_meeting_room.pantry_transaksi_d ALTER COLUMN menu_id bigint NOT NULL;

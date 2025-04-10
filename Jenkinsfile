@@ -1,18 +1,22 @@
 pipeline {
-    agent none  // No global agent; each stage defines its own agent.
-     
+    agent none
+
+    environment {
+        IMAGE_PAMA_SMR = "beithub/pama-smr"
+        IMAGE_PAMA_API = "beithub/pama-api"
+        SERVER_USER = "beit"
+        SERVER_IP = "116.193.172.225"
+    }
+
     stages {
         stage('Initialize') {
-            agent {
-                label 'PAMA' // Server Ubuntu ITM Core
-            }
+            agent { label 'PAMA' }
             steps {
                 retry(3) {
                     dir('/var/www/pama-source') {
                         sh '''
                             git config --global http.postBuffer 524288000
                             git config --global http.maxPackSize 524288000
-
                             echo Resetting repository to origin/staging
                             git reset --hard HEAD
                             git checkout staging
@@ -23,91 +27,53 @@ pipeline {
             }
         }
 
-        stage('Turn off IIS Service') {
-            agent {
-                label 'Black Server' // Server Item Kantor
-            }
+        stage('Build Docker Images') {
+            agent { label 'PAMA' }
             steps {
-                dir('C:\\deploy\\pama\\scripts') {
-                    bat 'turn-off-service.cmd'
-                }
-                dir('C:\\deploy\\pama-api\\scripts') {
-                    bat 'turn-off-service.cmd'
+                dir('/var/www/pama-source') {
+                    sh '''
+                        # Build the SMR Docker image
+                        docker build -t $IMAGE_PAMA_SMR -f 1.PAMA.Razor.Views/Dockerfile .
+
+                        # Build the API Docker image
+                        docker build -t $IMAGE_PAMA_API -f 2.Web.API.Controllers/Dockerfile .
+                    '''
                 }
             }
         }
 
-        stage('Build Backend') {
-            agent {
-                label 'PAMA' // Server Ubuntu PAMA
-            }
+        stage('Deploy to Server') {
+            agent { label 'PAMA' }
             steps {
-                dir('/var/www/pama-source/1.PAMA.Razor.Views') {
-                    sh 'rm -rf /var/www/pama-source/1.PAMA.Razor.Views/appsettings.json'
-                    sh 'rm -rf /var/www/pama-source/1.PAMA.Razor.Views/appsettings.Development.json'
-                    sh 'rm -rf /var/www/pama-source/1.PAMA.Razor.Views/appsettings.Production.json'
-                    sh 'mv appsettings.self-deployment.json appsettings.json'
-                    sh 'dotnet restore'
-                    sh 'dotnet clean'  
-                    sh 'dotnet publish -c Release -o /var/www/pama'
+                dir('/var/www/') {
+                    sh '''
+                        docker compose up -d pama-smr --force-recreate
+                        docker compose up -d pama-api --force-recreate
+                    ''' 
                 }
             }
         }
 
-        stage('Build API') {
-            agent {
-                label 'PAMA' // Server Ubuntu PAMA
-            }
+        stage('Push Docker Images to Docker Hub') {
+            agent { label 'PAMA' }
             steps {
-                dir('2.Web.API.Controllers') {
-                    sh 'rm -rf 2.Web.API.Controllers/appsettings.json'
-                    sh 'rm -rf 2.Web.API.Controllers/appsettings.Development.json'
-                    sh 'rm -rf 2.Web.API.Controllers/appsettings.Production.json'
-                    sh 'mv appsettings.self-deployment.json appsettings.json'
-                    sh 'dotnet clean'  
-                    sh 'dotnet restore' 
-                    sh 'dotnet publish -c Release -o /var/www/pama-api'
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                        sh """
+                            echo \$DOCKER_HUB_PASSWORD | docker login -u \$DOCKER_HUB_USERNAME --password-stdin
+                            docker push $IMAGE_PAMA_SMR:latest
+                            docker push $IMAGE_PAMA_API:latest
+                            docker logout
+                        """
+                    }
                 }
             }
-        }
-
-        stage('Restart PAMA SMR Service') {
-            agent { label 'PAMA' } 
-            steps {
-                sh '''
-                    echo "* Restarting pama-smr service..."
-                    script -q -c "sudo systemctl restart pama" /dev/null
-                    script -q -c "sudo systemctl status pama --no-pager" /dev/null
-                '''
-            }
-        }
-
-        stage('Turn on IIS Service & Zip Build Folder') {
-            agent {
-                label 'Black Server' // Server Item Kantor
-            }
-            steps {
-                dir('C:\\deploy\\pama\\scripts') {
-                    // Run the batch script in the background without blocking the pipeline
-                    bat 'turn-on-service.cmd'
-                    echo 'This stage is completed, and you can access the service.'
-                }
-                dir('C:\\deploy\\pama-api\\scripts') {
-                    // Run the batch script in the background without blocking the pipeline
-                    bat 'turn-on-service.cmd'
-                    echo 'This stage is completed, and you can access the service.'
-                }
-            }
-        }
-
-    } 
-
-    post {
-        success {
-            echo 'Build completed successfully!'
-        }
-        failure {
-            echo 'Build failed.'
         }
     }
-} 
+
+    post {
+        success { echo 'Build and deployment completed successfully!' }
+        unstable { echo 'Build and deployment completed, but Docker Hub push failed.' }
+        failure { echo 'Build or deployment failed.' }
+    }
+}

@@ -37,11 +37,12 @@ public class PantryTransaksiRepository(
                         .Where(a => a.Id == am.AlocationId).DefaultIfEmpty()
                     from pts in context.PantryTransaksiStatuses
                         .Where(ps => ps.Id == pt.OrderSt).DefaultIfEmpty()
-                    where pt.IsBlive == 0
-                          && (pantryId == null || pt.PantryId == pantryId)
-                          && (start == null || pt.OrderDatetime >= start)
-                          && (end == null || pt.OrderDatetime <= end)
-                          && (orderSt == null || pts.Id == orderSt)
+                    where pt.IsBlive == 0 && booking.IsApprove == 1
+                        && (pantryId == null || pt.PantryId == pantryId)
+                        && (start == null || pt.OrderDatetime >= start)
+                        && (end == null || pt.OrderDatetime <= end)
+                        && (orderSt == null || pts.Id == orderSt)
+                    orderby pt.Id descending
                     select new
                     {
                         Id = pt.Id,
@@ -58,6 +59,7 @@ public class PantryTransaksiRepository(
                         OrderStatus = pts.Name,
                         OrderDatetime = pt.OrderDatetime,
                         ExpiredAt = pt.ExpiredAt,
+                        UpdatedAt = pt.UpdatedAt,
                         OrderSt = pt.OrderSt
                     };
 
@@ -85,7 +87,7 @@ public class PantryTransaksiRepository(
                         join r in _context.Rooms on Booking.RoomId equals r.Radid into room
                         from Room in room.DefaultIfEmpty()
                         where p.IsDeleted == 0 && p.PantryId == pantryId
-                              && p.OrderDatetime.Date == date && p.IsTrashpantry == 0
+                            && p.OrderDatetime.Date == date && p.IsTrashpantry == 0
                         orderby p.Id descending
                         select new PantryEntryDto
                         {
@@ -166,11 +168,16 @@ public class PantryTransaksiRepository(
     public async Task<IEnumerable<PantryTransaksi>> GetAllItemFilteredByEntity(PantryTransaksi? filter = null)
     {
         var query = (from pt in context.PantryTransaksis
-                     select pt).AsQueryable();
+                    select pt).AsQueryable();
 
         if (!string.IsNullOrEmpty(filter!.BookingId))
         {
             query = query.Where(pt => pt.BookingId == filter.BookingId);
+        }
+
+        if (filter!.BookingIds.Any())
+        {
+            query = query.Where(pt => filter.BookingIds.Contains(pt.BookingId));
         }
 
         if (!string.IsNullOrEmpty(filter!.Via))
@@ -207,47 +214,47 @@ public class PantryTransaksiRepository(
     public async Task<IEnumerable<object>> GetAllTrsPantry(string nik)
     {
         var data = await (from pt in context.PantryTransaksis
-                          where pt.IsDeleted == 0 && pt.EmployeeId == nik
-                          join p in context.Pantries on pt.PantryId equals p.Id into pantryJoin
-                          from p in pantryJoin.DefaultIfEmpty()
-                          join b in context.Bookings on pt.BookingId equals b.BookingId into bookingJoin
-                          from b in bookingJoin.DefaultIfEmpty()
-                          join r in context.Rooms on b.RoomId equals r.Radid into roomJoin
-                          from r in roomJoin.DefaultIfEmpty()
-                          join pts in context.PantryTransaksiStatuses on pt.OrderSt equals pts.Id into statusJoin
-                          from pts in statusJoin.DefaultIfEmpty()
-                          select new
-                          {
-                              pt.Id,
-                              pt.EmployeeId,
-                              OrderUser = pt.EmployeeId,
-                              OrderNo = pt.OrderNo,
-                              pt.PantryId,
-                              pt.BookingId,
-                              Order = pt.OrderSt,
-                              pt.Process,
-                              pt.Complete,
-                              pt.Failed,
-                              pt.Done,
-                              pt.Note,
-                              PantryName = p.Name,
-                              BookingTitle = b.Title,
-                              BookingDate = b.Date,
-                              BookingStart = b.Start,
-                              BookingEnd = b.End,
-                              RoomName = r.Name,
-                              StatusOrder = pts.Name,
-                              pt.OrderDatetime,
-                              pt.OrderDatetimeBefore,
-                              pt.Datetime,
-                              CountItem = context.PantryTransaksiDs.Count(ptd => ptd.TransaksiId == pt.Id),
-                              OrderUserName = context.Employees.Where(e => e.Id == pt.EmployeeId).Select(e => e.Name).FirstOrDefault(),
-                              RejectedPantryByName = context.Employees.Where(e => e.Id == pt.RejectedPantryBy).Select(e => e.Name).FirstOrDefault(),
-                              CompletedPantryByName = context.Employees.Where(e => e.Id == pt.CompletedPantryBy).Select(e => e.Name).FirstOrDefault(),
-                              ProcessPantryByName = context.Employees.Where(e => e.Id == pt.ProcessPantryBy).Select(e => e.Name).FirstOrDefault()
-                          })
-                          .OrderBy(pt => pt.Datetime)
-                          .ToListAsync();
+                        where pt.IsDeleted == 0 && pt.EmployeeId == nik
+                        join p in context.Pantries on pt.PantryId equals p.Id into pantryJoin
+                        from p in pantryJoin.DefaultIfEmpty()
+                        join b in context.Bookings on pt.BookingId equals b.BookingId into bookingJoin
+                        from b in bookingJoin.DefaultIfEmpty()
+                        join r in context.Rooms on b.RoomId equals r.Radid into roomJoin
+                        from r in roomJoin.DefaultIfEmpty()
+                        join pts in context.PantryTransaksiStatuses on pt.OrderSt equals pts.Id into statusJoin
+                        from pts in statusJoin.DefaultIfEmpty()
+                        select new
+                        {
+                            pt.Id,
+                            pt.EmployeeId,
+                            OrderUser = pt.EmployeeId,
+                            OrderNo = pt.OrderNo,
+                            pt.PantryId,
+                            pt.BookingId,
+                            Order = pt.OrderSt,
+                            pt.Process,
+                            pt.Complete,
+                            pt.Failed,
+                            pt.Done,
+                            pt.Note,
+                            PantryName = p.Name,
+                            BookingTitle = b.Title,
+                            BookingDate = b.Date,
+                            BookingStart = b.Start,
+                            BookingEnd = b.End,
+                            RoomName = r.Name,
+                            StatusOrder = pts.Name,
+                            pt.OrderDatetime,
+                            pt.OrderDatetimeBefore,
+                            pt.Datetime,
+                            CountItem = context.PantryTransaksiDs.Count(ptd => ptd.TransaksiId == pt.Id),
+                            OrderUserName = context.Employees.Where(e => e.Id == pt.EmployeeId).Select(e => e.Name).FirstOrDefault(),
+                            RejectedPantryByName = context.Employees.Where(e => e.Id == pt.RejectedPantryBy).Select(e => e.Name).FirstOrDefault(),
+                            CompletedPantryByName = context.Employees.Where(e => e.Id == pt.CompletedPantryBy).Select(e => e.Name).FirstOrDefault(),
+                            ProcessPantryByName = context.Employees.Where(e => e.Id == pt.ProcessPantryBy).Select(e => e.Name).FirstOrDefault()
+                        })
+                        .OrderBy(pt => pt.Datetime)
+                        .ToListAsync();
 
         return data;
     }
@@ -271,13 +278,167 @@ public class PantryTransaksiRepository(
     
     public async Task<Booking?> GetMaxInvoiceOrderAsync(string year)
     {
-        string sql = "SELECT TOP 1 * FROM booking WHERE YEAR(date) = @Year ORDER BY no_order DESC";
-        var parameters = new[] { new SqlParameter("@Year", year) };
-
-        var result = await _context.Bookings.FromSqlRaw(sql, parameters).FirstOrDefaultAsync();
+        var result = await _context.Bookings
+            .Where(b => b.Date.Year == int.Parse(year))
+            .OrderByDescending(b => b.NoOrder)
+            .FirstOrDefaultAsync();
         return result;
     }
 
+    public async Task<PantryTransaksi?> GetItemFilteredByBookingId(string bookingId)
+    {
+        return await context.PantryTransaksis
+            .Where(pt => pt.BookingId == bookingId)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<DataTableEntity<PantryTransaksiSelect>> GetAllApprovalItemWithEntityAsync(PantryTransaksiFilter? entity = null, int limit = 0, int offset = 0)
+    {
+        var query = (from pt in context.PantryTransaksis
+                    from b in context.Bookings
+                        .Where(b => b.BookingId == pt.BookingId).DefaultIfEmpty()
+                    where pt.IsDeleted == 0 
+                        && b.IsDeleted == 0 
+                        // && b.IsCanceled == 0
+                    orderby pt.Id descending
+                    select new PantryTransaksiSelect
+                    {
+                        Id = pt.Id,
+                        PantryId = pt.PantryId,
+                        OrderNo = pt.OrderNo,
+                        EmployeeId = pt.EmployeeId,
+                        BookingId = pt.BookingId,
+                        IsBlive = pt.IsBlive,
+                        RoomId = pt.RoomId,
+                        Via = pt.Via,
+                        Datetime = pt.Datetime,
+                        OrderDatetime = pt.OrderDatetime,
+                        OrderDatetimeBefore = pt.OrderDatetimeBefore,
+                        OrderSt = pt.OrderSt,
+                        OrderStName = pt.OrderStName,
+                        Process = pt.Process,
+                        Complete = pt.Complete,
+                        Failed = pt.Failed,
+                        Done = pt.Done,
+                        Note = pt.Note,
+                        NoteReject = pt.NoteReject,
+                        NoteCanceled = pt.NoteCanceled,
+                        IsRejectedPantry = pt.IsRejectedPantry,
+                        RejectedBy = pt.RejectedBy,
+                        RejectedAt = pt.RejectedAt,
+                        IsTrashpantry = pt.IsTrashpantry,
+                        IsCanceled = pt.IsCanceled,
+                        IsExpired = pt.IsExpired,
+                        ExpiredAt = pt.ExpiredAt,
+                        CanceledBy = pt.CanceledBy,
+                        CanceledAt = pt.CanceledAt,
+                        CompletedAt = pt.CompletedAt,
+                        CompletedBy = pt.CompletedBy,
+                        ProcessAt = pt.ProcessAt,
+                        ProcessBy = pt.ProcessBy,
+                        CreatedAt = pt.CreatedAt,
+                        UpdatedAt = pt.UpdatedAt,
+                        UpdatedBy = pt.UpdatedBy,
+                        CanceledPantryBy = pt.CanceledPantryBy,
+                        RejectedPantryBy = pt.RejectedPantryBy,
+                        CompletedPantryBy = pt.CompletedPantryBy,
+                        ProcessPantryBy = pt.ProcessPantryBy,
+                        Timezone = pt.Timezone,
+                        FromPantry = pt.FromPantry,
+                        ToPantry = pt.ToPantry,
+                        Pending = pt.Pending,
+                        PendingAt = pt.PendingAt,
+                        PackageId = pt.PackageId,
+                        ApprovedBy = pt.ApprovedBy,
+                        ApprovedAt = pt.ApprovedAt,
+                        BookingRoomName = b.RoomName,
+                        BookingTitle = b.Title,
+                        BookingIsApprove = b.IsApprove,
+                        BookingIsCanceled = b.IsCanceled,
+                        BookingDate = b.Date,
+                        BookingStart = b.Start,
+                        BookingEnd = b.End,
+                    }).AsQueryable();
+
+        if (entity?.StartDate != null && entity?.EndDate != null)
+        {
+            query = query.Where(q =>
+                q.OrderDatetime >= entity.StartDate.ToDateTime(TimeOnly.MinValue)
+                && q.OrderDatetime <= entity.EndDate.ToDateTime(TimeOnly.MaxValue)
+            );
+        }
+
+        var recordsTotal = await query.CountAsync();
+
+        if (entity?.PackageId != null)
+        {
+            query = query.Where(q => q.PackageId == entity.PackageId);
+        }
+
+        var recordsFiltered = await query.CountAsync();
+
+        if (limit > 0)
+        {
+            query = query
+                    .Skip(offset)
+                    .Take(limit);
+        }
+
+        var result = await query.ToListAsync();
+
+        return new DataTableEntity<PantryTransaksiSelect>
+        {
+            Collections = result,
+            RecordsTotal = recordsTotal,
+            RecordsFiltered = recordsFiltered
+        };
+    }
+
+    public async Task<PantryTransaksiOrderApproval?> PrintOrderApprovalAsync(string pantryTransaksiId)
+    {
+        if (string.IsNullOrEmpty(pantryTransaksiId))
+        {
+            return null;
+        }
+
+        var query = from pt in context.PantryTransaksis
+                    from b in context.Bookings
+                        .Where(b => b.BookingId == pt.BookingId).DefaultIfEmpty()
+                    from r in context.Rooms
+                        .Where(r => r.Radid == b.RoomId).DefaultIfEmpty()
+                    from bu in context.Buildings
+                        .Where(bu => bu.Id == r.BuildingId).DefaultIfEmpty()
+                    from bfl in context.BuildingFloors
+                        .Where(bfl => bfl.Id == r.FloorId).DefaultIfEmpty()
+                    from pmp in context.PantryMenuPakets
+                        .Where(pmp => pmp.Id == pt.PackageId).DefaultIfEmpty()
+                    where pt.Id == pantryTransaksiId 
+                        // && pt.ApprovedBy != null 
+                        && pt.IsDeleted == 0
+                    select new PantryTransaksiOrderApproval
+                    {
+                        PantryPackageName = pmp.Name,
+                        PantryTransaksiId = pt.Id,
+                        BookingId = b.BookingId,
+                        RoomId = r.Radid,
+                        EmployeeId = pt.EmployeeId,
+                        ApprovedBy = pt.ApprovedBy,
+                        BookingTitle = b.Title,
+                        RoomName = r.Name,
+                        BuildingName = bu.Name,
+                        BuildingFloorName = bfl.Name,
+                        RoomImage = r.Image,
+                        OrderStatus = pt.OrderSt,
+                        OrderStatusName = pt.OrderStName,
+                        BookingDate = b.Date,
+                        BookingStart = b.Start,
+                        BookingEnd = b.End,
+                        ExpiredAt = pt.ExpiredAt,
+                        UpdatedAt = pt.UpdatedAt
+                    };
+
+        return await query.FirstOrDefaultAsync();
+    }
 }
 
 public class PantryTransaksiConfiguration : IEntityTypeConfiguration<PantryTransaksi>

@@ -1,9 +1,12 @@
 ﻿using System.Reflection;
 using _2.BusinessLogic.Services.Interface;
+using _3.BusinessLogic.Services.EmailService;
 using _3.BusinessLogic.Services.Extension;
 using _3.BusinessLogic.Services.Implementation;
 using _4.Data.ViewModels;
 using _4.Helpers.Consumer.Report;
+using _5.Helpers.Consumer;
+using _5.Helpers.Consumer._Encryption._Secure;
 using _5.Helpers.Consumer._Response;
 using _5.Helpers.Consumer.Custom;
 using _6.Repositories.Repository;
@@ -75,9 +78,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IAPIMainPantryService, APIMainPantryService>();
         services.AddScoped<IAPIMainDisplayService, APIMainDisplayService>();
+        services.AddScoped<IWorkerAPIService, WorkerAPIService>();
         services.AddScoped<IIntegrationService, IntegrationService>();
         services.AddScoped<IExportReport, ExportReport>();
-        services.AddScoped<IManualConfigService, ManualConfigService>();
+        services.AddScoped<IS3Service, S3Service>();
+        services.AddScoped<IHelpItGaService, HelpItGaService>();
+
+        // Email service
+        services.AddScoped<IEmailService, EmailService>();
     }
     public static void AddCustomRepository(this IServiceCollection services)
     {
@@ -136,11 +144,16 @@ public static class ServiceCollectionExtensions
         services.AddScoped<SendingEmailRepository>();
         services.AddScoped<SendingNotifRepository>();
         services.AddScoped<PantryTransaskiDRepository>();
-        
-
-
+        services.AddScoped<RoomDisplayInformationRepository>();
+        services.AddScoped<HelpItGaRepository>();
     }
 
+    public static IServiceCollection AddHelperService(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<ISecureService>(new SecureService(configuration));
+        return services;
+    }
+    
     /// <summary>
     /// Auto Mapping Vice Versa and Map List
     /// </summary>
@@ -209,6 +222,8 @@ public static class ServiceCollectionExtensions
             CreateMap<PantryDetailViewModel, PantryDetail>().ReverseMap();
             CreateMap<PantryDetailSelect, PantryDetailVMMenus>().ReverseMap();
             CreateMap<PantryTransaksiViewModel, PantryTransaksi>().ReverseMap();
+            CreateMap<PantryTransaksiVMApporval, PantryTransaksiSelect>().ReverseMap();
+            CreateMap<PantryTransaksiVMOrderApproval, PantryTransaksiOrderApproval>().ReverseMap();
             CreateMap<PantrySatuanViewModel, PantrySatuan>().ReverseMap();
             CreateMap<PantryMenuPaketViewModel, PantryMenuPaket>()
                 .ForMember(dest => dest.PantryId, opt => opt.MapFrom(src => src.pantry_id))
@@ -332,6 +347,7 @@ public static class ServiceCollectionExtensions
 
 
             CreateMap<RoomDisplay, RoomDisplayViewModel>().ReverseMap();
+            CreateMap<RoomDisplaySelect, RoomDisplayViewModel>().MapNestedProperties();
             CreateMap<object, RoomDisplayViewModel>().MapNestedProperties();
             CreateMap<RoomDisplayVMCreateFR, RoomDisplayViewModel>().ReverseMap();
             CreateMap<RoomDisplayVMUpdateFR, RoomDisplayViewModel>().ReverseMap();
@@ -347,7 +363,7 @@ public static class ServiceCollectionExtensions
             CreateMap<KioskDisplayVMUpdateFR, KioskDisplayViewModel>().ReverseMap();
             CreateMap<TimeBookingDTOViewModel, TimeBookingDTO>().ReverseMap();
 
-            
+
 
             CreateMap<LicenseSettingViewModel, LicenseSetting>().ReverseMap();
             CreateMap<LicenseSettingRepository, LicenseSetting>().ReverseMap();
@@ -404,9 +420,22 @@ public static class ServiceCollectionExtensions
             CreateMap<BookingInvitation, FastBookBookingInvitationViewModel>().ReverseMap();
             CreateMap<Booking, FastBookBookingViewModel>().ReverseMap();
             CreateMap<BookingInvitation, FastBookBookingInvitation>().ReverseMap();
+
+            CreateMap<BookingInvoice, FastBookBookingInvoice>().ReverseMap();
+            CreateMap<EmployeeViewModel, FastBookBookingInvitationViewModel>().ReverseMap();
+            CreateMap<FastBookListlDataInternalFRViewModel, FastBookEmployeeViewModel>().ReverseMap();
+            CreateMap<Employee, FastBookEmployeeViewModel>().ReverseMap();
+            CreateMap<PantryTransaksiD, PantryTransaksiDViewModel>().ReverseMap();
             
+            CreateMap<RoomDisplayInformation, RoomDisplayInformationViewModel>().ReverseMap();
+            CreateMap<RoomDisplayInformationSelect, RoomDisplayInformationViewModel>().ReverseMap();
+            
+            CreateMap<HelpItGa, HelpItGaViewModel>().ReverseMap();
+            CreateMap<object, HelpItGaViewModel>().MapNestedProperties();
+            CreateMap<object, HelpItGaVMDataTableResponse>().MapNestedProperties();
 
-
+            CreateMap<RoomDisplayInformationMeetingDTO, RoomDisplayInformationMeetingViewModel>().ReverseMap();
+            
         }
     }
 

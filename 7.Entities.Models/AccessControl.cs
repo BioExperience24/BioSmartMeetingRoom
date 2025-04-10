@@ -31,3 +31,16 @@ public partial class AccessControl : BaseEntity
     public DateTime? UpdatedAt { get; set; }
 
 }
+
+public class DoorAccessDto
+{
+    public string RoomId { get; set; }
+    public string Id { get; set; }
+    public string AccessId { get; set; }
+    public string Type { get; set; }
+    public string IpController { get; set; }
+    public int? Delay { get; set; }
+    public int? Channel { get; set; }
+    public string Name { get; set; }
+    public string ModelController { get; set; }
+}

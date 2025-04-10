@@ -52,6 +52,7 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<Employee> Employees { get; set; }
     public virtual DbSet<Facility> Facilities { get; set; }
     public virtual DbSet<HelpdeskMonitor> HelpdeskMonitors { get; set; }
+    public virtual DbSet<HttpUrl> HttpUrls { get; set; }
     public virtual DbSet<Integration365> Integration365s { get; set; }
     public virtual DbSet<KioskDisplay> KioskDisplays { get; set; }
     public virtual DbSet<Level> Levels { get; set; }
@@ -119,6 +120,8 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<UserConfig> UserConfigs { get; set; }
     public virtual DbSet<VariableTimeDuration> VariableTimeDurations { get; set; }
     public virtual DbSet<VariableTimeExtend> VariableTimeExtends { get; set; }
+    public virtual DbSet<RoomDisplayInformation> RoomDisplayInformations { get; set; }
+    public virtual DbSet<HelpItGa> HelpItGas { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:DefaultConnection");
@@ -751,6 +754,13 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.IsPrivate)
                 .HasDefaultValue(0)
                 .HasColumnName("is_private");
+            entity.Property(e => e.RecurringId)
+                .HasMaxLength(100)
+                .HasDefaultValueSql("(NULL)")
+                .HasColumnName("recurring_id");
+            entity.Property(e => e.IsRecurring)
+                .HasDefaultValue(0)
+                .HasColumnName("is_recurring");
         });
 
         modelBuilder.Entity<BookingAlive>(entity =>
@@ -808,7 +818,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("execute_attendance");
             entity.Property(e => e.ExecuteDoorAccess).HasColumnName("execute_door_access");
             entity.Property(e => e.Internal)
-                .HasDefaultValue(1)
+                // .HasDefaultValue(1)
                 .HasColumnName("internal");
             entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.IsPic).HasColumnName("is_pic");
@@ -1987,6 +1997,33 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("room_id");
         });
+
+        modelBuilder.Entity<HttpUrl>(entity =>
+        {
+            entity.ToTable("http_url", "smart_meeting_room");
+
+            entity.HasKey(e => e.Id); // Define primary key
+
+            entity.Property(e => e.Id)
+                .UseIdentityColumn() // Auto-increment for PostgreSQL
+                .HasColumnName("id");
+
+            entity.Property(e => e.Url)
+                .HasColumnName("url");
+
+            entity.Property(e => e.Headers)
+                .HasColumnName("headers")
+                .HasColumnType("TEXT"); // Store JSON as text
+
+            entity.Property(e => e.IsDeleted)
+                .HasColumnName("is_deleted")
+                .HasColumnType("smallint"); // Ensure smallint type
+
+            entity.Property(e => e.IsEnable)
+                .HasColumnName("is_enabled")
+                .HasColumnType("smallint"); // Ensure smallint type
+        });
+
 
         modelBuilder.Entity<Integration365>(entity =>
         {
@@ -3411,6 +3448,12 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("name");
             entity.Property(e => e.Description)
                 .HasColumnName("description");
+            entity.Property(e => e.BuildingId)
+                .HasDefaultValueSql("(NULL)")
+                .HasColumnName("building_id");
+            entity.Property(e => e.FloorId)
+                .HasDefaultValueSql("(NULL)")
+                .HasColumnName("floor_id");
         });
 
         modelBuilder.Entity<RoomForUsage>(entity =>
@@ -3836,6 +3879,9 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(100)
                 .HasDefaultValueSql("(NULL)")
                 .HasColumnName("text");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(0)
+                .HasColumnName("is_deleted");
         });
 
         modelBuilder.Entity<SettingPantryConfig>(entity =>
@@ -4301,8 +4347,131 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("time");
         });
 
+        modelBuilder.Entity<RoomDisplayInformation>(entity =>
+        {
+            entity.HasKey(e => e.Generate).HasName("PK_room_display_information__generate");
 
+            entity.ToTable("room_display_information", "smart_meeting_room");
 
+            entity.Property(e => e.Generate).HasColumnName("_generate");
+            entity.Property(e => e.DisplayId).HasColumnName("display_id");
+            entity.Property(e => e.RoomId)
+                .HasMaxLength(255)
+                .HasColumnName("room_id");
+            entity.Property(e => e.Icon)
+                .HasMaxLength(255)
+                .HasColumnName("icon");
+            entity.Property(e => e.Distance).HasColumnName("distance");
+        });
+
+        modelBuilder.Entity<HelpItGa>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__help_it___3213E83F112681DD");
+            
+            entity.ToTable("help_it_ga", "smart_meeting_room");
+
+            entity.Property(e => e.Id)
+                .IsRequired()
+                .HasColumnName("id");
+            entity.Property(e => e.Datetime)
+                .IsRequired()
+                .HasColumnName("datetime");
+            entity.Property(e => e.BookingId)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("booking_id");
+            entity.Property(e => e.RoomId)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("room_id");
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("type");
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("status");
+            entity.Property(e => e.Subject)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("subject");
+            entity.Property(e => e.Description)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("description");
+            entity.Property(e => e.ProblemFacility)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("problem_facility");
+            entity.Property(e => e.ProblemReason)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("problem_reason");
+            entity.Property(e => e.ProcessAt)
+                .IsRequired(false)
+                .HasColumnName("process_at")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.DoneAt)
+                .IsRequired(false)
+                .HasColumnName("done_at")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.RejectAt)
+                .IsRequired(false)
+                .HasColumnName("reject_at")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.ResponseDone)
+                .IsRequired(false)
+                .HasMaxLength(255)
+                .HasColumnName("response_done")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.ResponseReject)
+                .IsRequired(false)
+                .HasMaxLength(255)
+                .HasColumnName("response_reject")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.TimeUntilDoneAt)
+                .IsRequired(false)
+                .HasColumnName("time_until_done_at")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.ProcessBy)
+                .IsRequired(false)
+                .HasMaxLength(255)
+                .HasColumnName("process_by")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.DoneBy)
+                .IsRequired(false)
+                .HasMaxLength(255)
+                .HasColumnName("done_by")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.RejectBy)
+                .IsRequired(false)
+                .HasMaxLength(255)
+                .HasColumnName("reject_by")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.IsDeleted)
+                .IsRequired(false)
+                .HasColumnName("is_deleted")
+                .HasDefaultValueSql("(0)");
+            entity.Property(e => e.CreatedAt)
+                .IsRequired(false)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.CreatedBy)
+                .IsRequired(false)
+                .HasMaxLength(255)
+                .HasColumnName("created_by")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.UpdatedAt)
+                .IsRequired(false)
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("(NULL)");
+            entity.Property(e => e.UpdatedBy)
+                .IsRequired(false)
+                .HasMaxLength(255)
+                .HasColumnName("updated_by")
+                .HasDefaultValueSql("(NULL)");
+        });
 
         //modelBuilder.Entity<RoomData>().HasNoKey();
 

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace _1.PAMA.Razor.Views.Pages.Display
 {
     [Authorize]
+    [RejectWebviewUser]
     [PermissionAccess]
     public class IndexModel(
         IConfiguration config,
@@ -26,23 +27,25 @@ namespace _1.PAMA.Razor.Views.Pages.Display
         public string PostUpdate { get; set; } = config["ApiUrls:Endpoints:RoomDisplay:PostUpdate"] ?? string.Empty;
         public string PostDelete { get; set; } = config["ApiUrls:Endpoints:RoomDisplay:PostDelete"] ?? string.Empty;
         public string PostChangeStatusDisplay { get; set; } = config["ApiUrls:Endpoints:RoomDisplay:PostChangeStatusDisplay"] ?? string.Empty;
+        public string GetBuildings { get; set; } = config["ApiUrls:Endpoints:GetBuildings"] ?? string.Empty;
+        public string GetBuildingFloors { get; set; } = config["ApiUrls:Endpoints:GetBuildingFloors"] ?? string.Empty;
 
-        public string ModuleDisplay { get; set; } = "{}";
+        // public string ModuleDisplay { get; set; } = "{}";
         public string CurrentDate { get; set; } = DateTime.Now.ToString("dd MMM yyyy");
 
-        public async Task OnGetAsync()
+        public void OnGetAsync()
         {
-            ModuleBackendViewModel vm = new ModuleBackendViewModel {
-                ModuleText = "module_display"
-            };
-            var moduleDisplay = await _moduleBackendService.GetItemAsync(vm);
-            if (moduleDisplay != null)
-            {
-                var dictModuleDisplay = new Dictionary<string, object>{
-                    {"display", moduleDisplay}
-                };
-                ModuleDisplay = JsonSerializer.Serialize(dictModuleDisplay);
-            }
+            // ModuleBackendViewModel vm = new ModuleBackendViewModel {
+            //     ModuleText = "module_display"
+            // };
+            // var moduleDisplay = await _moduleBackendService.GetItemAsync(vm);
+            // if (moduleDisplay != null)
+            // {
+            //     var dictModuleDisplay = new Dictionary<string, object>{
+            //         {"display", moduleDisplay}
+            //     };
+            //     ModuleDisplay = JsonSerializer.Serialize(dictModuleDisplay);
+            // }
         }
     }
 }

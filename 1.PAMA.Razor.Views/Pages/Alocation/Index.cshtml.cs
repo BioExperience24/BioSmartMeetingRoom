@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace _1.PAMA.Razor.Views.Pages.Alocation
 {
     [Authorize]
+    [RejectWebviewUser]
     [PermissionAccess]
     public class IndexModel : PageModel
     {

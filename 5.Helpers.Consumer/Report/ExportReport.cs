@@ -9,6 +9,7 @@ public interface IExportReport
     Task<string> SendMailReport(EmailModel model);
 }
 
+
 public class ExportReport : IExportReport
 {
 
@@ -20,34 +21,20 @@ public class ExportReport : IExportReport
         _env = env;
         _config = config;
     }
- 
+
 
     public async Task<string> SendMailReport(EmailModel model)
     {
-        var manualConfig = _config["SMTP_SETTING"];
-        var emailConfigured = bool.Parse(manualConfig);
-        if (emailConfigured)
+
+        try
         {
+            var sendMailKit = new SendMailKit(_env);
+            return await sendMailKit.SendMail(model);
 
-            try
-            {
-                var sendMailKit = new SendMailKit(_env);
-                return await sendMailKit.SendMail(model);
-
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
         }
-        else
+        catch (Exception ex)
         {
-            return "Mail Is Not Configured";
+            throw ex;
         }
     }
-
-
-    
-
-
 }

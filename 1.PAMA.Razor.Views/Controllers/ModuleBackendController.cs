@@ -1,10 +1,14 @@
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Common;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using _5.Helpers.Consumer.Policy;
 
 namespace _1.PAMA.Razor.Views.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
     [ApiController]
     [Route("api/[controller]/[action]")]
     public class ModuleBackendController(

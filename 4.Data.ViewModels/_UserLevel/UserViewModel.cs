@@ -163,6 +163,13 @@ public class LoginModel
     public required string Password { get; set; }
 }
 
+public class LoginWebviewModel
+{
+    public required string Username { get; set; }
+
+    public required string Nik { get; set; }
+}
+
 public class TokenManagement
 {
     public string SecretKey { get; set; }

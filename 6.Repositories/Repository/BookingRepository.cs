@@ -1,6 +1,8 @@
 ﻿
 
 using System.Globalization;
+using System.Text.Json;
+using _6.Repositories.Extension;
 
 namespace _6.Repositories.Repository;
 
@@ -141,7 +143,9 @@ public class BookingRepository : BaseLongRepository<Booking>
                 query = query.Where(q => q.Date == entity.Date);
             }
 
-            if (entity.Start != DateTime.MinValue && entity.End != DateTime.MinValue)
+            if (entity.Date != DateOnly.MinValue
+                && entity.Start != DateTime.MinValue 
+                && entity.End != DateTime.MinValue)
             {
                 /* query = query.Where(q => 
                     q.Start <= entity.Start
@@ -151,6 +155,15 @@ public class BookingRepository : BaseLongRepository<Booking>
                 query = query.Where(q =>
                     q.Start <= entity.End
                     && q.End >= entity.Start
+                );
+            } 
+            else if (entity.Start != DateTime.MinValue && entity.End != DateTime.MinValue)
+            {
+                query = query.Where(q =>
+                    q.Start.Date >= entity.Start.Date
+                    && q.End.Date <= entity.End.Date
+                    && q.Start.TimeOfDay <= entity.End.TimeOfDay
+                    && q.End.TimeOfDay >= entity.Start.TimeOfDay
                 );
             }
         }
@@ -179,12 +192,15 @@ public class BookingRepository : BaseLongRepository<Booking>
         var query = from booking in _dbContext.Bookings
                     from participant in participants
                         .Where(bi => bi.BookingId == booking.BookingId).DefaultIfEmpty()
+                    from room in _dbContext.Rooms
+                        .Where(r => booking.RoomId == r.Radid).DefaultIfEmpty()
                     where booking.IsExpired == 0 && booking.IsDeleted == 0
-                    orderby booking.Start descending
+                    // orderby booking.Start descending
                     select new
                     {
                         booking,
-                        Attendees = participant.Total != null ? participant.Total : 0
+                        Attendees = participant.Total != null ? participant.Total : 0,
+                        RoomImage = room.Image,
                     };
 
         if (entity?.DateStart != null && entity?.DateEnd != null)
@@ -235,6 +251,26 @@ public class BookingRepository : BaseLongRepository<Booking>
                     .Skip(offset)
                     .Take(limit);
         }
+
+        string sortColumn = "booking.Start";
+        string sortDir = string.IsNullOrEmpty(entity?.SortDir) ? "desc" : entity?.SortDir ?? "desc";
+
+        switch (entity?.SortColumn)
+        {
+            case "title":
+                sortColumn = "booking.Title";
+                break;
+
+            case "room_name":
+                sortColumn = "booking.RoomName";
+                break;
+
+            case "booking_date":
+                sortColumn = "booking.Date";
+                break;
+        }
+
+        query = query.OrderByColumn(sortColumn, sortDir);
 
         var result = await query.ToListAsync();
 
@@ -550,6 +586,8 @@ public class BookingRepository : BaseLongRepository<Booking>
                         ServerEnd = b.ServerEnd,
                         BookingType = b.BookingType,
                         IsPrivate = b.IsPrivate,
+                        RecurringId = b.RecurringId,
+                        IsRecurring = b.IsRecurring,
                         RoomName2 = r.Name,
                         RoomPrice = r.Price,
                         RoomWorkStart = r.WorkStart,
@@ -950,9 +988,10 @@ public class BookingRepository : BaseLongRepository<Booking>
         var query = from booking in _context.Bookings
                     join room in _context.Rooms on booking.RoomId equals room.Radid
                     join building in _context.Buildings on room.BuildingId equals building.Id
+                    where booking.BookingId == bookingId
                     select new BookingDataDto
                     {
-                        BookingId = booking.BookingId,
+                        BookingId = bookingId,
                         BookingId365 = booking.BookingId365,
                         BookingIdGoogle = booking.BookingIdGoogle,
                         BookingDevices = booking.BookingDevices,
@@ -960,7 +999,7 @@ public class BookingRepository : BaseLongRepository<Booking>
                         Title = booking.Title,
                         Date = booking.Date,
                         RoomId = booking.RoomId,
-                        RoomName = booking.RoomName, 
+                        RoomName = booking.RoomName,
                         Start = booking.Start,
                         End = booking.End,
                         CostTotalBooking = booking.CostTotalBooking,
@@ -1006,8 +1045,328 @@ public class BookingRepository : BaseLongRepository<Booking>
         return await query.FirstOrDefaultAsync();
     }
 
+    public async Task<DataTableEntity<Booking>> GetAllApprovalItemWithEntityAsync(BookingFilter? entity = null, int limit = 0, int offset = 0)
+    {
+        var query = (from b in _dbContext.Bookings
+                     where b.IsEnableApproval == 1 && b.IsCanceled == 0 && b.IsDeleted == 0
+                     orderby b.Id descending
+                     select b).AsQueryable();
+
+        if (entity?.DateStart != null && entity?.DateEnd != null)
+        {
+            query = query.Where(q =>
+                q.Date >= entity.DateStart
+                && q.Date <= entity.DateEnd
+            );
+        }
+
+        if (entity?.AuthUserNIK != null)
+        {
+            query = from q in query
+                    from r in _dbContext.Rooms
+                        .Where(r => q.RoomId == r.Radid)
+                    where r.ConfigApprovalUser != null && r.ConfigApprovalUser.Contains(entity.AuthUserNIK)
+                    select q;
+        }
+
+        var recordsTotal = await query.CountAsync();
+
+        if (entity?.RoomId != null)
+        {
+            query = query.Where(q => q.RoomId == entity.RoomId);
+        }
+
+        var recordsFiltered = await query.CountAsync();
+
+        if (limit > 0)
+        {
+            query = query
+                    .Skip(offset)
+                    .Take(limit);
+        }
+
+        var result = await query.ToListAsync();
+
+        return new DataTableEntity<Booking>
+        {
+            Collections = result,
+            RecordsTotal = recordsTotal,
+            RecordsFiltered = recordsFiltered
+        };
+    }
+
+    public async Task<BookingMailData?> GetMailDataParticipantByBookingId(string bookingId, string? participantNik = null)
+    {
+        var participants = _dbContext.BookingInvitations.AsQueryable();
+
+        if (participantNik != null)
+        {
+            participants = participants.Where(bi => bi.Nik == participantNik || bi.IsPic == 1);
+        }
 
 
+        var query = from b in _dbContext.Bookings
+                    from r in _dbContext.Rooms
+                        .Where(r => b.RoomId == r.Radid).DefaultIfEmpty()
+                    from bu in _dbContext.Buildings
+                        .Where(bu => r.BuildingId == bu.Id).DefaultIfEmpty()
+                    from buf in _dbContext.BuildingFloors
+                        .Where(buf => r.FloorId == buf.Id).DefaultIfEmpty()
+                    where b.BookingId == bookingId
+                    select new BookingMailData
+                    {
+                        Agenda = b.Title,
+                        Date = b.Date,
+                        Start = b.Start,
+                        End = b.End,
+                        RoomName = r.Name,
+                        BuildingName = bu.Name ?? string.Empty,
+                        BuildingAddress = bu.DetailAddress ?? string.Empty,
+                        BuildingMapLink = bu.GoogleMap ?? string.Empty,
+                        BuildingFloorName = buf.Name ?? string.Empty,
+                        Participants = participants.Where(p => b.BookingId == p.BookingId).ToList()
+                        // Participants = (
+                        //         from bi in _dbContext.BookingInvitations
+                        //         where bi.BookingId == b.BookingId && (bi.Nik == participantNik || bi.IsPic == 1)
+                        //         select bi
+                        //     ).ToList()
+                    };
 
+        return await query.FirstOrDefaultAsync();
+    }
+
+    public async Task<IEnumerable<object>> GetAllInProgressItemAsync()
+    {
+        var currentTime = DateTime.Now;
+
+        var participants = (from bookInvitation in _dbContext.BookingInvitations
+                            where bookInvitation.IsDeleted == 0
+                            select new
+                            {
+                                BookingId = bookInvitation.BookingId,
+                                Total = (bookInvitation.BookingId == null)
+                                ? (int?)null
+                                : (
+                                    from bi in _dbContext.BookingInvitations
+                                    where bi.BookingId == bookInvitation.BookingId
+                                    select bi
+                                ).Count()
+                            }).Distinct();
+
+        var query = from b in _dbContext.Bookings
+                    from p in participants
+                        .Where(bi => bi.BookingId == b.BookingId).DefaultIfEmpty()
+                    where b.IsDeleted == 0
+                    && b.IsApprove == 1
+                    && b.IsCanceled == 0 
+                    && b.IsExpired == 0 
+                    && b.EndEarlyMeeting == 0 
+                    // && b.Start < currentTime 
+                    && b.End > currentTime
+                    orderby b.Start descending
+                    select new
+                    {
+                        b,
+                        Attendees = p.Total != null ? p.Total : 0
+                    };
+        
+        var result = await query.ToListAsync();
+
+        return result;
+    }
+
+    public async Task<Booking?> GetBookingOnGoingFilteredByRoomIdAsync(string roomId, DateOnly date, TimeSpan time)
+    {
+        var query = from b in _context.Bookings
+                    where b.RoomId == roomId
+                        && b.Date == date
+                        && b.Start.TimeOfDay <= time
+                        && b.End.TimeOfDay >= time
+                        && b.IsDeleted == 0
+                        && b.IsCanceled == 0
+                        && b.IsExpired == 0
+                        && b.EndEarlyMeeting == 0
+                    select b;
+
+        return await query.FirstOrDefaultAsync();
+    }
+
+    public async Task<List<BookingOpenDataMeeting>> OpenDataMeetingAsync(DateOnly date)
+    {
+        var query = from b in _dbContext.Bookings
+                    join r in _dbContext.Rooms on b.RoomId equals r.Radid
+                    join ai in _dbContext.AccessIntegrateds on r.Radid equals ai.RoomId
+                    join ac in _dbContext.AccessControls on ai.AccessId equals ac.Id
+                    join acf in _dbContext.AccessControllerFalcos on ac.Id equals acf.AccessId
+                    where b.Date == date
+                          && b.IsDeleted == 0
+                          && b.IsExpired == 0
+                          && b.IsCanceled == 0
+                          && r.IsDeleted == 0
+                    && ac.Type == "falcoid"
+                    && ac.ModelController == "reader"
+                    select new BookingOpenDataMeeting
+                    {
+                        Id = b.Id,
+                        BookingId = b.BookingId,
+                        RoomId = b.RoomId,
+                        RoomName = r.Name,
+                        GroupAccess = acf.GroupAccess,
+                        IpController = ac.IpController,
+                        Channel = ac.Channel,
+                        Type = ac.Type
+                    };
+
+        return await query.ToListAsync();
+    }
+
+
+    public async Task<int> GetCountFilteredByBookingId(string bookingId)
+    {
+        return await _context.Bookings
+            .Where(b => b.BookingId == bookingId)
+            .CountAsync();
+    }
+
+    public async Task<int> GetCountRecurringFilteredByRecurringId(string recurringId)
+    {
+        return await _context.Bookings
+            .Where(b => b.RecurringId == recurringId)
+            .CountAsync();
+    }
+
+    public async Task<IEnumerable<Booking>> GetFirstAndLastByRecurringId(string recurringId)
+    {
+        var query = _context.Bookings
+            .Where(x => x.RecurringId == recurringId)
+            .OrderBy(x => x.Id)
+            .AsNoTracking();
+
+        // var firstItem = await query.FirstOrDefaultAsync();
+        // var lastItem = await query.LastOrDefaultAsync();
+
+        // return new List<Booking> { firstItem!, lastItem! }.Where(x => x != null);
+        var firstItem = await query.OrderBy(x => x.Id).FirstOrDefaultAsync();  
+        var lastItem = await query.OrderByDescending(x => x.Id).FirstOrDefaultAsync();  
+
+        return new List<Booking?> { firstItem, lastItem }.Where(x => x != null).ToList()!; 
+    }
+
+    public async Task<IEnumerable<BookingWithRoom>> GetItemFilteredByRecurringIdAsync(string recurringId)
+    {
+        var query = from b in _dbContext.Bookings
+                    from r in _dbContext.Rooms
+                        .Where(r => b.RoomId == r.Radid).DefaultIfEmpty()
+                    where b.RecurringId == recurringId
+                    select new BookingWithRoom
+                    {
+                        Id = b.Id,
+                        BookingId = b.BookingId,
+                        BookingId365 = b.BookingId365,
+                        BookingIdGoogle = b.BookingIdGoogle,
+                        BookingDevices = b.BookingDevices,
+                        NoOrder = b.NoOrder,
+                        Title = b.Title,
+                        Date = b.Date,
+                        RoomId = b.RoomId,
+                        RoomName = b.RoomName,
+                        IsMerge = b.IsMerge,
+                        MergeRoom = b.MergeRoom,
+                        MergeRoomId = b.MergeRoomId,
+                        MergeRoomName = b.MergeRoomName,
+                        Start = b.Start,
+                        End = b.End,
+                        CostTotalBooking = b.CostTotalBooking,
+                        DurationPerMeeting = b.DurationPerMeeting,
+                        TotalDuration = b.TotalDuration,
+                        ExtendedDuration = b.ExtendedDuration,
+                        Pic = b.Pic,
+                        AlocationId = b.AlocationId,
+                        AlocationName = b.AlocationName,
+                        Note = b.Note,
+                        CanceledNote = b.CanceledNote,
+                        Participants = b.Participants,
+                        ExternalLink = b.ExternalLink,
+                        ExternalLink365 = b.ExternalLink365,
+                        ExternalLinkGoogle = b.ExternalLinkGoogle,
+                        EndEarlyMeeting = b.EndEarlyMeeting,
+                        TextEarly = b.TextEarly,
+                        IsDevice = b.IsDevice,
+                        IsMeal = b.IsMeal,
+                        IsEar = b.IsEar,
+                        IsRescheduled = b.IsRescheduled,
+                        IsCanceled = b.IsCanceled,
+                        IsExpired = b.IsExpired,
+                        CanceledBy = b.CanceledBy,
+                        CanceledAt = b.CanceledAt,
+                        ExpiredBy = b.ExpiredBy,
+                        ExpiredAt = b.ExpiredAt,
+                        RescheduledBy = b.RescheduledBy,
+                        RescheduledAt = b.RescheduledAt,
+                        EarlyEndedBy = b.EarlyEndedBy,
+                        EarlyEndedAt = b.EarlyEndedAt,
+                        IsAlive = b.IsAlive,
+                        Timezone = b.Timezone,
+                        Comment = b.Comment,
+                        CreatedAt = b.CreatedAt,
+                        CreatedBy = b.CreatedBy,
+                        UpdatedAt = b.UpdatedAt,
+                        UpdatedBy = b.UpdatedBy,
+                        IsNotifEndMeeting = b.IsNotifEndMeeting,
+                        IsNotifBeforeEndMeeting = b.IsNotifBeforeEndMeeting,
+                        IsAccessTrigger = b.IsAccessTrigger,
+                        IsConfigSettingEnable = b.IsConfigSettingEnable,
+                        IsEnableApproval = b.IsEnableApproval,
+                        IsEnablePermission = b.IsEnablePermission,
+                        IsEnableRecurring = b.IsEnableRecurring,
+                        IsEnableCheckin = b.IsEnableCheckin,
+                        IsRealeaseCheckinTimeout = b.IsRealeaseCheckinTimeout,
+                        IsReleased = b.IsReleased,
+                        IsEnableCheckinCount = b.IsEnableCheckinCount,
+                        Category = b.Category,
+                        LastModifiedDateTime365 = b.LastModifiedDateTime365,
+                        PermissionEnd = b.PermissionEnd,
+                        PermissionCheckin = b.PermissionCheckin,
+                        ReleaseRoomCheckinTime = b.ReleaseRoomCheckinTime,
+                        CheckinCount = b.CheckinCount,
+                        IsVip = b.IsVip,
+                        IsApprove = b.IsApprove,
+                        VipUser = b.VipUser,
+                        UserEndMeeting = b.UserEndMeeting,
+                        UserCheckin = b.UserCheckin,
+                        UserApproval = b.UserApproval,
+                        UserApprovalDatetime = b.UserApprovalDatetime,
+                        RoomMeetingMove = b.RoomMeetingMove,
+                        RoomMeetingOld = b.RoomMeetingOld,
+                        IsMoved = b.IsMoved,
+                        IsMovedAgree = b.IsMovedAgree,
+                        MovedDuration = b.MovedDuration,
+                        MeetingEndNote = b.MeetingEndNote,
+                        VipApproveBypass = b.VipApproveBypass,
+                        VipLimitCapBypass = b.VipLimitCapBypass,
+                        VipLockRoom = b.VipLockRoom,
+                        VipForceMoved = b.VipForceMoved,
+                        DurationSavedRelease = b.DurationSavedRelease,
+                        IsCleaningNeed = b.IsCleaningNeed,
+                        CleaningTime = b.CleaningTime,
+                        CleaningStart = b.CleaningStart,
+                        CleaningEnd = b.CleaningEnd,
+                        UserCleaning = b.UserCleaning,
+                        ServerDate = b.ServerDate,
+                        ServerStart = b.ServerStart,
+                        ServerEnd = b.ServerEnd,
+                        BookingType = b.BookingType,
+                        IsPrivate = b.IsPrivate,
+                        RecurringId = b.RecurringId,
+                        IsRecurring = b.IsRecurring,
+                        RoomName2 = r.Name,
+                        RoomPrice = r.Price,
+                        RoomWorkStart = r.WorkStart,
+                        RoomWorkEnd = r.WorkEnd,
+                        RoomWorkDay = r.WorkDay,
+                    };
+
+        return await query.ToListAsync();
+    }
 }
 

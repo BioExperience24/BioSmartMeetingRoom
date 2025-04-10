@@ -90,5 +90,10 @@ namespace _6.Repositories.Repository
                 return false;
             }
         }
+
+        public async Task<LicenseList?> GetItemFilteredByModule(string module)
+        {
+            return await _dbContext.LicenseLists.FirstOrDefaultAsync(c => c.Module == module);
+        }
     }
 }

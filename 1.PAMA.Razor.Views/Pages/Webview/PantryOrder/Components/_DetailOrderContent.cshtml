@@ -1,0 +1,89 @@
+<div id="detail-order-section" style="display: none">
+  <div class="card position-relative">
+    <div class="card-body">
+      <h5 class="card-title">Detail Order</h5>
+      <div class="section-header-breadcrumb d-flex align-items-center">
+        <div class="breadcrumb-item">Dashboard</div>
+        <div class="breadcrumb-item active"><a href="#">Detail Order</a></div>
+      </div>
+    </>
+  </div>
+
+  <div class="row">
+    <div class="container">
+      <div class="row">
+        <!-- detail order -->
+        <div class="col-12">
+          <div class="card mb-3">
+            <div class="card-body d-flex align-items-center">
+              <i class="fas fa-receipt fa-2x text-primary mr-3"></i>
+              <div>
+                <h5 class="font-weight-bold mb-1">
+                  No Order: <span id="order-id"></span>
+                </h5>
+                <p class="mb-0 text-muted">This your order number</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="card mb-3">
+            <div class="card-body d-flex align-items-center p-3">
+              <img id="room-image" src="../../assets/img/example-image-50.jpg" class="rounded-circle mr-3"
+                style="width: 50px; height: 50px" alt="Meeting Icon" />
+              <div class="flex-grow-1">
+                <h5 class="font-weight-bold mb-1" id="order-title"></h5>
+                <div class="text-muted mb-1">
+                  <span>Room: <strong id="order-room"></strong></span>
+                </div>
+                <div class="text-muted mb-1">
+                  <span>Category:
+                    <span class="badge badge-info" id="order-category"></span></span>
+                </div>
+                <div class="text-muted" id="order-date-time"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- order items -->
+        <div class="col-12">
+          <div class="card mb-2">
+            <div class="card-header">
+              <h6 class="font-weight-bold mb-0">Order Items</h6>
+            </div>
+            <div class="card-body p-0" id="order-items"></div>
+          </div>
+        </div>
+
+        <!-- status order -->
+        <div class="col-12" style="margin-bottom: 75px">
+          <div class="card mb-4">
+            <div class="card-header">
+              <h6 class="font-weight-bold mb-0">Order Status</h6>
+            </div>
+            <div class="card-body">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle text-primary fa-2x mr-3"></i>
+                <div>
+                  <h5 class="font-weight-bold mb-1">Current Status</h5>
+                  <p class="mb-1">
+                    Your order is currently:
+                    <span class="badge" id="order-status"></span>
+                  </p>
+                  <small class="text-muted" id="order-last-updated"></small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- bottom button -->
+        <div id="btn-cancel-order">
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

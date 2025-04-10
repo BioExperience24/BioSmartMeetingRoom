@@ -6,6 +6,23 @@ $("#id_attendees_search").click(function (e) {
     reloadAttendeesTable();
 });
 
+$("#id_attendees_print").on("click", function(e) {
+    e.preventDefault();
+    let param = {};
+
+    let date = $("#id_attendees_daterange_search").val().split(" - ");
+    param.start_date = date[0];
+    param.end_date = date[1];
+    param.nik = $("#id_attendees_employee_search").val();
+    param.nik_name = $("#id_attendees_employee_search").find(":selected").text();
+    param.building_id = $("#id_attendees_building_search").val();
+    param.building_name = $("#id_attendees_building_search").find(":selected").text();
+    param.room_id = $("#id_attendees_room_search").val();
+    param.room_name = $("#id_attendees_room_search").find(":selected").text();
+    let url = `${window.location.href}/print/attendees?${$.param(param)}`;
+    window.open(url, '_blank');
+});
+
 function initAttendeesTable() {
     let module = getModule();
     

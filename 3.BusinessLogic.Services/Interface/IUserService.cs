@@ -9,11 +9,12 @@ public interface IUserService : IBaseLongService<UserViewModel>
     Task<ReturnalModel> UpdatePassword(UserVMUpdatePasswordFR request, long id);
     Task<UserViewModel?> DisableAsync(UserVMDisableFR request);
     Task<UserViewModel?> DeleteAsync(UserVMDeleteFR request);
-    Task<ReturnalModel> CheckLogin(LoginModel request);
-    Task<ReturnalModel> RequestToken(LoginModel request);
+    Task<ReturnalModel> CheckLogin(LoginModel request, bool isWebiew = false);
+    Task<ReturnalModel> RequestToken(LoginModel request, bool isWebiew = false);
     Task<ReturnalModel> GetAuthUser();
     // Task<ReturnalModel> GetProfileByNik(long id);
     Dictionary<string, string>? GetAllClaims();
     Task<ReturnalModel> PantryLogin(LoginModel request);
     Task<ReturnalModel> DisplayLogin(LoginModel request);
+    Task<ReturnalModel> WebviewLogin(LoginWebviewModel request);
 }

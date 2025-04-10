@@ -11,4 +11,8 @@ public interface IPantryTransaksiService : IBaseService<PantryTransaksiViewModel
     Task<IEnumerable<PantryTransaksiAndMenuViewModel>> GetPantryTransaksiDetailByTransaksiId(string transaksiId);
     Task<string> GetNextOrderNumber(long pantryId, DateTime? dateTime = null);
     Task CreatePantryOrderAsync(FastBookBookingViewModel databook, string id = "");
+    Task<DataTableResponse> GetAllItemWithApprovalDataTablesAsync(PantryTransaksiVMNeedApprovalDataTableFR request);
+    Task<ReturnalModel> ProcessOrderApprovalAsync(PantryTransaksiVMProcessApproval request);
+    Task<ReturnalModel> PrintOrderApprovakAsycn(string pantryTransaksiId);
+    Task<ReturnalModel> ProcessCancelOrderAsync(PantryTransaksiVMProcessCancel request);
 }

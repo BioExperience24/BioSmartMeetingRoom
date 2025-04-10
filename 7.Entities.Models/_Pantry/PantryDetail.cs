@@ -28,4 +28,5 @@ public class PantryDetailSelect : PantryDetail
     public int Qty { get; set; }
     public string BookingId { get; set; } = null!;
     public string? PackageId { get; set; }
+    public string? TransaksiId { get; set; }
 }

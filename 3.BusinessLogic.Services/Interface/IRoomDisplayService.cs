@@ -10,5 +10,7 @@ namespace _3.BusinessLogic.Services.Interface
         Task<IEnumerable<RoomDisplayViewModel>> GetAllItemAsync();
         Task<RoomDisplayViewModel?> ChangeStatusEnabledAsync(RoomDisplayViewModel viewModel);
         Task<(string?, string?)> DoUploadAsync(IFormFile? file);
+        Task<ReturnalModel> SaveAsync(RoomDisplayVMCreateFR request);
+        Task<ReturnalModel> DisplayUpdateSerialSync(DisplayUpdateSerialSyncFRViewModel viewModel);
     }
 }

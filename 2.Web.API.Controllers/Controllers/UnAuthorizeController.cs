@@ -1,4 +1,5 @@
-﻿using _3.BusinessLogic.Services.Interface;
+﻿using System.Net;
+using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,14 +7,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace Controllers;
 
 [AllowAnonymous]
+[ApiExplorerSettings(GroupName = "pama_smeet")]
 [ApiController]
-[Route("v1")]
-public class UnAuthorizeController(IUserService userService)
+[Route("api")]
+public class UnAuthorizeController(IUserService userService, IAPIMainDisplayService _APIMainDisplayService,
+        IS3Service _s3Service)
     : ControllerBase
 {
 
     [HttpPost]
-    [Route("/api/_Auth/RequestToken")]
+    [Route("_Auth/RequestToken")]
     public async Task<ActionResult> RequestToken(LoginModel request)
     {
         var ret = await userService.RequestToken(request);
@@ -33,5 +36,15 @@ public class UnAuthorizeController(IUserService userService)
     {
         var ret = await userService.DisplayLogin(request);
         return StatusCode(ret.StatusCode, ret);
+    }
+    
+    [AllowAnonymous]
+    [HttpGet("display/qr/detail-view")]
+    public IActionResult GetQrCodeDetailView(string fileName)
+    {
+
+        var file = _s3Service.GetPublicFileUrl("qr", fileName);
+
+        return StatusCode((int)HttpStatusCode.OK, file);
     }
 }

@@ -62,7 +62,7 @@
 
                                 <div class="row clearfix">
                                     <div class="col-xs-12 col-sm-6">
-                                        <h2>Prefix Item</h2>
+                                        <h2>Unit Item</h2>
                                     </div>
                                     <div class="col-xs-12 col-sm-6 align-right">
                                     </div>
@@ -98,14 +98,14 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title" id="idmdlcrLabel">Create Prefix</h4>
+                <h4 class="modal-title" id="idmdlcrLabel">Create Unit</h4>
             </div>
             <div class="modal-body " id="id_mdl_create_prefix_body">
                 <form id="frm_create_prefix">
                     <label for="">Name</label>
                     <div class="form-group">
                         <div class="form-line">
-                            <input type="text" autocomplete="off" name="name" id="id_crt_pre_name" required="" class="form-control" placeholder="Prefix Name">
+                            <input type="text" autocomplete="off" name="name" id="id_crt_pre_name" required="" class="form-control" placeholder="Unit Name">
                         </div>
                     </div>
                     <button type="submit" id="id_crt_pre_btn" style="display: none;" class="btn btn-primary m-t-15 waves-effect">Submit</button>
@@ -941,7 +941,7 @@
             form.append('name', name);
             Swal.fire({
                 title: 'Are you sure you want delete it?',
-                text: "You will lose the data prefix " + name + " !",
+                text: "You will lose the data unit " + name + " !",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -968,7 +968,7 @@
                         success: function (data) {
                             $('#id_loader').html('');
                             if (data.status == "success") {
-                                showNotification('alert-success', "Succes deleted prefix " + name, 'top', 'center')
+                                showNotification('alert-success', "Succes deleted unit " + name, 'top', 'center')
                                 pantrySatuan()
                             } else {
                                 showNotification('alert-danger', "Data not found", 'bottom', 'left')

@@ -16,12 +16,14 @@ public class AttachmentListService : IAttachmentListService
     private readonly IWebHostEnvironment _env;
 
     private readonly MethodHelperService _helper;
+    private readonly IS3Service _s3Service;
     private readonly string _attachmentFolder;
     private string[] _extensionAllowed;
     private string[] _contentTypeAllowed;
     private long _sizeLimit;
     private string _thisTableFolder;
-    public AttachmentListService(IConfiguration config, MethodHelperService helper, IWebHostEnvironment env)
+    private bool _isAttachToS3;
+    public AttachmentListService(IConfiguration config, MethodHelperService helper, IWebHostEnvironment env, IS3Service s3Service)
     {
         _extensionAllowed = (config["UploadFileSetting:extensionAllowed"] ?? "").Split("#");
         _contentTypeAllowed = (config["UploadFileSetting:contentTypeAllowed"] ?? "").Split("#");
@@ -32,6 +34,10 @@ public class AttachmentListService : IAttachmentListService
         _thisTableFolder = _attachmentFolder + "attachment_table";
         _sizeLimit = Convert.ToInt32(limitConfig);
         _env = env;
+        _s3Service = s3Service;
+        bool isImageServiceResult;
+        bool isImageService = bool.TryParse(config["UploadFileSetting:isAttachToS3"] ?? "false", out isImageServiceResult);
+        _isAttachToS3 = isImageService ? isImageServiceResult : false;
     }
 
     public string SetTableFolder(string folder)
@@ -93,17 +99,53 @@ public class AttachmentListService : IAttachmentListService
                 return (null, errMsg);
             }
 
-            fileName = await InsertToAttachment(file, fileName);
+            if (_isAttachToS3)
+            {
+                fileName = await UploadToS3(file, fileName);
+            }
+            else
+            {
+                fileName = await InsertToAttachment(file, fileName);
+            }
         }
 
         return (fileName, null);
+    }
+
+    private async Task<string> UploadToS3(IFormFile file, string? fileName = null)
+    {
+        var fileExtension = Path.GetExtension(file.FileName);
+        var newGuid = Guid.NewGuid();
+
+        fileName = string.IsNullOrEmpty(fileName) ?
+                    $"{newGuid}{fileExtension}" :
+                    $"{fileName}{fileExtension}";
+
+        try
+        {
+            using var stream = file.OpenReadStream(); // Convert IFormFile to Stream
+            await _s3Service.UploadImageAsync(_thisTableFolder, fileName, stream, file.ContentType);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error uploading file to S3: {ex.Message}", ex);
+        }
+
+        return fileName;
     }
 
     public async Task DeleteFile(string fileName)
     {
         try
         {
-            await _helper.IDeleteFile(_thisTableFolder, fileName);
+            if (_isAttachToS3)
+            {
+                await _s3Service.DeleteImageAsync(_thisTableFolder, fileName);
+            }
+            else
+            {
+                await _helper.IDeleteFile(_thisTableFolder, fileName);
+            }
         }
         catch (Exception)
         {
@@ -146,14 +188,35 @@ public class AttachmentListService : IAttachmentListService
 
         try
         {
-            // Mendapatkan MemoryStream file
-            var memoryStream = await _helper.GetMemoryStreamFile(_thisTableFolder, fileName);
-            return ChangeImageSize(sizeh, memoryStream);
+            if (_isAttachToS3)
+            {
+                var imageUrl = _s3Service.GetPresignedUrl(_thisTableFolder, fileName, 1);
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    using (HttpClient client = new HttpClient())
+                    {
+                        byte[] imageBytes = await client.GetByteArrayAsync(imageUrl);
+                        using (MemoryStream memoryStream = new MemoryStream(imageBytes))
+                        {
+                            return ChangeImageSize(sizeh, memoryStream);
+                        }
+                    }
+                }
+                return "";
+            }
+            else
+            {
+                // Mendapatkan MemoryStream file
+                var memoryStream = await _helper.GetMemoryStreamFile(_thisTableFolder, fileName);
+                return ChangeImageSize(sizeh, memoryStream);
+            }
+
         }
         catch (Exception)
         {
             return "";
         }
+
     }
 
     private static string ChangeImageSize(int sizeh, MemoryStream memoryStream)
@@ -268,10 +331,22 @@ public class AttachmentListService : IAttachmentListService
         long result = byteFile.Length;
         validateLogo(byteFile);
 
-        await IByteToPhysical(byteFile, _thisTableFolder, filename);
+        if (_isAttachToS3)
+        {
+            // Convert byte array to a memory stream for S3 upload
+            using (var stream = new MemoryStream(byteFile))
+            {
+                await _s3Service.UploadImageAsync(_thisTableFolder, filename, stream, "image/png");
+            }
+        }
+        else
+        {
+            await IByteToPhysical(byteFile, _thisTableFolder, filename);
+        }
 
         return result;
     }
+
 
     public string GetFileExtensionFromBase64(string base64String)
     {
@@ -349,4 +424,23 @@ public class AttachmentListService : IAttachmentListService
         process.Start();
         process.WaitForExit();
     }
+
+    public async Task<(string?, string?)> FileUploadToWWWroot(IFormFile? file, string folder, string fileName)
+    {
+        if (file != null && file.Length > 0)
+        {
+            var errMsg = IsFileAllowed(file);
+            if (errMsg != null)
+            {
+                return (null, errMsg);
+            }
+
+            var sepp = _helper.separator();
+            var endfolder = $"{_env.WebRootPath}{sepp}{folder}";
+            await _helper.IFormFileToPhysical(file, endfolder, fileName);
+        }
+
+        return (fileName, null);
+    }
+
 }

@@ -1,4 +1,6 @@
 ﻿using System.Text.Json.Serialization;
+using _5.Helpers.Consumer;
+using _5.Helpers.Consumer._Common;
 using _5.Helpers.Consumer.Custom;
 using Microsoft.AspNetCore.Mvc;
 
@@ -294,6 +296,12 @@ public class BookingViewModel : BaseLongViewModel
     [JsonPropertyName("is_private")]
     public int IsPrivate { get; set; }
 
+    [JsonPropertyName("recurring_id")]
+    public string RecurringId { get; set; } = string.Empty;
+    
+    [JsonPropertyName("is_recurring")]
+    public short IsRecurring { get; set; }
+
     // ------------------------------------------------
 
     [JsonPropertyName("name")]
@@ -331,6 +339,9 @@ public class BookingViewModel : BaseLongViewModel
 
     [JsonPropertyName("pic_nik")]
     public string? PicNIK { get; set; }
+
+    [JsonPropertyName("room_image")]
+    public string? RoomImage { get; set; }
 }
 
 public class BookingVMChart
@@ -355,6 +366,9 @@ public class BookingVMCreateReserveFR
 
     [BindProperty(Name = "date")]
     public DateOnly Date { get; set; }
+
+    [BindProperty(Name = "date_until")]
+    public DateOnly DateUntil { get; set; }
 
     [BindProperty(Name = "room_id")]
     public string RoomId { get; set; } = string.Empty;
@@ -436,6 +450,9 @@ public class BookingVMMenuItem
     
     [JsonPropertyName("qty")]
     public int Qty { get; set; }
+
+    [JsonPropertyName("note")]
+    public string? Note { get; set; }
 }
 
 public class BookingVMDataTableFR : DataTableViewModel
@@ -539,6 +556,12 @@ public class BookingVMCancelFR
     public string Reason { get; set; } = string.Empty;
 }
 
+public class BookingVMCancelAllFR : BookingVMCancelFR
+{
+    [BindProperty(Name = "is_all")]
+    public bool IsAll { get; set; } = false;
+}
+
 public class BookingVMEndMeetingFR
 {
     [BindProperty(Name = "id")]
@@ -620,6 +643,35 @@ public class BookingModulesViewModel
     public BookingModuleDetailsViewModel? RoomAdv { get; set; }
 }
 
+public class BookingVMConfirmAttendanceFR
+{
+
+    [BindProperty(Name = "booking_id")]
+    public string BookingId { get; set; } = string.Empty;
+
+    [BindProperty(Name = "nik")]
+    public string Nik { get; set; } = string.Empty;
+
+    [BindProperty(Name = "status")]
+    public int AttendanceStatus { get; set; }
+
+    [BindProperty(Name = "attendance_reason")]
+    public string AttendanceReason { get; set; } = string.Empty;
+
+}
+
+public class BookingVMCreateNewOrderFR
+{
+    [BindProperty(Name = "booking_id")]
+    public string BookingId { get; set; } = string.Empty;
+    
+    [BindProperty(Name = "meeting_category")]
+    public string MeetingCategory { get; set; } = string.Empty;
+    
+    [BindProperty(Name = "menu_items[]")]
+    public string[] MenuItems { get; set; } = new string[]{};
+}
+
 public class BookingMenuDetailViewModel
 {
     [JsonPropertyName("pagename")]
@@ -668,7 +720,7 @@ public class BookingVMDuration
 
 public class ListBookingByDateFR
 {
-    [JsonPropertyName("rad_id")]
+    [JsonPropertyName("room_id")]
     public string RadId { get; set; } = string.Empty;
 
     [JsonPropertyName("date")]
@@ -701,7 +753,7 @@ public class BookedTimeViewModel
 
 public class ListBookingByDateNikFRViewModel
 {
-    [JsonPropertyName("rad_id")]
+    [JsonPropertyName("room_id")]
     public string RadId { get; set; } = string.Empty;
 
 
@@ -717,7 +769,7 @@ public class ListBookingByDateNikFRViewModel
 
 public class TimeBookingListViewModel
 {
-    [JsonPropertyName("rad_id")]
+    [JsonPropertyName("room_id")]
     public string? RadId { get; set; }
 
     [JsonPropertyName("type_room")]
@@ -760,7 +812,7 @@ public class BookingDisplayScheduleFastBookedFRViewModel
     [JsonPropertyName("type")]
     public string Type { get; set; }
 
-    [JsonPropertyName("rad_id")]
+    [JsonPropertyName("room_id")]
     public string RadId { get; set; }
 
     [JsonPropertyName("title")]
@@ -781,11 +833,8 @@ public class BookingDisplayScheduleFastBookedFRViewModel
     [JsonPropertyName("note")]
     public string? Note { get; set; }
 
-    [JsonPropertyName("time")]
-    public string Time { get; set; }
-
     [JsonPropertyName("timezone")]
-    public string? Timezone { get; set; }
+    public string? Timezone { get; set; } 
 
     [JsonPropertyName("start_time")]
     public string? StartTime { get; set; }
@@ -799,9 +848,16 @@ public class BookingDisplayScheduleFastBookedFRViewModel
     public List<string>? MergeRoom { get; set; }
 
     [JsonPropertyName("internal_data")]
-    public List<EmployeeViewModel>? InternalData { get; set; }
+    public List<FastBookListlDataInternalFRViewModel>? InternalData { get; set; }
     [JsonPropertyName("external_data")]
-    public List<FastBookBookingInvitationViewModel>? ExternalData { get; set; }
+    public List<FastBookListlDataExternalFRViewModel>? ExternalData { get; set; }
+}
+
+
+public class ListlDataNikFRViewModel
+{
+    [JsonPropertyName("nik")]
+    public List<string> Nik { get; set; }
 }
 
 
@@ -811,9 +867,10 @@ public class ListInternalDataFRViewModel
     public string Nik { get; set; } = string.Empty;
 
 }
+
 public class ListRoomMergeFRViewModel
 {
-    [JsonPropertyName("rad_id")]
+    [JsonPropertyName("room_id")]
     public string RadId { get; set; } = string.Empty;
 
 }
@@ -847,7 +904,7 @@ public class ListDisplayMeetingScheduleTodayFRViewModel
     [JsonPropertyName("type")]
     public string Type { get; set; }
 
-    [JsonPropertyName("rad_id")]
+    [JsonPropertyName("room_id")]
     public string RadId { get; set; }
 
     [JsonPropertyName("title")]
@@ -894,7 +951,7 @@ public class MeetingDisplayCollection
 
 public class DateSimpleRoomViewModel
 {
-    [JsonPropertyName("rad_id")]
+    [JsonPropertyName("room_id")]
     public string RadId { get; set; }
     [JsonPropertyName("name")]
     public string Name { get; set; }
@@ -902,4 +959,52 @@ public class DateSimpleRoomViewModel
     public string Location { get; set; }
     [JsonPropertyName("link")]
     public string? Link { get; set; }
+}
+
+public class CheckDoorOpenMeetingPinFRViewModel
+{
+    [JsonPropertyName("room_id")]
+    public string RadId { get; set; }
+    [JsonPropertyName("date")]
+    [JsonConverter(typeof(DateOnlyJsonConverter))] // Force "yyyy-MM-dd" format
+    public DateOnly Date { get; set; }
+    [JsonPropertyName("time")]
+    [JsonConverter(typeof(TimeOnlyJsonConverter))] // Correctly applies TimeOnly converter
+    public TimeOnly Time { get; set; }
+    [JsonPropertyName("pin")]
+    public string Pin { get; set; }
+}
+
+
+public class BookingVMNeedApprovalDataTableFR : DataTableViewModel
+{
+    [FromQuery(Name = "start_date")]
+    public DateOnly StartDate { get; set; }
+
+    [FromQuery(Name = "end_date")]
+    public DateOnly EndDate { get; set; }
+
+    [FromQuery(Name = "room_id")]
+    public string RoomId { get; set; } = string.Empty;
+}
+
+public class BookingVMApprovalFR 
+{
+    [BindProperty(Name = "booking_id")]
+    public string BookingId { get; set; } = string.Empty;
+
+    [BindProperty(Name = "approval")]
+    public int Approval { get; set; }
+}
+
+public class BookingVMAdditionalAttendeesFR
+{
+    [BindProperty(Name = "booking_id")]
+    public string BookingId { get; set; } = string.Empty;
+    
+    [BindProperty(Name = "external_attendees[]")]
+    public string[] ExternalAttendees { get; set; } = new string[]{};
+    
+    [BindProperty(Name = "internal_attendees[]")]
+    public string[] InternalAttendees { get; set; } = new string[]{};
 }

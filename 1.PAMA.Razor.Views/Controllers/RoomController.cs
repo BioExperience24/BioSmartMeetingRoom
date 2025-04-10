@@ -3,18 +3,22 @@ using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer.EnumType;
 using Controllers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using _5.Helpers.Consumer.Policy;
 
 namespace _1.PAMA.Razor.Views.Controllers
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
     [ApiController]
     [Route("api/[controller]/[action]")]
-    public class RoomController(IRoomService service, IDashboardService dashboardService) 
+    public class RoomController(IRoomService service, IDashboardService dashboardService, IS3Service s3Service) 
         : BaseLongController<RoomViewModel>(service)
     {
         private readonly IDashboardService _dashboardService = dashboardService;
-        
+        private readonly IS3Service _s3Service = s3Service;
+
         [HttpGet("{year}")]
         public async Task<IActionResult> GetChartTopRoom(int year)
         {
@@ -159,24 +163,20 @@ namespace _1.PAMA.Razor.Views.Controllers
             return ret;
         }
 
-
-
-
         [AllowAnonymous]
-        [HttpGet("{id?}")]
-        public virtual async Task<IActionResult> GetRoomDetailView(string id, int h = 80, bool noCache = false)
+        [HttpGet("{fileName?}")]
+        public async Task<IActionResult> GetRoomDetailView(string fileName)
         {
-            var result = await service.GetRoomDetailView(id, h);
+            var (fileStream, contentType) = await _s3Service.DownloadFileFromPresignedUrlAsync("images", fileName, 120);
 
-            Response.Headers.Append("Content-Disposition", "inline; filename=" + result.FileName);
-            if (noCache)
+            if (fileStream == null)
             {
-                Response.Headers.Append("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-                Response.Headers.Append("Pragma", "no-cache");
+                return NotFound("File not found or access expired.");
             }
 
-            return File(result.FileStream, "image/PNG"); // Ganti "image/jpeg" dengan tipe MIME yang sesuai
+            return File(fileStream, contentType, fileName);
         }
+
 
         [HttpGet]
         public virtual async Task<ReturnalModel> GetAllRoomMerge()

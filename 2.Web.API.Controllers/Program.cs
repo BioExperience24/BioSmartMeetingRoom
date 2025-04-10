@@ -1,7 +1,9 @@
 
 using _4.Data.ViewModels;
 using _4.Helpers.Consumer;
+using _5.Helpers.Consumer._AWS;
 using _5.Helpers.Consumer.EnumType;
+using _5.Helpers.Consumer.Policy;
 using _6.Repositories.DB;
 using _6.Repositories.Repository;
 using Asp.Versioning;
@@ -20,10 +22,15 @@ namespace _2.Web.API.Controllers;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        if (!builder.Environment.IsDevelopment())
+        {
+            var secretManager = new AwsSecretManagerService(builder.Configuration);
+            await secretManager.LoadSecretsAsync();
+        }
         // Add services to the container.
         // Tambahkan konfigurasi DbContext di sini
         builder.Services.AddDbContext<MyDbContext>(options =>
@@ -107,7 +114,7 @@ public class Program
             };
         });
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorization(AuthorizationWebviewPolicies.AddCustomPolicies);
 
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -115,15 +122,19 @@ public class Program
 
         builder.Services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo
+            // Webview
+            c.SwaggerDoc("webview", new OpenApiInfo
             {
-                Title = "PAMA SMeet Room",
-                Version = @$"last build backend: {File.GetLastWriteTime($"{AppDomain.CurrentDomain.BaseDirectory}{Assembly.GetEntryAssembly().GetName().Name}.dll").ToLocalTime().ToString("dd MMM yyyy HH:mm:ss \"GMT\"zzz")}",
-                Description = "Swagger"
+                Title = "Webview API",
+                Version = "v1"
             });
-            //var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            //var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-            //c.IncludeXmlComments(xmlPath);
+
+            // Admin
+            c.SwaggerDoc("pama_smeet", new OpenApiInfo
+            {
+                Title = "Pama Smart Meeting Room API",
+                Version = "v1"
+            });
 
             c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
             {
@@ -134,29 +145,30 @@ public class Program
             });
 
             c.OperationFilter<SecurityRequirementsOperationFilter>();
+
+            // Show APIs only if controller matches group name
             c.DocInclusionPredicate((docName, apiDesc) =>
             {
-                if (docName == "v1")
-                {
-                    return true;
-                }
-                else return true;
+                var groupName = apiDesc.GroupName;
+                return groupName == docName;
             });
+
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "oauth2"
                 }
+            },
+            Array.Empty<string>()
+        }
             });
         });
+
 
         builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
         {
@@ -171,7 +183,7 @@ public class Program
         });
         builder.Services.AddScoped<APICaller>(); // Register APICaller properly
 
-
+        builder.Services.AddHelperService(builder.Configuration);
 
         var app = builder.Build();
 
@@ -186,14 +198,15 @@ public class Program
         //var setToken = PublicAccess.getToken;
         app.UseSwaggerUI(c =>
         {
-            /* default sesuai urutan swagger doc */
-            //c.SwaggerEndpoint("/swagger/report/swagger.json", "Report API");
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "ITM CORE Dashboard & Report Portal");
+            c.SwaggerEndpoint("/swagger/pama_smeet/swagger.json", "Pama Smart Meeting Room API");
+            c.SwaggerEndpoint("/swagger/webview/swagger.json", "Webview API");
+
             c.RoutePrefix = "firedocumentation";
             c.DocExpansion(DocExpansion.None);
             c.InjectStylesheet("/custom/SwaggerDark.css");
             c.InjectJavascript("/custom/SwaggerUICustom.js");
         });
+
         app.MapControllers();
         #endregion
 

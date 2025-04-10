@@ -44,7 +44,6 @@ public class PantryService(PantryRepository repo, IMapper mapper, IAttachmentLis
         var result = await base.Update(cReq);
         if (result != null && cReq.image != null)
         {
-            var fileName = Path.ChangeExtension(cReq.image.FileName, ".jpg");
             await attachment.FileUploadProcess(cReq.image, result.Id?.ToString());
         }
         return result;
@@ -57,7 +56,6 @@ public class PantryService(PantryRepository repo, IMapper mapper, IAttachmentLis
         var result = await base.Create(cReq);
         if (result != null && cReq.image != null)
         {
-            var fileName = Path.ChangeExtension(cReq.image.FileName, ".jpg");
             await attachment.FileUploadProcess(cReq.image, result.Id?.ToString());
         }
 
@@ -66,7 +64,11 @@ public class PantryService(PantryRepository repo, IMapper mapper, IAttachmentLis
 
     public async Task<FileReady> GetPantryView(long id, int h = 80)
     {
-        var base64 = await attachment.GenerateThumbnailBase64(id.ToString() + ".jpg", h);
+        var result = await base.GetById(id);
+
+        var fileExtension = Path.GetExtension(result?.pic) ?? ".png";
+
+        var base64 = await attachment.GenerateThumbnailBase64(id.ToString() + fileExtension, h);
         if (string.IsNullOrEmpty(base64))
         {
             base64 = await attachment.NoImageBase64("pantry.jpeg", h);

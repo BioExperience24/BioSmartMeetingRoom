@@ -72,16 +72,16 @@ public class CompanyService : BaseService<CompanyViewModel, Company>, ICompanySe
                 company.Phone = request.Phone ?? "";
                 company.Email = request.Email ?? "";
                 company.UrlAddress = request.UrlAddress;
-                
+
                 await _repo.UpdateAsync(company);
-                
+
                 scope.Complete();
 
                 return _mapper.Map<CompanyViewModel>(company);
             }
             catch (Exception)
             {
-                
+
                 throw;
             }
         }
@@ -89,7 +89,7 @@ public class CompanyService : BaseService<CompanyViewModel, Company>, ICompanySe
 
     public async Task<ReturnalModel> UploadMediaAsync(CompanyVMMediaFR request)
     {
-        ReturnalModel ret = new() {};
+        ReturnalModel ret = new() { };
 
         ret.Status = ReturnalType.Failed;
 
@@ -105,14 +105,14 @@ public class CompanyService : BaseService<CompanyViewModel, Company>, ICompanySe
         {
             var fileTypeMap = new Dictionary<string, string>
             {
-                { "bg", "bg_logo_company" },
-                { "icon", "icon_logo_company" },
-                { "logo", "logo_company" },
-                { "menu", "menu_logo_company" }
+                { "bg", "bg_logo_company.jpg" },
+                { "icon", "icon_logo_company.png" },
+                { "logo", "logo_company.png" },
+                { "menu", "menu_logo_company.png" }
             };
             var fn = fileTypeMap[request.Type!] ?? "logo_company";
 
-            var (fileName, errMsg) = await _attachmentListService.FileUploadProcess(request.File, fn);
+            var (fileName, errMsg) = await _attachmentListService.FileUploadToWWWroot(request.File, "media", fn);
             if (errMsg != null)
             {
                 // ret.Message = "Failed to upload image";
@@ -125,27 +125,27 @@ public class CompanyService : BaseService<CompanyViewModel, Company>, ICompanySe
                 case "bg":
                     company.Picture = fileName!;
                     break;
-                
+
                 case "icon":
                     company.Icon = fileName;
                     break;
-                
+
                 case "logo":
                     company.Logo = fileName;
                     break;
-                
+
                 case "menu":
                     company.MenuBar = fileName;
                     break;
-                
+
                 default:
                     company.Picture = fileName!;
                     break;
-                
+
             }
-            
+
             await _repo.UpdateAsync(company);
-            
+
             ret.Status = ReturnalType.Success;
             ret.Message = "Success update a company image";
             ret.Collection = request;

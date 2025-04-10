@@ -19,7 +19,18 @@ public class IndexModel(IConfiguration config) : PageModel
     //public string? Update { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:Update"];
 
     //pantry
-    public string? GetAllPantry { get; private set; } = config["ApiUrls:Endpoints:Pantry:GetAll"];
-    public string? GetAllTransaksiStatus { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:TransaksiStatus"];
+        public string? GetAllPantry { get; private set; } = config["ApiUrls:Endpoints:Pantry:GetAll"];
+        public string? GetAllTransaksiStatus { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:TransaksiStatus"];
+        public string? ProcessCancelOrder { get; private set; } = config["ApiUrls:Endpoints:PantryTransaksi:ProcessCancelOrder"];
 
+        public string PantryPackages { get; private set; } = 
+                config["ApiUrls:Endpoints:PantryPackage:GetAll"] ?? string.Empty;
+        public string PantryPackageDetailById { get; private set; } = 
+                config["ApiUrls:Endpoints:PantryPackage:GetById"] ?? string.Empty;
+        public string GetInProgressBookings { get; private set; } = 
+                config["ApiUrls:Endpoints:Booking:GetInProgressBookings"] ?? string.Empty;
+        public string CreateNewOrder { get; private set; } = 
+                config["ApiUrls:Endpoints:Booking:CreateNewOrder"] ?? string.Empty;
+        public string GetOrderDetail { get; private set; } = 
+                config["ApiUrls:Endpoints:PantryTransaksi:GetPrintOrderApproval"] ?? string.Empty;
 }

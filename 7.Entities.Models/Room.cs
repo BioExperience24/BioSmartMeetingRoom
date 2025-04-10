@@ -154,6 +154,9 @@ public partial class Room : BaseLongEntity
 
     [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
     public DateOnly? WorkDate { get; set; }
+
+    [NotMapped] // tidak akan dipetakan ke kolom dalam basis data
+    public DateOnly? WorkDateUntil { get; set; }
 }
 
 public class ResponseData

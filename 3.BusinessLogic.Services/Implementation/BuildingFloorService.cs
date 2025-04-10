@@ -2,9 +2,7 @@
 using System.Transactions;
 using _2.BusinessLogic.Services.Interface;
 using _5.Helpers.Consumer._Encryption;
-using Azure.Core;
-using Microsoft.AspNetCore.Razor.Hosting;
-using Microsoft.EntityFrameworkCore.Storage;
+using _5.Helpers.Consumer._Encryption._Secure;
 
 namespace _3.BusinessLogic.Services.Implementation;
 
@@ -14,18 +12,22 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
     private readonly IMapper __mapper;
     private readonly _Aes _aes;
     private readonly IAttachmentListService _attachmentListService;
+    private readonly ISecureService _secureService;
 
     public BuildingFloorService(
         BuildingFloorRepository repo, 
         IMapper mapper, 
         IConfiguration config,
-        IAttachmentListService attachmentListService) 
+        IAttachmentListService attachmentListService,
+        ISecureService secureService) 
         : base(repo, mapper)
     { 
         _repo = repo;
         __mapper = mapper;
 
-        _aes = new _Aes(config["EncryptSetting:AesKeyEncryptor"] ?? "SUp3RsEcr3tKeY!!");
+        _aes = new _Aes(config["EncryptSetting:AesKeyEncryptor"] ?? "VeRYV3rYSUp3RdUuP3RrRsEcr3tKeY!!");
+
+        _secureService = secureService;
 
         attachmentListService.SetTableFolder(
             config["UploadFileSetting:tableFolder:buildingFloor"] ?? "floor");
@@ -41,7 +43,8 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
 
         if (vm?.BuildingEncId != null)
         {
-            var buildingId = _aes.Decrypt(vm?.BuildingEncId!);
+            // var buildingId = _aes.Decrypt(vm?.BuildingEncId!);
+            var buildingId = _secureService.Decrypt(vm?.BuildingEncId!);
             entity.BuildingId = buildingId != null ? Convert.ToInt64(buildingId) : null;
         }
 
@@ -52,8 +55,10 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
         // List untuk task generasi thumbnail
         var tasks = results.Select(async item =>
         {
-            item.EncId = item.Id != null ? _aes.Encrypt(item.Id.ToString()!) : null;
-            item.BuildingEncId = item.BuildingId != null ? _aes.Encrypt(item.BuildingId.ToString()!) : null;
+            // item.EncId = item.Id != null ? _aes.Encrypt(item.Id.ToString()!) : null;
+            item.EncId = item.Id != null ? _secureService.Encrypt(item.Id.ToString()!) : null;
+            // item.BuildingEncId = item.BuildingId != null ? _aes.Encrypt(item.BuildingId.ToString()!) : null;
+            item.BuildingEncId = item.BuildingId != null ? _secureService.Encrypt(item.BuildingId.ToString()!) : null;
             item.Image = item.Image != null
                 ? await _attachmentListService.GenerateThumbnailBase64(item.Image, 480)
                 : "";
@@ -70,8 +75,10 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
 
     public async Task<BuildingFloorViewModel?> GetItemByEntityAsync(BuildingFloorViewModel vm)
     {
-        var floorId = vm.EncId != null ? _aes.Decrypt(vm.EncId) : null;
-        var buildingId = vm.BuildingEncId != null ? _aes.Decrypt(vm.BuildingEncId) : null;
+        // var floorId = vm.EncId != null ? _aes.Decrypt(vm.EncId) : null;
+        var floorId = vm.EncId != null ? _secureService.Decrypt(vm.EncId) : null;
+        // var buildingId = vm.BuildingEncId != null ? _aes.Decrypt(vm.BuildingEncId) : null;
+        var buildingId = vm.BuildingEncId != null ? _secureService.Decrypt(vm.BuildingEncId) : null;
 
         BuildingFloor entity =  new BuildingFloor {
             Id = floorId != null ? Convert.ToInt64(floorId) : null,
@@ -88,8 +95,10 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
 
         var result = __mapper.Map<BuildingFloorViewModel>(item);
 
-        result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
-        result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+        // result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
+        result.EncId = result.Id != null ? _secureService.Encrypt(result.Id.ToString()!) : null;
+        // result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+        result.BuildingEncId = result.BuildingId != null ? _secureService.Encrypt(result.BuildingId.ToString()!) : null;
         result.Image = result.Image != null ? await _attachmentListService.GenerateThumbnailBase64(result.Image, 480) : "";
 
         result.Id = null;
@@ -111,7 +120,8 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
                 DateTime now = DateTime.Now;
                 // var floorId = now.ToString("yyyyMMddHHmmss");
                 var floorId = new DateTimeOffset(now).ToUnixTimeMilliseconds() + _Random.Numeric(3);
-                var buildingId = vm.BuildingEncId != null ? _aes.Decrypt(vm.BuildingEncId) : null;
+                // var buildingId = vm.BuildingEncId != null ? _aes.Decrypt(vm.BuildingEncId) : null;
+                var buildingId = vm.BuildingEncId != null ? _secureService.Decrypt(vm.BuildingEncId) : null;
 
                 BuildingFloor entity =  new BuildingFloor {
                     BuildingId = buildingId != null ? Convert.ToInt64(buildingId) : null,
@@ -136,8 +146,10 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
 
                 var result = __mapper.Map<BuildingFloorViewModel>(item);
 
-                result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
-                result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+                // result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
+                result.EncId = result.Id != null ? _secureService.Encrypt(result.Id.ToString()!) : null;
+                // result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+                result.BuildingEncId = result.BuildingId != null ? _secureService.Encrypt(result.BuildingId.ToString()!) : null;
                 result.Image = result.Image != null ? await _attachmentListService.GenerateThumbnailBase64(result.Image, 480) : "";
 
                 result.Id = null;
@@ -154,8 +166,10 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
 
     public override async Task<BuildingFloorViewModel?> Update(BuildingFloorViewModel vm)
     {
-        var floorId = vm.EncId != null ? _aes.Decrypt(vm.EncId) : null;
-        var buildingId = vm.BuildingEncId != null ? _aes.Decrypt(vm.BuildingEncId) : null;
+        // var floorId = vm.EncId != null ? _aes.Decrypt(vm.EncId) : null;
+        var floorId = vm.EncId != null ? _secureService.Decrypt(vm.EncId) : null;
+        // var buildingId = vm.BuildingEncId != null ? _aes.Decrypt(vm.BuildingEncId) : null;
+        var buildingId = vm.BuildingEncId != null ? _secureService.Decrypt(vm.BuildingEncId) : null;
 
         BuildingFloor entity =  new BuildingFloor {
             Id = floorId != null ? Convert.ToInt64(floorId) : null,
@@ -189,8 +203,10 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
 
                 var result = __mapper.Map<BuildingFloorViewModel>(item);
 
-                result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
-                result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+                // result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
+                result.EncId = result.Id != null ? _secureService.Encrypt(result.Id.ToString()!) : null;
+                // result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+                result.BuildingEncId = result.BuildingId != null ? _secureService.Encrypt(result.BuildingId.ToString()!) : null;
                 result.Image = result.Image != null ? await _attachmentListService.GenerateThumbnailBase64(result.Image, 480) : "";
 
                 result.Id = null;
@@ -207,7 +223,8 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
 
     public async Task<BuildingFloorViewModel?> Delete(BuildingFloorViewModel vm)
     {
-        var floorId = vm.EncId != null ? _aes.Decrypt(vm.EncId) : null;
+        // var floorId = vm.EncId != null ? _aes.Decrypt(vm.EncId) : null;
+        var floorId = vm.EncId != null ? _secureService.Decrypt(vm.EncId) : null;
 
         BuildingFloor entity =  new BuildingFloor {
             Id = floorId != null ? Convert.ToInt64(floorId) : null,
@@ -239,8 +256,10 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
 
                 var result = __mapper.Map<BuildingFloorViewModel>(item);
 
-                result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
-                result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+                // result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
+                result.EncId = result.Id != null ? _secureService.Encrypt(result.Id.ToString()!) : null;
+                // result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+                result.BuildingEncId = result.BuildingId != null ? _secureService.Encrypt(result.BuildingId.ToString()!) : null;
                 result.Image = result.Image != null ? await _attachmentListService.GenerateThumbnailBase64(result.Image, 480) : "";
 
                 result.Id = null;
@@ -275,7 +294,8 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
         {
             try
             {
-                var floorId = vm.EncId != null ? _aes.Decrypt(vm.EncId) : null;
+                // var floorId = vm.EncId != null ? _aes.Decrypt(vm.EncId) : null;
+                var floorId = vm.EncId != null ? _secureService.Decrypt(vm.EncId) : null;
 
                 BuildingFloor entity =  new BuildingFloor {
                     Id = floorId != null ? Convert.ToInt64(floorId) : null,
@@ -314,8 +334,10 @@ public class BuildingFloorService : BaseLongService<BuildingFloorViewModel, Buil
 
                 var result = __mapper.Map<BuildingFloorViewModel>(item);
 
-                result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
-                result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+                // result.EncId = result.Id != null ? _aes.Encrypt(result.Id.ToString()!) : null;
+                result.EncId = result.Id != null ? _secureService.Encrypt(result.Id.ToString()!) : null;
+                // result.BuildingEncId = result.BuildingId != null ? _aes.Encrypt(result.BuildingId.ToString()!) : null;
+                result.BuildingEncId = result.BuildingId != null ? _secureService.Encrypt(result.BuildingId.ToString()!) : null;
                 result.Image = result.Image != null ? await _attachmentListService.GenerateThumbnailBase64(result.Image, 480) : "";
 
                 result.Id = null;

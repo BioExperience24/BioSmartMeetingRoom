@@ -61,7 +61,8 @@ public class AuthenticationModel(
                 new (ClaimTypes.NameIdentifier, userVM.Id?.ToString() ?? "InvalidUser"),
                 new (ClaimTypes.Name, userVM.Username),
                 new (ClaimTypes.Role, userVM.LevelId.ToString() ?? "0"),
-                new (ClaimTypes.UserData, userVM.Nik.ToString() ?? "InvalidNik")
+                new (ClaimTypes.UserData, userVM.Nik.ToString() ?? "InvalidNik"),
+                new("IsWebview", "false")
                 // new (ClaimTypes.Role, userVM.Levels?.FirstOrDefault()?.LevelName ?? "User")
             };
 
@@ -70,10 +71,12 @@ public class AuthenticationModel(
 
             await HttpContext.SignInAsync("CookieAuth", claimsPrincipal);
 
+            bool isHttps = HttpContext.Request.IsHttps;
+
             HttpContext.Response.Cookies.Append("AuthToken", userVM.Token, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = isHttps, // Hanya aktifkan Secure jika HTTPS
                 SameSite = SameSiteMode.Strict
             });
 
@@ -84,7 +87,7 @@ public class AuthenticationModel(
             HttpContext.Response.Cookies.Append("AuthInfoId", authInfoId, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = isHttps, // Hanya aktifkan Secure jika HTTPS
                 SameSite = SameSiteMode.Strict
             });
             HttpContext.Session.SetString($"AuthInfo-{authInfoId}", authInfo);

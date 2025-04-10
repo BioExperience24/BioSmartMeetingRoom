@@ -5,6 +5,22 @@ $("#id_roomusage_search").click(function (e) {
     reloadTable();
 });
 
+$("#id_roomusage_print").on("click", function(e) {
+    e.preventDefault();
+    let param = {};
+    let date = $("#id_roomusage_daterange_search").val().split(" - ");
+    param.start_date = date[0];
+    param.end_date = date[1];
+    param.building_id = $("#id_roomusage_building_search").val();
+    param.building_name = $("#id_roomusage_building_search").find(":selected").text();
+    param.room_id = $("#id_roomusage_room_search").val();
+    param.room_name = $("#id_roomusage_room_search").find(":selected").text();
+    param.department_id = $("#id_roomusage_department_search").val();
+    param.department_name = $("#id_roomusage_department_search").find(":selected").text();
+    let url = `${window.location.href}/print/room-usage?${$.param(param)}`;
+    window.open(url, '_blank');
+});
+
 function initRoomUsageTable() {
     let module = getModule();
     
@@ -38,7 +54,7 @@ function initRoomUsageTable() {
         {data:"title", name:"title", searchable:false, orderable:false},
         {data:"booking_date", name:"booking_date", searchable:false, orderable:false},
         {data:"room_name", name:"room_name", searchable:false, orderable:false, render: function(_, _, item) { return `<b>${item.room_name}</b><br>${item.room_location}`}},
-        {data:"alocation_name", name:"alocation_name", searchable:false, orderable:false},
+        {data:"alocation_name", name:"alocation_name", searchable:false, orderable:false, render: function(_, _, item) { return item.alocation_name ?? ""; }},
         {data:"attendees", name:"attendees", searchable:false, orderable:false},
         {data:"duration_per_meeting", name:"duration_per_meeting", searchable:false, orderable:false, render: function(_, _, item) {
             var dur = (item.total_duration - 0) + (item.extended_duration - 0);
@@ -47,22 +63,22 @@ function initRoomUsageTable() {
         }},
     ];
 
-    if (module.price.is_enabled == 1) {
-        columns.push(
-            {data:"rent_cost", name:"rent_cost", searchable:false, orderable:false, render: function(_, _, item) {
-                return numeral(item.cost_total_booking).format('$0,0.0');
-            }},
-            {data:"status_invoice", name:"status_invoice", searchable:false, orderable:false, render: function(_, _, item) {
-                let status_invoice = "";
-                if (item.alcoation_type_invoice_status == item.alocation_invoice_status) {
-                    status_invoice = checkInvoiceStatus(item.alcoation_type_invoice_status, item.invoice_status);
-                } else {
-                    status_invoice = checkInvoiceStatus(item.alocation_invoice_status, item.invoice_status);
-                }
-                return status_invoice;
-            }}
-        );
-    }
+    // if (module.price.is_enabled == 1) {
+    //     columns.push(
+    //         {data:"rent_cost", name:"rent_cost", searchable:false, orderable:false, render: function(_, _, item) {
+    //             return numeral(item.cost_total_booking).format('$0,0.0');
+    //         }},
+    //         {data:"status_invoice", name:"status_invoice", searchable:false, orderable:false, render: function(_, _, item) {
+    //             let status_invoice = "";
+    //             if (item.alcoation_type_invoice_status == item.alocation_invoice_status) {
+    //                 status_invoice = checkInvoiceStatus(item.alcoation_type_invoice_status, item.invoice_status);
+    //             } else {
+    //                 status_invoice = checkInvoiceStatus(item.alocation_invoice_status, item.invoice_status);
+    //             }
+    //             return status_invoice;
+    //         }}
+    //     );
+    // }
 
     tblRoomUsage = $("#id_tbl_room").DataTable({
         searching: false,

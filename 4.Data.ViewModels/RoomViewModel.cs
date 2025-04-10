@@ -359,6 +359,9 @@ public class RoomVMFindAvailable
     [FromQuery(Name = "book_filter_date")]
     public string Date { get; set; } = string.Empty;
 
+    [FromQuery(Name = "book_filter_date_until")]
+    public string DateUntil { get; set; } = string.Empty;
+
     [FromQuery(Name = "book_filter_location")]
     public long BuildingId { get; set; }
 

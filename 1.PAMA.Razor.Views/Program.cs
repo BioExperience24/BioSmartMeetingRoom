@@ -1,14 +1,20 @@
 using _1.PAMA.Razor.Views.Middlewares;
 using _4.Data.ViewModels;
 using _4.Helpers.Consumer;
+using _5.Helpers.Consumer._AWS;
 using _5.Helpers.Consumer.EnumType;
+using _5.Helpers.Consumer.Policy;
 using _6.Repositories.DB;
 using _6.Repositories.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Reflection;
@@ -19,9 +25,18 @@ namespace PAMA1;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        if (!builder.Environment.IsDevelopment())
+        {
+            var secretManager = new AwsSecretManagerService(builder.Configuration);
+            await secretManager.LoadSecretsAsync();
+        }
+
+        var config = builder.Configuration;
+        var httpsRedirectionEnabled = config.GetValue<bool>("HttpsRedirection:Enabled");
 
         // DI HttpContext Acceessor
         builder.Services.AddHttpContextAccessor();
@@ -51,9 +66,15 @@ public class Program
         builder.Services.AddCustomRepository();
         builder.Services.AddAutoMapper(typeof(AutoMapConfig));
 
+        builder.Services.AddHelperService(builder.Configuration);
+
         var configTokenM = builder.Configuration.GetSection("TokenManagement");
         builder.Services.Configure<TokenManagement>(configTokenM);
         TokenManagement token = configTokenM.Get<TokenManagement>() ?? new();
+        builder.Services.Configure<CookiePolicyOptions>(options =>
+        {
+            options.Secure = CookieSecurePolicy.SameAsRequest; // Sesuai dengan request (HTTPS atau HTTP)
+        });
 
         // Tambahin authentication dan authorization services
         builder.Services.AddAuthentication(options =>
@@ -65,7 +86,10 @@ public class Program
         .AddCookie("CookieAuth", options =>
         {
             options.Cookie.Name = "AuthCookie";
-            options.LoginPath = "/Authentication"; // Redirect ke login untuk Razor Pages
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Ikuti protokol
+            options.Cookie.SameSite = SameSiteMode.Strict;
+            options.LoginPath = "/Authentication"; // Redirect ke halaman login
             options.AccessDeniedPath = "/AccessDenied";
         }).AddJwtBearer(options =>
         {
@@ -126,16 +150,43 @@ public class Program
             };
         });
 
-        builder.Services.AddAuthorization();
+        builder.Services.AddAuthorization(AuthorizationWebviewPolicies.AddCustomPolicies);
+
+        string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+        var databaseName = connectionStringBuilder.InitialCatalog;
+
+        builder.Services.AddDistributedSqlServerCache(options =>
+        {
+            options.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            options.SchemaName = databaseName;
+            options.TableName = "sessions";
+        });
+
+        // builder.Services.AddStackExchangeRedisCache(options =>
+        // {
+        //     options.Configuration = builder.Configuration.GetValue<string>("Redis:ConnectionString");
+        //     options.InstanceName = "pama-smr:";
+        // });
+
 
         builder.Services.AddSession(options =>
         {
-            options.Cookie.HttpOnly = true;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            options.Cookie.SameSite = SameSiteMode.Strict;
-            options.IdleTimeout = TimeSpan.FromSeconds(token.AccessExpiration);
+            options.IdleTimeout = TimeSpan.FromSeconds(token.AccessExpiration); // Timeout session
+            options.Cookie.HttpOnly = true; // Mencegah akses JavaScript ke cookie
+            options.Cookie.IsEssential = true; // Tetap tersimpan meskipun user menolak cookies opsional
+            options.Cookie.SameSite = SameSiteMode.Strict; // Mencegah pengiriman cookie ke situs lain (CSRF protection)
+            // options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Hanya mengirim cookie melalui HTTPS 
         });
-
+        // builder.Services.AddDistributedMemoryCache(); // Simpan session di memory
+        // builder.Services.AddSession(options =>
+        // {
+        //     options.Cookie.HttpOnly = true;
+        //     options.Cookie.IsEssential = true;
+        //     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        //     options.Cookie.SameSite = SameSiteMode.Strict;
+        //     options.IdleTimeout = TimeSpan.FromSeconds(token.AccessExpiration);
+        // });
         #region SWAGGER
 
         builder.Services.AddControllers();
@@ -152,6 +203,11 @@ public class Program
         {
             options.SuppressModelStateInvalidFilter = true;
         });
+
+        // Configure Data Protection to use a shared directory in PVC
+        builder.Services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo(@"/app/DataProtection-Keys"))
+            .SetApplicationName("pama-smr");
 
         builder.Services.AddSwaggerGen(c =>
         {
@@ -219,6 +275,11 @@ public class Program
 
         // Menambahkan middleware session
         app.UseSession();
+        
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedProto
+        });
 
         app.UseRouting();
 
@@ -230,6 +291,7 @@ public class Program
         app.UseErrorHandling();
 
         app.MapRazorPages();
+        app.MapGet("/health", () => Results.Ok("Healthy"));
         app.Run();
     }
 }

@@ -18,12 +18,15 @@ public class PantryDetailRepository(MyDbContext context)
                         Id = pd.Id,
                         Name = pd.Name,
                         Description = pd.Description,
-                        Note = pd.Note,
+                        // Note = pd.Note,
+                        // Note = ptd.NoteOrder ?? string.Empty,
+                        Note = ptd.NoteOrder ?? pd.Note,
                         Price = pd.Price,
                         Qty = ptd.Qty,
                         BookingId = pt.BookingId,
                         PantryId = pd.PantryId,
-                        PackageId = pt.PackageId
+                        PackageId = pt.PackageId,
+                        TransaksiId = pt.Id,
                     };
 
         

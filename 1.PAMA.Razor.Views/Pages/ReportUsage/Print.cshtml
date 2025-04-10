@@ -1,0 +1,488 @@
+@page "/report-usage/print/{type}"
+@model _1.PAMA.Razor.Views.Pages.ReportUsage.PrintModel
+@* @inject Microsoft.Extensions.Configuration.IConfiguration Config *@
+@{
+    Layout = null;
+    @* var AppUrl = Config["App:BaseUrl"];
+    var ApiUrl = Config["ApiUrls:BaseUrl"]; *@
+    var isAuth = User.Identity != null ? User.Identity.IsAuthenticated : false;
+    var authToken = HttpContext.Request.Cookies["AuthToken"];
+}
+
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Print Approval Order</title>
+        <!-- Favicon-->
+        <link rel="icon" href="~/assets/images/icons/media-icon.png" type="image/png">
+        <style>
+            .loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                backdrop-filter: blur(5px);
+            }
+
+            .loading-overlay .spinner {
+                border: 16px solid #f3f3f3;
+                border-top: 16px solid #3498db;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                animation: spin 2s linear infinite;
+            }
+
+            @@keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            @@media print {
+                @@page { margin: 0; }
+                body { margin: 1.6cm; }
+                .printable { width: 100% !important; margin: auto; text-align: center; padding: 0 !important; }
+                .no-printable { display: none; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+        </div>
+
+        <table id="tbl_exporttable_to_xls" border="1" style="display: none;">
+        @* <table id="tbl_exporttable_to_xls" border="1"> *@
+            @if (Model.Type == "organizer")
+            {
+                <thead>
+                    <tr>
+                        <td colspan="8" height="100"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">Report :</td>
+                        <td colspan="2">Meeting Organizer</td>
+                        <td colspan="1"></td>
+                        <td colspan="1">Period</td>
+                        <td colspan="2">@Model.StartDateFormatted - @Model.EndDateFormatted</td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">Employee :</td>
+                        <td colspan="2">@Model.NIKName</td>
+                        <td colspan="1"></td>
+                        <td colspan="1">Building</td>
+                        <td colspan="2">@Model.BuildingName</td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">Room :</td>
+                        <td colspan="2">@Model.RoomName</td>
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="8" height="100"></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Name</td>
+                        <td>Company &amp; Department</td>
+                        <td>Meeting</td>
+                        <td>Reschedule</td>
+                        <td>Cancel</td>
+                        <td>Total Duration</td>
+                        <td>Attendees</td>
+                        <td>Attendees Check-in</td>
+                        <td>Approve</td>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            }
+
+            @if (Model.Type == "attendees")
+            {
+                <thead>
+                    <tr>
+                        <td colspan="8" height="100"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">Report :</td>
+                        <td colspan="2">Meeting Attendees</td>
+                        <td colspan="1"></td>
+                        <td colspan="1">Period</td>
+                        <td colspan="2">@Model.StartDateFormatted - @Model.EndDateFormatted</td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">Employee :</td>
+                        <td colspan="2">@Model.NIKName</td>
+                        <td colspan="1"></td>
+                        <td colspan="1">Building</td>
+                        <td colspan="2">@Model.BuildingName</td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">Room :</td>
+                        <td colspan="2">@Model.RoomName</td>
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="8" height="100"></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>Name</td>
+                        <td>Company &amp; Department</td>
+                        <td>Meeting</td>
+                        <td>Present</td>
+                        <td>Absent</td>
+                        <td>Total Duration</td>
+                        <td>Attendees Check-in</td>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            }
+
+            @if (Model.Type == "room-usage")
+            {
+                <thead>
+                    <tr>
+                        <td colspan="8" height="100"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">Report :</td>
+                        <td colspan="2">Room Usage</td>
+                        <td colspan="1"></td>
+                        <td colspan="1">Period</td>
+                        <td colspan="2">@Model.StartDateFormatted - @Model.EndDateFormatted</td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">Building</td>
+                        <td colspan="2">@Model.BuildingName</td>
+                        <td colspan="1"></td>
+                        <td colspan="1">Room :</td>
+                        <td colspan="2">@Model.RoomName</td>
+                    </tr>
+                    <tr>
+                        <td colspan="1">Department :</td>
+                        <td colspan="2">@Model.DepartmentName</td>
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="8" height="100"></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>ID</td>
+                        <td>Title</td>
+                        <td>Meeting Time</td>
+                        <td>Room</td>
+                        <td>Department</td>
+                        <td>Attendees</td>
+                        <td>Duration</td>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            }
+        </table>
+
+        @Html.AntiForgeryToken()
+
+        @if(!isAuth || string.IsNullOrEmpty(authToken))
+        {
+            <script type="text/javascript">
+                window.location.href = '@Url.Page("/Logout")';
+            </script>
+        }
+
+        <!-- Jquery Core Js -->
+        <script src="~/assets/theme/plugins/jquery/jquery.min.js"></script>
+        <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+        <script src="~/assets/theme/plugins/momentjs/moment-timezone.js"></script>
+        <script src="~/assets/theme/plugins/momentjs/moment-timezone-data.min.js"></script>
+        <!-- Jquery CountTo Plugin Js -->
+        <script src="~/assets/external/sheetjs/xlsx.full.min.js"></script>
+        <script>
+            $.ajaxSetup({
+                headers: { 
+                    'XSRF-TOKEN': $('input:hidden[name="__RequestVerificationToken"]').val(),
+                    'Authorization': "Bearer @authToken"
+                }
+            });
+        </script>
+        <script>
+            const bs = "@Model.ApiUrl";
+            const bsApp = "@Model.AppUrl";
+            
+            const type = "@Model.Type";
+            const params = {
+                draw: 1,
+                start: 0,
+                length: 0,
+                date: "@(Model.StartDate) - @(Model.EndDate)",
+                @* nik: "@Model.NIK", *@
+                building_id: "@Model.BuildingId",
+                room_id: "@Model.RoomId",
+            };
+
+            if (type == "room-usage")
+            {
+                params["alocation_id"] = "@Model.DepartmentId";
+            } else {
+                params["nik"] = "@Model.NIK";
+            }
+
+            const ajax = {
+                url : {
+                    get_print_organizer : "@Model.GetOrganizerUsageReport",
+                    get_print_attendance: "@Model.GetAttendanceDataTables",
+                    get_print_roomusage: "@Model.GetRoomUsageDataTables"
+                }
+            };
+
+
+            $(function() {
+                switch (type) {
+                    case "organizer":
+                        generateReportOrganizer();
+                        break;
+                    case "attendees":
+                        generateReportAttendees();
+                        break;
+                    case "room-usage":
+                        generateReportRoomUsage();
+                        break;
+                    default:
+                        window.close();
+                        break;
+                }    
+            });
+
+            function showLoading() {
+                $('#loadingOverlay').show();
+            }
+
+            function hideLoading() {
+                $('#loadingOverlay').hide();
+            }
+
+            function generateReportOrganizer() {
+                $.ajax({
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    url: bs + ajax.url.get_print_organizer,
+                    data: params,
+                    beforeSend: function () {
+                        showLoading();
+                    },
+                    success: function (res) {
+                        if (res.status != "fail") {
+                            const data = res.collection.data;
+
+                            $("#tbl_exporttable_to_xls tbody").empty();
+                            if (data.length > 0) {
+                                data.forEach((item, index) => {
+                                    $("#tbl_exporttable_to_xls tbody").append(`
+                                        <tr>
+                                            <td style="text-align: center;">${item.no}</td>
+                                            <td>${item.name}</td>
+                                            <td>
+                                                ${item.company_name} 
+                                                <br> 
+                                                <b>${item.department_name}</b>
+                                            </td>
+                                            <td>${item.total_meeting}</td>
+                                            <td>${item.total_reschedule}</td>
+                                            <td>${item.total_cancel}</td>
+                                            <td>${getTimeFromMins(item.total_duration)}</td>
+                                            <td>${item.total_attendees}</td>
+                                            <td>${item.total_attendees_checkin}</td>
+                                            <td>${item.total_approve}</td>
+                                        </tr>
+                                    `);
+                                });
+                            } else {
+                                $("#tbl_exporttable_to_xls tbody").append(`
+                                    <tr>
+                                        <td colspan="10" style="text-align: center;">No data available</td>
+                                    </tr>
+                                `);
+                            }
+
+                            hideLoading();
+                            ExportToExcel('xlsx');
+                        } else {
+                            alert("data failed to load");
+                            window.close();
+                            close();
+                        }
+                    },
+                    error: function(err) {
+                        alert("data failed to load");
+                        window.close();
+                        close();
+                    },
+                    complete: function () {
+                        hideLoading();
+                    }
+                });
+            }
+
+            function generateReportAttendees() {
+                $.ajax({
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    url: bs + ajax.url.get_print_attendance,
+                    data: params,
+                    beforeSend: function () {
+                        showLoading();
+                    },
+                    success: function (res) {
+                        if (res.status != "fail") {
+                            const data = res.collection.data;
+
+                            $("#tbl_exporttable_to_xls tbody").empty();
+                            if (data.length > 0) {
+                                data.forEach((item, index) => {
+                                    $("#tbl_exporttable_to_xls tbody").append(`
+                                        <tr>
+                                            <td style="text-align: center;">${item.no}</td>
+                                            <td>${item.name}</td>
+                                            <td>
+                                                ${item.company_name} 
+                                                <br> 
+                                                <b>${item.department_name}</b>
+                                            </td>
+                                            <td>${item.total_meeting}</td>
+                                            <td>${item.total_present}</td>
+                                            <td>${item.total_absent}</td>
+                                            <td>${getTimeFromMins(item.total_duration)}</td>
+                                            <td>${item.total_attendees_checkin}</td>
+                                        </tr>
+                                    `);
+                                });
+                            } else {
+                                $("#tbl_exporttable_to_xls tbody").append(`
+                                    <tr>
+                                        <td colspan="10" style="text-align: center;">No data available</td>
+                                    </tr>
+                                `);
+                            }
+
+                            hideLoading();
+                            ExportToExcel('xlsx');
+                        } else {
+                            alert("data failed to load");
+                            window.close();
+                            close();
+                        }
+                    },
+                    error: function(err) {
+                        alert("data failed to load");
+                        window.close();
+                        close();
+                    },
+                    complete: function () {
+                        hideLoading();
+                    }
+                });
+            }
+
+            function generateReportRoomUsage() {
+                $.ajax({
+                    type: "GET",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    url: bs + ajax.url.get_print_roomusage,
+                    data: params,
+                    beforeSend: function () {
+                        showLoading();
+                    },
+                    success: function (res) {
+                        if (res.status != "fail") {
+                            const data = res.collection.data;
+
+                            $("#tbl_exporttable_to_xls tbody").empty();
+                            if (data.length > 0) {
+                                data.forEach((item, index) => {
+                                    var dur = (item.total_duration - 0) + (item.extended_duration - 0);
+                                    $("#tbl_exporttable_to_xls tbody").append(`
+                                        <tr>
+                                            <td style="text-align: center;">${item.no}</td>
+                                            <td>${item.booking_id}</td>
+                                            <td>${item.title}</td>
+                                            <td>${item.booking_date}</td>
+                                            <td>
+                                                <b>${item.room_name}</b>
+                                                <br>
+                                                ${item.room_location}
+                                            </td>
+                                            <td>${item.alocation_name}</td>
+                                            <td>${item.attendees}</td>
+                                            <td>${getTimeFromMins(dur)}</td>
+                                        </tr>
+                                    `);
+                                });
+                            } else {
+                                $("#tbl_exporttable_to_xls tbody").append(`
+                                    <tr>
+                                        <td colspan="10" style="text-align: center;">No data available</td>
+                                    </tr>
+                                `);
+                            }
+
+                            hideLoading();
+                            ExportToExcel('xlsx');
+                        } else {
+                            alert("data failed to load");
+                            window.close();
+                            close();
+                        }
+                    },
+                    error: function(err) {
+                        alert("data failed to load");
+                        window.close();
+                        close();
+                    },
+                    complete: function () {
+                        hideLoading();
+                    }
+                });
+            }
+
+            function ExportToExcel(type, fn, dl) {
+                var type = "@Model.Type";
+                var namefile = moment().format("X")+"_Report_Meeting_"+type+".xlsx";
+                var elt = document.getElementById('tbl_exporttable_to_xls');
+                var wb = XLSX.utils.table_to_book(elt, { sheet: "sheet1" });
+                return dl ?
+                XLSX.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
+                XLSX.writeFile(wb, namefile);
+            }
+
+            function getTimeFromMins(mins) {
+                if (mins < 0) {
+                    throw new RangeError("Valid input should be greater than or equal to 0 and less than 1440.");
+                }
+                var h = mins / 60 | 0,
+                    m = mins % 60 | 0;
+                var dd = moment.utc().hours(h).minutes(m).format("HH:mm");
+                spDd = dd.split(":");
+                var frm = "";
+                if (spDd[0] != "00") {
+                    frm += (spDd[0] - 0) + " hour ";
+                }
+                if (spDd[1] != "00") {
+                    frm += (spDd[1] - 0) + " minute ";
+                }
+                return frm;
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,204 @@
+﻿@page "/webview/pantryorder/index"
+@model _1.PAMA.Razor.Views.Pages.Webview.PantryOrder.IndexModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@{
+  Layout = "_LayoutWebview";
+  ViewData["PageName"] = "List Order Pantry";
+}
+
+@section Styles
+{
+
+  <style>
+    .visitor-card {
+      margin-bottom: 15px;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      padding: 15px;
+      transition: box-shadow 0.3s;
+    }
+
+    .visitor-card:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .media-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #34395e;
+    }
+
+    .text-medium {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+
+    #content-container {
+      transition: opacity 0.3s ease;
+    }
+
+    .d-none {
+      display: none !important;
+    }
+
+    /* Styling untuk input datetime-local */
+    input[type="datetime-local"] {
+      width: 100%;
+      max-width: 300px;
+      box-sizing: border-box;
+    }
+
+    @@media(max - width: 576px) {
+      input[type="datetime-local"] {
+        max-width: calc(100% - 20px);
+        margin: 0 10px;
+      }
+    }
+  </style>
+}
+
+<!-- Main Content -->
+<div class="main-content">
+  <section class="section">
+    <div id="content-container">
+      <div class="section-header">
+        <h1>List Order</h1>
+      </div>
+
+      <a href="#" class="btn btn-primary mb-2" data-toggle="collapse" data-target="#filterForm" aria-expanded="false"
+        aria-controls="filterForm" onclick=toggleFilter()>
+        <i class="fas fa-filter"></i> Filter Order
+      </a>
+      <!-- Filter tanggal dan status -->
+      <div id="filterForm" class="card p-3 collapse">
+        <div class="form-row align-items-center mb-3">
+          <div class="col-auto">
+            <label for="dateRange">Date:</label>
+            <div class="input-group">
+              <input type="text" id="dateRange" class="form-control" placeholder="Pilih rentang waktu" />
+              <div class="input-group-append">
+                <span class="input-group-text">
+                  <i class="fas fa-calendar-alt"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-row align-items-center mb-3">
+          <div class="col-auto">
+            <label for="statusFilter">Status:</label>
+            <select id="statusFilter" class="form-control">
+              <option value="">All</option>
+              <option value="Order Completed">Done</option>
+              <option value="Order processed">Process</option>
+              <option value="Order Delivered">Delivered</option>
+              <option value="Order not yet processed">Pending</option>
+              <option value="Order canceled">Cancel</option>
+              <option value="Order rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- order list -->
+      <div class="card-body" style="padding: 0%;">
+        <div class="list-unstyled" id="order-list">
+        </div>
+      </div>
+
+      <!-- float button -->
+      <button class="btn btn-primary btn-lg rounded shadow-lg" id="createOrderBtn" style="
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    z-index: 1000;
+                  ">
+        <i class="fas fa-plus"></i>
+      </button>
+  </section>
+</div>
+
+
+@section Modals
+{
+  <!-- modal create order -->
+  <div class="modal fade" id="createOrderModal" tabindex="-1" role="dialog" aria-labelledby="createOrderModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createOrderModalLabel">
+            Create Food Order
+          </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="frm_new_order">
+            <div class="form-group">
+              <label for="roomSelect">Select Booked Room</label>
+              <select class="form-control" id="roomSelect" required>
+                <option value="">-- Select Room --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="categorySelect">Meeting Category</label>
+              <select class="form-control" id="categorySelect" required>
+                @* <option value="">-- Select Category --</option>
+                <option value="Small Meeting">Small Meeting</option>
+                  <option value="Medium Meeting">Medium Meeting</option>
+                  <option value="Large Meeting">Large Meeting</option> *@
+              </select>
+            </div>
+            <div class="form-group" >
+              <div class="row" id="foodItemsDiv">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Close
+          </button>
+          <button type="button" class="btn btn-primary" onclick="createNewOrder()">
+            Submit Order
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+}
+
+@section Scripts
+{
+
+  <script>
+    const ajax = {
+      url: {
+        get_pantry_transactions: "@Model.GetPantryTransactions",
+        get_booking_by_id: "@Model.GetBookById",
+        get_pantry_package_by_id: "@Model.GetPantryPackageById",
+        post_cancel_order: "@Model.ProcessCancelOrder",
+        get_meeting_in_progress: "@Model.GetInProgressBooking",
+        get_pantry_packages: "@Model.GetAllPantryPackage",
+        create_order_package: "@Model.CreateOrderPackage",
+        
+      }
+    };
+    
+  </script>
+  <!-- Page Specific JS File -->
+  <script src="~/assets/webview/js/page/index-0.js"></script>
+  <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.js"></script>
+  <script src="~/assets/webview/js/page/pantry.js"></script>
+
+}

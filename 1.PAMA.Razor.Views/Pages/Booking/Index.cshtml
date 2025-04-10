@@ -474,18 +474,79 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="id_mdl_additional_partisipant" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="id_mdl_additional_partisipantLabel">Add Attendees</h4>
+            </div>
+            <div class="modal-body " id="id_mdl_additional_partisipant_body">
+                <form id="id_frm_additional">
+                    <div class="container-fluid">
+                        <div class="row clearfix">
+                            <div class="col-12 col-xs-12 col-sm-6 col-md-6 col-lg-6 hidden">
+                                <input type="hidden" id="id_frm_additional_booking_id">
+                            </div>
+                            <div class="col-12 col-xs-12 col-sm-6 col-md-6 col-lg-6">    
+                                <div class="row clearfix">
+                                    <div class="col-xs-12">
+                                        <b class="lbl_text">INTERNAL ATTENDEES</b>
+                                        <div class="input-group add-attendance-section">
+                                            <select data-size="4" title="Choose the attendees..." data-actions-box="true" data-selected-text-format="count > 0" multiple id="id_frm_additional_participant" class="form-control show-tick" data-live-search="true">
+                                            </select>
+                                            <span class="input-group-addon">
+                                                <button onclick="clickPartisipantAdditional($(this))" type="button" class="btn bg-blue waves-effect">
+                                                    <i class="material-icons">add</i>
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style="height: 50vh;overflow-y: scroll;;background: #fff;" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <table class="table table-bordered" style="border-collapse: collapse;border-spacing: 0;" id="id_list_tbl_additional_participant">
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                <div class="row clearfix">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <b class="lbl_text">EXTERNAL ATTENDEES</b>
+                                        <div class="input-group add-attendance-section" style="padding-top: 7px;">
+                                            <button onclick="clickAdditionalPartisipantManualOpen()" type="button" class="btn bg-blue  btn-lg waves-effect">
+                                                ADD MANUAL
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div style="height: 50vh;overflow-y: scroll;background: #fff;" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <table class="table table-bordered table-hover " style="border-collapse: collapse;border-spacing: 0;" id="id_list_tbl_additional_participant_manual">
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row clearfix">
+                    <div class="col-xs-6 align-left">
+                    </div>
+                    <div class="col-xs-6 ">
+                        <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+
+                        <button type="button" class="btn bg-red waves-effect" onclick="onSubmitAdditionalParticipants(this)">
+                            Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <input type="hidden" id="id_baseurl" value="@Model.ApiUrl">
-
-@* <textarea id="id_modules" style="display: none;">@Html.Raw(Model.Modules)</textarea> *@
-@* <textarea id="id_building" style="display: none;">@Html.Raw(Model.Buildings)</textarea> *@
-@* <textarea id="id_employee" style="display: none;">@Html.Raw(Model.Employees)</textarea> *@
-@* <textarea id="id_room" style="display: none;">@Html.Raw(Model.Rooms)</textarea> *@
-@* <textarea id="id_facility" style="display: none;">@Html.Raw(Model.Facilities)</textarea> *@
-
-@* <textarea style="display: none;" id="id_settinggeneral" cols="30" rows="10">@Html.Raw(Model.SettingGeneral)</textarea> *@
-@* <textarea style="display: none;" id="id_invoicedata" cols="30" rows="10">@Html.Raw(Model.Invoices)</textarea> *@
-@* <textarea style="display: none;" id="id_category" cols="30" rows="10">@Html.Raw(Model.Categories)</textarea> *@
 
 @section Scripts
 {
@@ -506,9 +567,12 @@
                 get_check_reschedule_date : "@Model.CheckRescheduleDate",
                 post_reschedule_booking : "@Model.RescheduleBooking",
                 post_cancel_booking : "@Model.CancelBooking",
+                post_cancel_all_booking : "@Model.CancelAllBooking",
                 post_end_meeting : "@Model.EndMeeting",
                 get_check_extendmeeting_time : "@Model.CheckExtendMeetingTime",
                 post_set_extendmeeting : "@Model.SetExtendMeeting",
+                post_confirm_attendance : "@Model.ConfirmAttendance",
+                post_additional_attendees : "@Model.AdditionalAttendees",
             }
         };
 

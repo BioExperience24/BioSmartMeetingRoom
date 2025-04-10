@@ -669,6 +669,11 @@ namespace _5.Helpers.Consumer.Custom
 
     public class FastBookEmployeeViewModel : FastBookBaseViewModel
     {
+
+        [JsonPropertyName("company")]
+        public string Company { get; set; } = null!;
+        [JsonPropertyName("booking_id")]
+        public string BookingId { get; set; } = null!;
         [JsonPropertyName("division_id")]
         public string DivisionId { get; set; } = string.Empty;
 
@@ -725,6 +730,10 @@ namespace _5.Helpers.Consumer.Custom
 
         [JsonPropertyName("vip_lock_room")]
         public int? VipLockRoom { get; set; }
+        [JsonPropertyName("pin")]
+        public string Pin { get; set; } = string.Empty;
+        [JsonPropertyName("is_pic")]
+        public short IsPic { get; set; }
     }
 
     public class FastBookInternalBatchViewModel
@@ -734,6 +743,30 @@ namespace _5.Helpers.Consumer.Custom
         [JsonPropertyName("data_email_internal")]
         public List<FastBookEmployeeViewModel> DataEmailInternal { get; set; }
     }
-    
+
+    public class SendMailViewModel
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+        [JsonPropertyName("to")]
+        public string To { get; set; }
+        [JsonPropertyName("subject")]
+        public string Subject { get; set; }
+        [JsonPropertyName("body")]
+        public string Body { get; set; }
+        [JsonPropertyName("isHtml")]
+        public bool IsHtml { get; set; }
+        [JsonPropertyName("emailType")]
+        public string EmailType { get; set; } = string.Empty;
+        [JsonPropertyName("date")]
+        public string Date { get; set; } = string.Empty;
+        [JsonPropertyName("startMeeting")]
+        public string StartMeeting { get; set; } = string.Empty;
+        [JsonPropertyName("endMeeting")]
+        public string EndMeeting { get; set; } = string.Empty;
+        [JsonPropertyName("location")]
+        public string Location { get; set; } = string.Empty;
+    }
+
 
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using _5.Helpers.Consumer._Common;
 using _5.Helpers.Consumer._QRCodeGenerator;
 
 namespace _5.Helpers.Consumer.Custom
@@ -52,21 +53,21 @@ namespace _5.Helpers.Consumer.Custom
         }
 
 
-        public static FastBookBookingInvoice CreateBookingInvoice(FastBookBookingViewModel databook, FastBookAlocationVMDefaultFR alocation, long reservationCost, string invoiceFormat)
-        {
-            return new FastBookBookingInvoice
-            {
-                InvoiceNo = Guid.NewGuid().ToString(),
-                InvoiceFormat = invoiceFormat,
-                BookingId = databook.BookingId,
-                RentCost = reservationCost,
-                Alocation = alocation.Id,
-                TimeBefore = DateTime.Now,
-                CreatedAt = DateTime.Now,
-                CreatedBy = databook.Pic,
-                InvoiceStatus = string.Empty // Pending status
-            };
-        }
+        // public static FastBookBookingInvoice CreateBookingInvoice(FastBookBookingViewModel databook, FastBookAlocationVMDefaultFR alocation, long reservationCost, string invoiceFormat)
+        // {
+        //     return new FastBookBookingInvoice
+        //     {
+        //         InvoiceNo = _Random.Numeric(10, true).ToString(),
+        //         InvoiceFormat = invoiceFormat,
+        //         BookingId = databook.BookingId,
+        //         RentCost = reservationCost,
+        //         Alocation = alocation.Id,
+        //         TimeBefore = DateTime.Now,
+        //         CreatedAt = DateTime.Now,
+        //         CreatedBy = databook.Pic,
+        //         InvoiceStatus = "0"// Pending status
+        //     };
+        // }
 
         public static FastBookBookingViewModel AdjustAdvanceMeeting(FastBookBookingViewModel databooking, FastBookRoomViewModel dataroom, int? isModuleEnable)
         {
@@ -178,6 +179,7 @@ namespace _5.Helpers.Consumer.Custom
                 PinRoom = GenerateRandomPin(),
                 CreatedAt = DateTime.Now,
                 CreatedBy = nikPic,
+                UpdatedAt = DateTime.Now,
                 IsDeleted = 0
             };
         }
@@ -189,9 +191,14 @@ namespace _5.Helpers.Consumer.Custom
             int nn0 = 0;
             string id = data.BookingId;
 
-            foreach (var val in dataEmailInternal)
+            for (int i = 0; i < dataEmailInternal.Count; i++)
             {
-                foreach(var pin in listPinRoom){
+                var val = dataEmailInternal[i];
+
+                for (int j = 0; j < listPinRoom.Count; j++)
+                {
+                    var pin = listPinRoom[j];
+
                     var ibatch = new FastBookBookingInvitationViewModel
                     {
                         BookingId = id,
@@ -205,13 +212,17 @@ namespace _5.Helpers.Consumer.Custom
                         PinRoom = pin,
                         CreatedAt = DateTime.Parse(datetime),
                         CreatedBy = nikPic,
+                        UpdatedAt = DateTime.Now,
                         IsDeleted = 0
                     };
+
                     ibatch.PinRoom = pin;
                     ibatch.IsPic = 0;
                     internalBatch.Add(ibatch);
 
                     nn0++;
+                    dataEmailInternal[j].Pin = pin;
+                    dataEmailInternal[j].IsPic = 0;
                 }
             }
 
@@ -222,14 +233,14 @@ namespace _5.Helpers.Consumer.Custom
             };
         }
 
-        public static (List<FastBookBookingInvitationViewModel> eksternalBatch, List<FastBookBookingInvitationViewModel> dataEmailEksternal) CreateExternalBatch(
+        public static (List<FastBookBookingInvitationViewModel> eksternalBatch, List<FastBookEmployeeViewModel> dataEmailEksternal) CreateExternalBatch(
          FastBookBookingViewModel data,
           List<string> listPinRoom, 
-         List<FastBookBookingInvitationViewModel> externallist,
+         List<FastBookListlDataExternalFRViewModel> externallist,
          string nikPic = null)
         {
             var eksternalBatch = new List<FastBookBookingInvitationViewModel>();
-            var dataEmailEksternal = new List<FastBookBookingInvitationViewModel>();
+            var dataEmailEksternal = new List<FastBookEmployeeViewModel>();
 
             foreach (var val in externallist)
             {
@@ -246,17 +257,18 @@ namespace _5.Helpers.Consumer.Custom
                         Internal = 0,
                         AttendanceStatus = 0,
                         CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
                         CreatedBy = nikPic,
                         IsDeleted = 0
                     };
-                    dataEmailEksternal.Add(new FastBookBookingInvitationViewModel
+                    dataEmailEksternal.Add(new FastBookEmployeeViewModel
                     {
                         BookingId = ibatch.BookingId,
                         Email = ibatch.Email,
                         Company = ibatch.Company,
                         Name = ibatch.Name,
                         IsPic = ibatch.IsPic,
-                        PinRoom = ibatch.PinRoom
+                        Pin = ibatch.PinRoom
                     });
                     eksternalBatch.Add(ibatch);
                 }
@@ -342,6 +354,42 @@ namespace _5.Helpers.Consumer.Custom
             throw new FormatException($"Invalid date format: {dateTimeString}");
         }
 
+        public static string GetPathEmailTemplate(string typeEmail)
+        {
+            var rootPath = AppContext.BaseDirectory; // Ensures correct base path
+            var templateFolderPath = Path.Combine(rootPath, "EmailTemplate");
+            var templatePath = Path.Combine(templateFolderPath, GetTemplateFileName(typeEmail)); // Corrected path
 
+            return templatePath;
+        }
+
+        private static string GetTemplateFileName(string typeEmail)
+        {
+            return typeEmail switch
+            {
+                "invitation" => "undangan-meeting.html",  // Removed "EmailTemplate/"
+                "reschedule" => "reschedule-meeting.html",
+                "cancel" => "pembatalan-meeting.html",
+                _ => throw new ArgumentException("Invalid email type")
+            };
+        }
+
+
+        public static string FalcoPulseData(string ip, int? doorId)
+            {
+                return $@"<?xml version=""1.0"" encoding=""utf-8""?>
+                    <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
+                      <soap:Body>
+                        <FalcoPulseDoorOpen xmlns=""WebAPI"">
+                          <tokenLoginID>Falco</tokenLoginID>
+                          <tokenLoginPass>12345</tokenLoginPass>
+                          <IP>{ip}</IP>
+                          <DoorID>{doorId}</DoorID>
+                          <aError>string</aError>
+                        </FalcoPulseDoorOpen>
+                      </soap:Body>
+                    </soap:Envelope>";
+            }
+	
     }
 }

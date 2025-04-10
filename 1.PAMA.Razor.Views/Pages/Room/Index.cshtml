@@ -123,7 +123,7 @@
                                 <!-- <button onclick="" type="button" class="btn btn-lg btn-info waves-effect"><b>Update</b> </button> -->
                             </div>
                         </div><div class="table-responsive responsive">
-                            <table class="table table-hover" id="tbldata">
+                            <table class="table table-hover" id="tbldata" style="width: 100% !important;">
                                 <thead>
                                     <tr>
                                         <th>
@@ -139,10 +139,10 @@
                                         @* Uncomment if needed *@
                                         @* <th>Work Day</th> *@
 
-                                        @if (Model.RoomDetails.Modules.Price.IsEnabled == 1)
+                                        @* @if (Model.RoomDetails.Modules.Price.IsEnabled == 1)
                                         {
                                             <th>Price</th>
-                                        }
+                                        } *@
 
                                         @* @if (Model.RoomDetails.Modules.Int365.IsEnabled == 1 || Model.RoomDetails.Modules.IntGoogle.IsEnabled == 1)
                                         {
@@ -197,10 +197,10 @@
                                             </div>
                                         </div>
                                         <div class="col-xs-6">
-                                            <label for="">Description</label>
+                                            <label for="">Description<b style="color:red;">*</b></label>
                                             <div class="form-group">
                                                 <div class="form-line">
-                                                    <textarea rows="1" name="description" class="form-control no-resize" name="description" id="id_crt_description" placeholder="Please type the room description..."></textarea>
+                                                    <textarea rows="1" name="description" class="form-control no-resize" required="" id="id_crt_description" placeholder="Please type the room description..."></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -378,7 +378,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-xs-6">
+                                        <div class="col-xs-6 hidden">
                                             <label for="">
                                                 Room For Usage <a data-toggle="tooltip" data-placement="bottom" title="
                                     "> (?) </a>
@@ -425,7 +425,7 @@
                                             </div>
                                         </div>
                                         <div class="col-xs-6">
-                                            <div class="row">
+                                            <div class="row allow-recurring">
                                                 <div class="col-xs-8 align-left"><label for="id_crt_adv_is_enable_recurring">Allow Recurring</label></div>
                                                 <div class="col-xs-4 align-right">
                                                     <div class="switch">
@@ -540,10 +540,25 @@
                                             </div>
                                         </div>
                                         <div class="col-xs-6">
-                                            <label for="">Building</label>
+                                            <label for="">Description <b style="color:red;">*</b></label>
                                             <div class="form-group">
-                                                <select title="Choose the building..." name="building_id" id="id_edt_building_id" class="form-control show-tick">
-                                                </select>
+                                                <div class="form-line">
+                                                    <textarea rows="1" name="description" class="form-control no-resize" required="" id="id_edt_description" placeholder="Please type the room description..."></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-6">
+                                            <label for="">Building <b style="color:red;">*</b></label>
+                                            <div class="form-group">
+                                                <select title="Choose the building..." control name="building_id" id="id_edt_building_id" class="form-control show-tick"></select>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <label for="">Floor <b style="color:red;">*</b></label>
+                                            <div class="form-group">
+                                                <select title="Choose the floor..." required name="floor_id" id="id_edt_floor_id" class="form-control show-tick"></select>
                                             </div>
                                         </div>
                                     </div>
@@ -605,14 +620,6 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-xs-6">
-                                            <label for="">Description</label>
-                                            <div class="form-group">
-                                                <div class="form-line">
-                                                    <textarea rows="1" name="description" class="form-control no-resize" id="id_edt_description" placeholder="Please type the room description..."></textarea>
-                                                </div>
-                                            </div>
-                                        </div>
                                         <div class="col-xs-6">
                                             <label for="">Detail Location</label>
                                             <div class="form-group">
@@ -735,7 +742,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-xs-6">
+                                        <div class="col-xs-6 hidden">
                                             <label for="">
                                                 Room For Usage <a data-toggle="tooltip" data-placement="bottom" title="
                                                             "> (?) </a>
@@ -746,7 +753,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row clearfix">
+                                    <div class="row clearfix hidden">
                                         <div class="col-xs-12">
                                             <label for="">
                                                 List Room for Usage <a data-toggle="tooltip" data-placement="bottom" title=" This room can be limited to a minimum booking time
@@ -796,7 +803,7 @@
                                     <div class="row clearfix">
                                         <div class="col-xs-6">
                                             <label for="">
-                                                Advance Booknig Date <a data-toggle="tooltip" data-placement="bottom" title="This feature can open the date selection to several days in the future
+                                                Advance Booking Date <a data-toggle="tooltip" data-placement="bottom" title="This feature can open the date selection to several days in the future
                                                             "> (?) </a>
                                             </label>
                                             <div class="form-group">
@@ -805,7 +812,7 @@
                                             </div>
                                         </div>
                                         <div class="col-xs-6">
-                                            <div class="row">
+                                            <div class="row allow-recurring">
                                                 <div class="col-xs-8 align-left"><label for="id_edt_adv_is_enable_recurring">Allow Recurring</label></div>
                                                 <div class="col-xs-4 align-right">
                                                     <div class="switch">

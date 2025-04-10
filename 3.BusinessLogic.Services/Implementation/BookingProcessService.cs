@@ -1,7 +1,8 @@
 using System.Security.Claims;
 using System.Transactions;
+using _3.BusinessLogic.Services.EmailService;
+using _4.Helpers.Consumer;
 using _5.Helpers.Consumer.EnumType;
-using _6.Repositories.DB;
 
 namespace _3.BusinessLogic.Services.Implementation
 {
@@ -10,6 +11,8 @@ namespace _3.BusinessLogic.Services.Implementation
         private readonly IMapper _mapper;
 
         private readonly IHttpContextAccessor _httpCtx;
+        
+        private readonly IEmailService _emailService;
 
         private readonly BookingRepository _bookingRepo;
 
@@ -48,6 +51,7 @@ namespace _3.BusinessLogic.Services.Implementation
         public BookingProcessService(
             IMapper mapper,
             IHttpContextAccessor httpCtx,
+            IEmailService emailService,
             BookingRepository bookingRepo,
             ModuleBackendRepository moduleBackendRepo,
             EmployeeRepository employeeRepo,
@@ -69,6 +73,7 @@ namespace _3.BusinessLogic.Services.Implementation
         {
             _mapper = mapper;
             _httpCtx = httpCtx;
+            _emailService = emailService;
             _bookingRepo = bookingRepo;
             _moduleBackendRepo = moduleBackendRepo;
             _employeeRepo = employeeRepo;
@@ -90,421 +95,12 @@ namespace _3.BusinessLogic.Services.Implementation
 
         public async Task<(BookingViewModel?, string?)> CreateBookingAsync(BookingVMCreateReserveFR request)
         {
-            // from token
-            var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
-            // .from token
-
-            // id
-            string randomId = _Random.Numeric(10, true).ToString();
-            string id = randomId; // booking id
-            string invoiceId = randomId;
-            var roomId = request.RoomId;
-            // .id
-
-            // time
-            DateTime now = DateTime.Now;
-            var timeStart = TimeOnly.FromTimeSpan(request.Start);
-            var timeEnd = TimeOnly.FromTimeSpan(request.End);
-
-            var bookDate = request.Date;
-            var bookStart = bookDate.ToDateTime(timeStart);
-            var bookEnd = bookDate.ToDateTime(timeEnd);
-            var bookDuration = bookEnd - bookStart;
-            TimeZoneInfo localZone = TimeZoneInfo.Local;
-            // .time
-
-
-            using (var scope = new TransactionScope(
-                TransactionScopeOption.Required,
-                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
-                TransactionScopeAsyncFlowOption.Enabled
-            ))
+            if (request.BookingType == "trainingroom")
             {
-                try
-                {
-                    // check available room
-                    var room = await CheckAvailableRoom(roomId, bookDate, bookStart, bookEnd);
-
-                    if (room == null)
-                    {
-                        return (null, "Room is not available");
-                    }
-                    // .check available room
-
-                    // config & settings
-                    var modules = await getModules();
-
-                    int modulesRoomAdvEnabled = modules.ContainsKey("room_adv") ? (modules["room_adv"]?.IsEnabled ?? 0) - 0 : 0;
-                    int modulesVipEnabled = modules.ContainsKey("vip") ? (modules["vip"]?.IsEnabled ?? 0) - 0 : 0;
-
-                    var statusInvoice = await getStatusInvoiceName();
-
-                    var alocation = await getBookingAlocation(request.AlocationId);
-
-                    var generalSetting = await _settingRuleBookingRepo.GetSettingRuleBookingTopOne();
-
-                    var setPantryConfig = await _settingPantryConfigRepository.GetSettingPantryConfigTopOne();
-                    var pantryExpired = setPantryConfig?.PantryExpired ?? 0;
-                    var pantryMaxOrderQty = setPantryConfig?.MaxOrderQty ?? 0;
-                    var pantryBeforeOrderMeeting = setPantryConfig?.BeforeOrderMeeting ?? 0;
-                    // .config & settings
-
-                    // module price setting
-                    var fHour = generalSetting?.Duration ?? 0;
-                    var duration = bookDuration.TotalMinutes;
-                    int reservationCost = 0;
-                    long cost = 0;
-                    double getHoursMeeting = 0;
-                    double checkHours = 0;
-                    if (modules.ContainsKey("price") && modules["price"]?.IsEnabled == 1)
-                    {
-                        cost = room.Price;
-                        getHoursMeeting = Math.Floor(duration / fHour);
-                        checkHours = duration % fHour;
-                        if (checkHours > 0)
-                        {
-                            getHoursMeeting += 1;
-                        }
-                        reservationCost = (int)(cost * getHoursMeeting);
-                    }
-                    // .module price setting
-
-                    // pic
-                    var pic = await _employeeRepo.GetItemByIdAsync(request.Pic);
-                    // .pic
-
-                    // pantry package (pantry menu)
-                    var pantryPackage = await _pantryMenuPaketRepo.GetPackageWithPantry(request.MeetingCategory);
-                    // .pantry package (pantry menu)
-
-                    // generate invoice
-                    string formatInvoice = string.Empty;
-                    BookingInvoice? bookingInvoiceCollection = null;
-                    if (modules.ContainsKey("invoice") && modules["invoice"]?.IsEnabled == 1)
-                    {
-                        if (modules.ContainsKey("price") && modules["price"]?.IsEnabled == 1)
-                        {
-                            var bookingDate = request.Date.ToDateTime(TimeOnly.MinValue); // parse date string to DateTime
-                            var years = bookingDate.Year; // get year from date
-                            var y_years = bookingDate.ToString("yy"); // get year in two digits from date
-                            var months = bookingDate.Month; // get month from date
-                            var days = bookingDate.Day; // get day from date
-
-                            string alocationOrderId = alocation != null ? alocation.Id + "-E-Meeting" : string.Empty;
-
-                            var bookingOrderNo = await generateBookingOrderNumber(years.ToString());
-                            formatInvoice = $"{bookingOrderNo}/{alocationOrderId}/{months}/{y_years}";
-                        }
-
-                        bookingInvoiceCollection = new BookingInvoice
-                        {
-                            InvoiceNo = invoiceId,
-                            InvoiceFormat = formatInvoice,
-                            BookingId = id,
-                            RentCost = reservationCost,
-                            Alocation = alocation?.Id ?? "",
-                            TimeBefore = now,
-                            CreatedAt = now,
-                            CreatedBy = authUserNIK ?? "",
-                            InvoiceStatus = "0",
-                            IsDeleted = 0,
-                        };
-                    }
-                    // generate invoice
-
-                    // generate booking
-                    Booking bookingCollection = new Booking
-                    {
-                        BookingId = id,
-                        BookingDevices = request.Device ?? "web",
-                        NoOrder = formatInvoice,
-                        Title = request.Title,
-                        RoomId = roomId,
-                        Date = bookDate,
-                        Start = bookStart,
-                        End = bookEnd,
-                        TotalDuration = (int)bookDuration.TotalMinutes,
-                        DurationPerMeeting = fHour,
-                        CostTotalBooking = reservationCost,
-                        AlocationId = request.AlocationId,
-                        AlocationName = request.AlocationName,
-                        Pic = pic!.Name ?? "",
-                        IsMeal = 0,
-                        IsAlive = request.BookingType != "specialroom" ? 1 : 0,
-                        IsDeleted = 0,
-                        IsRescheduled = 0,
-                        IsCanceled = 0,
-                        IsExpired = 0,
-                        IsDevice = 0,
-                        ExternalLink = request.ExternalLink,
-                        Note = request.Note ?? "",
-                        RoomName = room.Name,
-                        IsMerge = 0,
-                        MergeRoomName = "",
-                        MergeRoomId = "",
-                        MergeRoom = "",
-                        CreatedAt = now,
-                        CreatedBy = authUserNIK ?? "",
-                        UpdatedAt = now,
-                        UpdatedBy = authUserNIK ?? "",
-                        IsVip = 0,
-                        VipUser = "",
-                        IsApprove = 0,
-                        UserApproval = "",
-                        Category = (pantryPackage != null) ? (int)pantryPackage.PantryId : 0,
-                        Timezone = localZone.Id,
-                        IsPrivate = request.IsPrivate == "on" ? 1 : 0,
-                        ServerDate = bookStart,
-                        ServerStart = bookStart,
-                        ServerEnd = bookEnd,
-                        CanceledNote = "",
-                        EarlyEndedBy = "",
-                        ExpiredBy = "",
-                        RescheduledBy = "",
-                        CanceledBy = "",
-                        Participants = "",
-                        BookingType = request.BookingType,
-
-                        // bookingAdjustAdvanceMeeting
-                        IsConfigSettingEnable = room.IsConfigSettingEnable ?? 0,
-                        IsEnableApproval = room.IsEnableApproval ?? 0,
-                        IsEnablePermission = room.IsEnablePermission ?? 0,
-                        IsEnableRecurring = room.IsEnableRecurring ?? 0,
-                        IsEnableCheckin = room.IsEnableCheckin ?? 0,
-                        IsRealeaseCheckinTimeout = room.IsRealeaseCheckinTimeout ?? 0,
-                        IsEnableCheckinCount = room.IsEnableCheckinCount ?? 0, 
-                    };
-                    
-                    bookingCollection = await checkMeetingVipAndApprovalAccess(bookingCollection, room, modules);
-                    // .generate booking
-
-                    // generate pantry transaction & pantry transaction detail
-                    PantryTransaksi? pantryTransaksiCollection = null;
-                    List<PantryTransaksiD> pantryTransaksiDCollections = new List<PantryTransaksiD>();
-                    if (pantryPackage != null && setPantryConfig?.Status == 1 && modules.ContainsKey("pantry") && modules["pantry"]?.IsEnabled == 1)
-                    {
-                        var pantryTransaksiStatus = await _pantryTransaksiStatusRepository.GetAllPantryTransaksiStatus(0);
-
-                        // pantry detail (menu item)
-                        var pantryDetail = generatePantryTransaksiD(request.MenuItems);
-                        // .pantry detail (menu item)
-                        
-                        var orderPantryDateTime = DateTime.Parse($"{request.Date} {request.Start}");
-                        var orderPantryDateTimeBefore = orderPantryDateTime.AddMinutes(-pantryBeforeOrderMeeting);
-                        var orderPantryDate = request.Date.ToDateTime(TimeOnly.MinValue);
-
-                        var pantrTrxId = $"MEETING-{DateTime.Now:yyyyMMddHHmmss}{_Random.Numeric(3)}";
-                        var orderNo = generatePantryOrderNumber(pantryPackage.PantryId, orderPantryDate);
-
-                        pantryTransaksiCollection = new PantryTransaksi
-                        {
-                            Id = pantrTrxId,
-                            PantryId = pantryPackage.PantryId,
-                            RoomId = roomId,
-                            PackageId = request.MeetingCategory,
-                            OrderNo = orderNo,
-                            EmployeeId = pic?.Nik ?? "",
-                            BookingId = id,
-                            Via = "booking",
-                            Datetime = now,
-                            OrderDatetime = orderPantryDateTime,
-                            OrderDatetimeBefore = orderPantryDateTimeBefore,
-                            OrderSt = (int)(pantryTransaksiStatus?.Id ?? 0),
-                            OrderStName = pantryTransaksiStatus?.Name ?? "",
-                            Process = 0,
-                            Complete = 0,
-                            Failed = 0,
-                            Done = 0,
-                            Note = "",
-                            CreatedAt = now,
-                            IsDeleted = 0,
-
-                            UpdatedAt = now,
-                            UpdatedBy = authUserNIK ?? "",
-                            Timezone = localZone.Id,
-                            IsBlive = 0,
-                            
-                            ProcessBy = string.Empty,
-                            CompletedBy = string.Empty,
-
-                            IsRejectedPantry = 0,
-                            RejectedBy = string.Empty,
-                            NoteReject = string.Empty,
-                            
-                            CanceledBy = string.Empty,
-                            NoteCanceled = string.Empty,
-                        };
-
-                        if (pantryDetail.Any())
-                        {
-                            foreach (var item in pantryDetail)
-                            {
-                                if (pantryMaxOrderQty < item.Qty)
-                                {
-                                    return (null, $"Orders per item exceed. Maximum quantity of {pantryMaxOrderQty}");
-                                }
-
-                                PantryTransaksiD pantryTransaksiD = new PantryTransaksiD
-                                {
-                                    TransaksiId = pantrTrxId,
-                                    MenuId = item.MenuId,
-                                    Qty = item.Qty,
-                                    NoteOrder = "Order Number: " + orderNo,
-                                    NoteReject = string.Empty,
-                                    IsRejected = 0,
-                                    IsDeleted = 0,
-                                    Status = 0,
-
-                                    Detailorder = string.Empty,
-                                    RejectedBy = string.Empty,
-                                };
-
-                                pantryTransaksiDCollections.Add(pantryTransaksiD);
-                            }
-                        }
-                    }
-                    // .generate pantry transaction & pantry transaction detail
-
-                    // generate attendees
-                    var attendanceCollections = new List<BookingInvitation>();
-
-                    // internal attendees
-                    var internalAttendees = await generateInternalAttendees(request.InternalAttendees);
-                    if (internalAttendees.Any())
-                    {
-                        foreach (var item in internalAttendees)
-                        {
-                            // var isPic = (item.Id == request.Pic) ? 1 : 0;
-                            var isPic = (item.Id == pic!.Id) ? 1 : 0;
-                            var pinRoom =_Random.Numeric(6).ToString();
-
-                            var attendance = new BookingInvitation
-                            {
-                                BookingId = bookingCollection.BookingId,
-                                Nik = item.Nik,
-                                Name = item.Name,
-                                IsVip = pic.Nik == bookingCollection.VipUser ? 0 : item.IsVip,
-                                Internal = 1,
-                                AttendanceStatus = 0,
-                                Email = item.Email,
-                                IsPic = (short)isPic,
-                                PinRoom = pinRoom,
-                                Company = item.CompanyName ?? "", // alocationtype name
-                                Position = item.DepartmentName, // alocation name
-                                CreatedAt = now,
-                                CreatedBy = authUserNIK ?? "",
-                                UpdatedAt = now,
-                                UpdatedBy = authUserNIK ?? "",
-                                IsDeleted = 0,
-                            };
-
-                            attendanceCollections.Add(attendance);
-                        }
-
-                        // buat data pic jika tidak ada pic pada internal attendees
-                        if (attendanceCollections.Where(q => q.IsPic == 1).FirstOrDefault() == null && pic != null)
-                        {
-                            attendanceCollections.Add(new BookingInvitation
-                            {
-                                BookingId = bookingCollection.BookingId,
-                                Nik = pic.Nik,
-                                Name = pic.Name ?? string.Empty,
-                                IsVip = pic.Nik == bookingCollection.VipUser ? 0 : pic.IsVip,
-                                Internal = 1,
-                                AttendanceStatus = 0,
-                                Email = pic.Email,
-                                IsPic = 1,
-                                PinRoom = _Random.Numeric(6).ToString(),
-                                Company = alocation?.TypeName ?? "", // alocationtype name
-                                Position = alocation?.Name, // alocation name
-                                CreatedAt = now,
-                                CreatedBy = authUserNIK ?? "",
-                                UpdatedAt = now,
-                                UpdatedBy = authUserNIK ?? "",
-                                IsDeleted = 0,
-                            });
-                        }
-                    }
-                    // .internal attendees
-
-                    // external attendees
-                    var externalAttendess = generateExternalAttendees(request.ExternalAttendees);
-                    if (externalAttendess.Any())
-                    {
-                        foreach (var item in externalAttendess)
-                        {
-                            var pinRoom =_Random.Numeric(6).ToString();
-                            
-                            var attendance = new BookingInvitation
-                            {
-                                BookingId = bookingCollection.BookingId,
-                                Nik = item.Nik,
-                                Internal = 0,
-                                Email = item.Email,
-                                Name = item.Name,
-                                Company = item.Company, // alocationtype id
-                                Position = item.Position, // alocation id
-                                IsPic = 0,
-                                IsVip = 0,
-                                PinRoom = pinRoom,
-                                CreatedAt = now,
-                                CreatedBy = authUserNIK ?? "",
-                                UpdatedAt = now,
-                                UpdatedBy = authUserNIK ?? "",
-                                IsDeleted = 0,
-                            };
-
-                            attendanceCollections.Add(attendance);
-                        }
-                    }
-                    // .external attendees
-                    
-                    // .generate attendees
-
-                    // booking invoice stage
-                    // storing booking invoice data
-                    if (bookingInvoiceCollection != null)
-                    {
-                        await _bookingInvoiceRepo.Create(bookingInvoiceCollection);
-                    }
-
-                    // booking stage
-                    // storing booking data
-                    var booking = await _bookingRepo.Create(bookingCollection);
-
-                    // pantry stage
-                    if (pantryTransaksiCollection != null)
-                    {
-                        // storing transaction data
-                        await _pantryTransaksiRepo.AddAsync(pantryTransaksiCollection);
-
-                        if (pantryTransaksiDCollections.Any())
-                        {
-                            // storing transaction detail data
-                            await _pantryTransaksiDetailRepo.CreateBulk(pantryTransaksiDCollections);
-                        }
-                    }
-
-                    // attendess stage
-                    // storing attendees data
-                    if (attendanceCollections.Any())
-                    {
-                        await _bookingInvitationRepo.CreateBulk(attendanceCollections);
-                    }
-
-                    // TODO: send mail & notif stage
-
-                    scope.Complete();
-
-                    return ((booking != null) ? _mapper.Map<BookingViewModel>(booking) : null, "Get success");
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
+                return await createReserveTrainingRoom(request);
+            } else {
+                return await createReserveRoom(request);
             }
-
-            // return (null, "Failed to create booking");
         }
 
         public async Task<(IEnumerable<BookingViewModel>, int, int)> GetAllItemDataTablesAsync(BookingVMDataTableFR request)
@@ -539,6 +135,12 @@ namespace _3.BusinessLogic.Services.Implementation
             else if (authUserLevel == "2")
             {
                 entity.AuthUserNIK = authUserNIK;
+            }
+
+            if (!string.IsNullOrEmpty(request.SortColumn) && !string.IsNullOrEmpty(request.SortDir))
+            {
+                entity.SortColumn = request.SortColumn;
+                entity.SortDir = request.SortDir;
             }
 
             var (items, recordsTotal, recordsFiltered) = await _bookingRepo.GetAllItemWithEntityAsync(entity, request.Length, request.Start);
@@ -751,9 +353,6 @@ namespace _3.BusinessLogic.Services.Implementation
                 }
             }
 
-            // TODO: Is Merge Condition
-            // gak tau flownya gimana? karna saay buat reserve room tidak ada merge room
-
             if (string.IsNullOrEmpty(dataBooking?.RoomId))
             {
                 ret.Status = ReturnalType.Failed;
@@ -849,9 +448,6 @@ namespace _3.BusinessLogic.Services.Implementation
                     dataBooking.ServerStart = dataBooking.Start;
                     dataBooking.ServerEnd = dataBooking.End;
 
-                    // TODO: Is Merge Condition
-                    // gak tau flownya gimana? karna saay buat reserve room tidak ada merge room
-
                     // check room is available with the selected date and time
                     Booking bookingExistFilter = new Booking
                     {
@@ -897,19 +493,25 @@ namespace _3.BusinessLogic.Services.Implementation
 
                     await _bookingRepo.UpdateAsync(dataBooking);
 
-                    // TODO: send mail & notif stage
-
                     scope.Complete();
 
-                    ret.Collection = dataBooking;
+                    // ret.Collection = dataBooking;
 
-                    return ret;
+                    // return ret;
                 }
                 catch (Exception)
                 {
                     throw;
                 }
             }
+
+            // send mail
+            // Jalankan SendMailReschedule di latar belakang
+            await Task.Run(() => _emailService.SendMailReschedule(dataBooking.BookingId));
+
+            ret.Collection = dataBooking;
+
+            return ret;
 
         }
 
@@ -979,15 +581,7 @@ namespace _3.BusinessLogic.Services.Implementation
 
                     await _bookingRepo.UpdateAsync(dataBooking);
 
-                    // TODO: Insert Notif
-                    // gak tau flownya gimana? karna saay buat reserve room tidak ada insert notif
-
-                    // TODO: Send Mail
-                    // gak tau flownya gimana? karna saay buat reserve room tidak ada fungsi send mail
-
                     scope.Complete();
-
-                    return ret;
                 }
                 catch (Exception)
                 {
@@ -995,6 +589,108 @@ namespace _3.BusinessLogic.Services.Implementation
                 }
             }
 
+            // Send Mail
+            // Jalankan SendMailReschedule di latar belakang
+            await Task.Run(() => _emailService.SendMailCancellation(dataBooking.BookingId));
+
+            return ret;
+        }
+
+        public async Task<ReturnalModel> CancelAllBookingAsync(BookingVMCancelFR request)
+        {
+            ReturnalModel ret = new();
+
+            var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+
+            var now = DateTime.Now;
+
+            var modules = await getModules();
+
+            var dataBooking = await _bookingRepo.GetItemFilteredByBookingIdAsync(request.BookingId);
+
+            if (dataBooking == null 
+                || dataBooking.BookingType != "trainingroom" 
+                || dataBooking.RecurringId == null)
+            {
+                ret.Status = ReturnalType.Failed;
+                ret.Message = "Data booking not exist";
+                return ret;
+            }
+
+            var dataBookings = await _bookingRepo.GetItemFilteredByRecurringIdAsync(dataBooking.RecurringId);
+
+            if (!dataBookings.Any())
+            {
+                ret.Status = ReturnalType.Failed;
+                ret.Message = "Data booking not exist";
+                return ret;
+            }
+
+            var bookingIds = dataBookings.Select(q => q.BookingId).ToList();
+
+            using (var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            ))
+            {
+                try
+                {
+                    if (modules.ContainsKey("pantry") && modules["pantry"]?.IsEnabled == 1)
+                    {
+                        var setPantryConfig = await _settingPantryConfigRepository.GetSettingPantryConfigTopOne();
+
+                        var pantryBeforeOrderMeeting = setPantryConfig?.BeforeOrderMeeting ?? 0;
+
+                        var pantryTransaksiList = await _pantryTransaksiRepo.GetAllItemFilteredByEntity(new PantryTransaksi { BookingIds = bookingIds, Via = "booking", OrderSt = 0 });
+
+                        if (pantryTransaksiList.Count() > 0)
+                        {
+                            var pantryTransaksiStatus = await _pantryTransaksiStatusRepository.GetAllPantryTransaksiStatus(4);
+
+                            pantryTransaksiList = pantryTransaksiList.Select(q => {
+                                q.Via = "booking";
+                                q.OrderSt = (int)(pantryTransaksiStatus?.Id ?? 0);
+                                q.OrderStName = pantryTransaksiStatus?.Name ?? "";
+                                q.IsCanceled = 1;
+                                q.CanceledAt = now;
+                                q.CanceledBy = authUserNIK ?? "";
+                                return q;
+                            }).ToList();
+
+                            await _pantryTransaksiRepo.UpdateBulk(pantryTransaksiList);
+                        }
+                    }
+
+                    dataBookings = dataBookings.Select(q => {
+                        q.BookingDevices = "web";
+                        q.IsExpired = 0;
+                        q.IsCanceled = 1;
+                        q.IsRescheduled = 0;
+                        q.CanceledBy = authUserNIK ?? "";
+                        q.CanceledAt = now;
+                        q.CanceledNote = request.Reason ?? "";
+                        q.UpdatedAt = now;
+                        q.UpdatedBy = authUserNIK ?? "";
+                        q.IsDeleted = 0;
+                        return q;
+                    }).ToList();
+
+                    await _bookingRepo.UpdateBulk(dataBookings);
+
+                    scope.Complete();
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+
+            // Send Mail
+            // Jalankan SendMailReschedule di latar belakang
+            await Task.Run(() => _emailService.SendMailCancellationRecurring(dataBooking.RecurringId));
+
+            return ret;
         }
 
         public async Task<ReturnalModel> EndMeetingAsync(BookingVMEndMeetingFR request)
@@ -1205,6 +901,1477 @@ namespace _3.BusinessLogic.Services.Implementation
 
         }
 
+        public async Task<DataTableResponse> GetAllItemWithApprovalDataTablesAsync(BookingVMNeedApprovalDataTableFR request)
+        {            
+            var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+            var authUserLevel = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
+
+            var bookFilter = new BookingFilter();
+            
+            bookFilter.DateStart = request.StartDate;
+            bookFilter.DateEnd = request.EndDate;
+
+            if (request.RoomId != null)
+            {
+                bookFilter.RoomId = request.RoomId;
+            }
+
+            // bukan merupakan user admin
+            // if (authUserLevel != "1" && authUserLevel != "6")
+            if (authUserLevel != "1")
+            {
+                bookFilter.AuthUserNIK = authUserNIK;
+            }
+
+            var item = await _bookingRepo.GetAllApprovalItemWithEntityAsync(bookFilter, request.Length, request.Start);
+
+            var collections = _mapper.Map<List<BookingViewModel>>(item.Collections);
+
+            var userNiks = collections
+                .SelectMany(q => new[] { q.CreatedBy, q.UserApproval, q.CanceledBy })
+                .Where(s => !string.IsNullOrEmpty(s))
+                .Distinct()
+                .ToList();                
+
+            var employees = await _employeeRepo.GetNikEmployeeByPic(userNiks);
+
+            var no = request.Start + 1;
+            foreach (var collection in collections)
+            {
+                collection.No = no++;
+                collection.BookingDate = collection.Date.ToString("dd MMM yyyy");
+                collection.Time = $"{collection.Start:HH:mm} - {collection.End:HH:mm}";
+                collection.CreatedBy = employees.Where(q => q?.Nik == collection.CreatedBy).Select(q => q?.Name).FirstOrDefault() ?? string.Empty;
+                collection.UserApproval = employees.Where(q => q?.Nik == collection.UserApproval).Select(q => q?.Name).FirstOrDefault() ?? string.Empty;
+                collection.CanceledBy = employees.Where(q => q?.Nik == collection.CanceledBy).Select(q => q?.Name).FirstOrDefault() ?? string.Empty;
+            }
+
+            return new DataTableResponse
+            {
+                Draw = request.Draw,
+                RecordsTotal = item.RecordsTotal,
+                RecordsFiltered = item.RecordsFiltered,
+                Data = collections,
+            };
+        }
+
+        public async Task<ReturnalModel> ProcessMeetingApprovalAsync(BookingVMApprovalFR request)
+        {
+            ReturnalModel ret = new();
+
+            var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+
+            var now = DateTime.Now;
+
+
+            using (var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            ))
+            {
+                try
+                {
+                    var booking = await _bookingRepo.GetItemFilteredByBookingIdAsync(request.BookingId);
+
+                    if (booking == null) 
+                    {
+                        ret.Status = ReturnalType.Failed;
+                        ret.Message = "Data booking not exist";
+                        return ret;
+                    }
+
+                    booking.IsApprove = request.Approval;
+                    booking.UserApproval = authUserNIK ?? "";
+                    booking.UserApprovalDatetime = now;
+                    booking.UpdatedBy = authUserNIK ?? "";
+                    booking.UpdatedAt = now;
+                    booking.IsDeleted = 0;
+
+                    await _bookingRepo.Update(booking);
+
+                    if (request.Approval == 2) // reject
+                    {
+                        var pantryTransaksiStatus = await _pantryTransaksiStatusRepository.GetAllPantryTransaksiStatus(5);
+
+                        var pantryTransaksi = await _pantryTransaksiRepo.GetItemFilteredByBookingId(booking.BookingId);
+
+                        if (pantryTransaksi != null)
+                        {
+                            pantryTransaksi.OrderSt = (int)(pantryTransaksiStatus?.Id ?? 0);
+                            pantryTransaksi.OrderStName = pantryTransaksiStatus?.Name ?? "";
+                            pantryTransaksi.IsRejectedPantry = 1;
+                            pantryTransaksi.RejectedAt = now;
+                            pantryTransaksi.RejectedBy = authUserNIK ?? "";
+                            pantryTransaksi.RejectedPantryBy = authUserNIK ?? "";
+                            pantryTransaksi.NoteReject = "Meeting rejected";
+
+                            await _pantryTransaksiRepo.UpdateAsync(pantryTransaksi);
+
+                            var pantryTransaksiDs = await _pantryTransaksiDetailRepo.GetAllItemFilteredByTransaksiIdAsync(pantryTransaksi.Id!);
+
+                            if (pantryTransaksiDs.Any())
+                            {
+                                foreach (var item in pantryTransaksiDs)
+                                {
+                                    item.IsRejected = 1;
+                                    item.RejectedAt = now;
+                                    item.RejectedBy = authUserNIK ?? "";
+                                    item.NoteReject = "Meeting rejected";
+                                }
+
+                                await _pantryTransaksiDetailRepo.UpdateBulk(pantryTransaksiDs);
+                            }
+                        }
+                    }
+
+                    scope.Complete();
+
+                    ret.Message = "success";
+                    return ret;
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+        }
+
+        public async Task<ReturnalModel> ConfirmAttendanceAsync(BookingVMConfirmAttendanceFR request)
+        {
+            ReturnalModel ret = new();
+            
+            var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+            var now = DateTime.Now;
+
+            var dataBookingInvitation = await _bookingInvitationRepo.GetItemFilteredByBookingIdAndNik(request.BookingId, request.Nik);
+
+            if (dataBookingInvitation == null)
+            {
+                ret.Status = ReturnalType.Failed;
+                ret.Message = "Data participant not exist";
+                return ret;
+            }
+
+            using (var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            ))
+            {
+                try
+                {
+                    dataBookingInvitation.IsDeleted = 0;
+                    dataBookingInvitation.AttendanceStatus = request.AttendanceStatus;
+                    dataBookingInvitation.AttendanceReason = request.AttendanceReason;
+                    dataBookingInvitation.UpdatedAt = now;
+                    dataBookingInvitation.UpdatedBy = authUserNIK ?? "";
+                    
+                    await _bookingInvitationRepo.Update(dataBookingInvitation);
+
+                    scope.Complete();
+                    
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+            
+            // Jalankan SendMailAttendanceConfirmation di latar belakang
+            await Task.Run(() => _emailService.SendMailAttendanceConfirmation(request.BookingId, request.Nik, request.AttendanceStatus));
+            // _ = Task.Run(async () => await _emailService.SendMailAttendanceConfirmation(request.BookingId, request.Nik, request.AttendanceStatus));
+
+            return ret;
+        }
+
+        public async Task<ReturnalModel> AdditionalAttendeesAsync(BookingVMAdditionalAttendeesFR request)
+        {
+            ReturnalModel ret = new();
+            
+            var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+            var now = DateTime.Now;
+
+            var dataBooking = await _bookingRepo.GetItemFilteredByBookingIdAsync(request.BookingId);
+
+            if (dataBooking == null)
+            {
+                ret.Status = ReturnalType.Failed;
+                ret.Message = "Data booking not exist";
+                return ret;
+            }
+
+            var attendanceCollections = new List<BookingInvitation>();
+
+            using (var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            ))
+            {
+                try
+                {
+                    // generate attendees
+
+                    // internal attendees
+                    var internalAttendees = await generateInternalAttendees(request.InternalAttendees);
+                    if (internalAttendees.Any())
+                    {
+                        foreach (var item in internalAttendees)
+                        {
+                            var pinRoom =_Random.Numeric(6).ToString();
+
+                            var attendance = new BookingInvitation
+                            {
+                                BookingId = dataBooking.BookingId,
+                                Nik = item.Nik,
+                                Name = item.Name,
+                                IsVip = item.IsVip,
+                                Internal = 1,
+                                AttendanceStatus = 0,
+                                Email = item.Email,
+                                IsPic = 0,
+                                PinRoom = pinRoom,
+                                Company = item.CompanyName ?? "", // alocationtype name
+                                Position = item.DepartmentName, // alocation name
+                                CreatedAt = now,
+                                CreatedBy = authUserNIK ?? "",
+                                UpdatedAt = now,
+                                UpdatedBy = authUserNIK ?? "",
+                                IsDeleted = 0,
+                            };
+
+                            attendanceCollections.Add(attendance);
+                        }
+                    }
+                    // .internal attendees
+
+                    // external attendees
+                    var externalAttendess = generateExternalAttendees(request.ExternalAttendees);
+                    if (externalAttendess.Any())
+                    {
+                        foreach (var item in externalAttendess)
+                        {
+                            var pinRoom =_Random.Numeric(6).ToString();
+                            
+                            var attendance = new BookingInvitation
+                            {
+                                BookingId = dataBooking.BookingId,
+                                Nik = item.Nik,
+                                Internal = 0,
+                                Email = item.Email,
+                                Name = item.Name,
+                                Company = item.Company, // alocationtype id
+                                Position = item.Position, // alocation id
+                                IsPic = 0,
+                                IsVip = 0,
+                                PinRoom = pinRoom,
+                                CreatedAt = now,
+                                CreatedBy = authUserNIK ?? "",
+                                UpdatedAt = now,
+                                UpdatedBy = authUserNIK ?? "",
+                                IsDeleted = 0,
+                            };
+
+                            attendanceCollections.Add(attendance);
+                        }
+                    }
+                    // .external attendees
+                    
+                    // .generate attendees
+
+                    // attendess stage
+                    // storing attendees data
+                    if (attendanceCollections.Any())
+                    {
+                        await _bookingInvitationRepo.CreateBulk(attendanceCollections);
+                    }
+                    
+                    scope.Complete();
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+
+            // Send Mail
+            // Jalankan SendMailReschedule di latar belakang
+            List<string> emails = attendanceCollections.Select(q => q.Email).ToList();
+            await Task.Run(() => _emailService.SendMailInvitation(dataBooking.BookingId, emails));
+
+            return ret;
+        }
+
+        public async Task<ReturnalModel> GetOngoingBookingAsync()
+        {
+            ReturnalModel ret = new();
+
+            var ongoingBooking = await _bookingRepo.GetAllInProgressItemAsync();
+
+            ret.Collection = _mapper.Map<List<BookingViewModel>>(ongoingBooking);
+
+            return ret;
+        }
+
+        public async Task<ReturnalModel> CreateNewOrderAsync(BookingVMCreateNewOrderFR request)
+        {
+            ReturnalModel ret = new();
+
+            var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+            var now = DateTime.Now;
+            TimeZoneInfo localZone = TimeZoneInfo.Local;
+
+            var dataBooking = await _bookingRepo.GetItemFilteredByBookingIdAsync(request.BookingId);
+
+            if (dataBooking == null || dataBooking.End < now)
+            {
+                ret.Status = ReturnalType.Failed;
+                ret.Message = "Data booking not exist";
+                return ret;
+            }
+
+            using (var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            ))
+            {
+                try
+                {
+                    // config & settings
+                    var modules = await getModules();
+                    var setPantryConfig = await _settingPantryConfigRepository.GetSettingPantryConfigTopOne();
+                    var pantryExpired = setPantryConfig?.PantryExpired ?? 0;
+                    var pantryMaxOrderQty = setPantryConfig?.MaxOrderQty ?? 0;
+                    var pantryBeforeOrderMeeting = setPantryConfig?.BeforeOrderMeeting ?? 0;
+                    // .config & settings
+
+                    // pantry package (pantry menu)
+                    var pantryPackage = await _pantryMenuPaketRepo.GetPackageWithPantry(request.MeetingCategory);
+                    // .pantry package (pantry menu)
+
+                    // PIC
+                    var pic = await _bookingInvitationRepo.GetPicFilteredByBookingId(dataBooking.BookingId);
+                    // .PIC
+
+
+                    // generate pantry transaction & pantry transaction detail
+                    PantryTransaksi? pantryTransaksiCollection = null;
+                    List<PantryTransaksiD> pantryTransaksiDCollections = new List<PantryTransaksiD>();
+                    if (pantryPackage != null && setPantryConfig?.Status == 1 && modules.ContainsKey("pantry") && modules["pantry"]?.IsEnabled == 1)
+                    {
+                        var pantryTransaksiStatus = await _pantryTransaksiStatusRepository.GetAllPantryTransaksiStatus(0);
+
+                        // pantry detail (menu item)
+                        var pantryDetail = generatePantryTransaksiD(request.MenuItems);
+                        // .pantry detail (menu item)
+                        
+                        var orderPantryDateTime = dataBooking.Start;
+                        var orderPantryDateTimeBefore = orderPantryDateTime.AddMinutes(-pantryBeforeOrderMeeting);
+                        var orderPantryDate = dataBooking.Date.ToDateTime(TimeOnly.MinValue);
+
+                        var pantrTrxId = $"MEETING-{DateTime.Now:yyyyMMddHHmmss}{_Random.Numeric(3)}";
+                        var orderNo = generatePantryOrderNumber(pantryPackage.PantryId, orderPantryDate);
+
+                        pantryTransaksiCollection = new PantryTransaksi
+                        {
+                            Id = pantrTrxId,
+                            PantryId = pantryPackage.PantryId,
+                            RoomId = dataBooking.RoomId ?? "",
+                            PackageId = request.MeetingCategory,
+                            OrderNo = orderNo,
+                            EmployeeId = pic?.Nik ?? "",
+                            BookingId = dataBooking.BookingId,
+                            Via = "booking",
+                            Datetime = now,
+                            OrderDatetime = orderPantryDateTime,
+                            OrderDatetimeBefore = orderPantryDateTimeBefore,
+                            OrderSt = (int)(pantryTransaksiStatus?.Id ?? 0),
+                            OrderStName = pantryTransaksiStatus?.Name ?? "",
+                            Process = 0,
+                            Complete = 0,
+                            Failed = 0,
+                            Done = 0,
+                            Note = "",
+                            CreatedAt = now,
+                            IsDeleted = 0,
+
+                            UpdatedAt = now,
+                            UpdatedBy = authUserNIK ?? "",
+                            Timezone = localZone.Id,
+                            IsBlive = 0,
+                            
+                            ProcessBy = string.Empty,
+                            CompletedBy = string.Empty,
+
+                            IsRejectedPantry = 0,
+                            RejectedBy = string.Empty,
+                            NoteReject = string.Empty,
+                            
+                            CanceledBy = string.Empty,
+                            NoteCanceled = string.Empty,
+
+                            ExpiredAt = dataBooking.End
+                        };
+
+                        if (pantryDetail.Any())
+                        {
+                            foreach (var item in pantryDetail)
+                            {
+                                if (pantryMaxOrderQty < item.Qty)
+                                {
+                                    ret.Status = ReturnalType.Failed;
+                                    ret.Message = $"Orders per item exceed. Maximum quantity of {pantryMaxOrderQty}";
+                                    return ret;
+                                }
+
+                                PantryTransaksiD pantryTransaksiD = new PantryTransaksiD
+                                {
+                                    TransaksiId = pantrTrxId,
+                                    MenuId = item.MenuId,
+                                    Qty = item.Qty,
+                                    // NoteOrder = "Order Number: " + orderNo,
+                                    NoteOrder = item.Note,
+                                    NoteReject = string.Empty,
+                                    IsRejected = 0,
+                                    IsDeleted = 0,
+                                    Status = 0,
+
+                                    Detailorder = string.Empty,
+                                    RejectedBy = string.Empty,
+                                };
+
+                                pantryTransaksiDCollections.Add(pantryTransaksiD);
+                            }
+                        }
+                    }
+                    // .generate pantry transaction & pantry transaction detail
+
+                    // pantry stage
+                    if (pantryTransaksiCollection != null)
+                    {
+                        // storing transaction data
+                        await _pantryTransaksiRepo.AddAsync(pantryTransaksiCollection);
+
+                        if (pantryTransaksiDCollections.Any())
+                        {
+                            // storing transaction detail data
+                            await _pantryTransaksiDetailRepo.CreateBulk(pantryTransaksiDCollections);
+                        }
+                    }
+
+                    scope.Complete();   
+                    
+                    return ret;
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+        }
+
+        private async Task<(BookingViewModel?, string?)> createReserveRoom(BookingVMCreateReserveFR request)
+        {
+            Booking? booking = null;
+            using (var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            ))
+            {
+                try
+                {
+                    // from token
+                    var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+                    // .from token
+
+                    // id
+                    // string randomId = _Random.Numeric(10, true).ToString();
+                    string randomId = (await generateBookingId()).First();
+                    string id = randomId; // booking id
+                    string invoiceId = randomId;
+                    var roomId = request.RoomId;
+                    // .id
+
+                    // time
+                    DateTime now = DateTime.Now;
+                    var timeStart = TimeOnly.FromTimeSpan(request.Start);
+                    var timeEnd = TimeOnly.FromTimeSpan(request.End);
+
+                    var bookDate = request.Date;
+                    var bookStart = bookDate.ToDateTime(timeStart);
+                    var bookEnd = bookDate.ToDateTime(timeEnd);
+                    var bookDuration = bookEnd - bookStart;
+                    TimeZoneInfo localZone = TimeZoneInfo.Local;
+                    // .time
+
+                    // check available room
+                    var room = await CheckAvailableRoom(roomId, bookDate, bookStart, bookEnd);
+
+                    if (room == null)
+                    {
+                        return (null, "Room is not available");
+                    }
+                    // .check available room
+
+                    // config & settings
+                    var modules = await getModules();
+
+                    int modulesRoomAdvEnabled = modules.ContainsKey("room_adv") ? (modules["room_adv"]?.IsEnabled ?? 0) - 0 : 0;
+                    int modulesVipEnabled = modules.ContainsKey("vip") ? (modules["vip"]?.IsEnabled ?? 0) - 0 : 0;
+
+                    var statusInvoice = await getStatusInvoiceName();
+
+                    var alocation = await getBookingAlocation(request.AlocationId);
+
+                    var generalSetting = await _settingRuleBookingRepo.GetSettingRuleBookingTopOne();
+
+                    var setPantryConfig = await _settingPantryConfigRepository.GetSettingPantryConfigTopOne();
+                    var pantryExpired = setPantryConfig?.PantryExpired ?? 0;
+                    var pantryMaxOrderQty = setPantryConfig?.MaxOrderQty ?? 0;
+                    var pantryBeforeOrderMeeting = setPantryConfig?.BeforeOrderMeeting ?? 0;
+                    // .config & settings
+
+                    // module price setting
+                    var fHour = generalSetting?.Duration ?? 0;
+                    var duration = bookDuration.TotalMinutes;
+                    int reservationCost = 0;
+                    long cost = 0;
+                    double getHoursMeeting = 0;
+                    double checkHours = 0;
+                    if (modules.ContainsKey("price") && modules["price"]?.IsEnabled == 1)
+                    {
+                        cost = room.Price;
+                        getHoursMeeting = Math.Floor(duration / fHour);
+                        checkHours = duration % fHour;
+                        if (checkHours > 0)
+                        {
+                            getHoursMeeting += 1;
+                        }
+                        reservationCost = (int)(cost * getHoursMeeting);
+                    }
+                    // .module price setting
+
+                    // pic
+                    var pic = await _employeeRepo.GetItemByIdAsync(request.Pic);
+                    // .pic
+
+                    // pantry package (pantry menu)
+                    var pantryPackage = await _pantryMenuPaketRepo.GetPackageWithPantry(request.MeetingCategory);
+                    // .pantry package (pantry menu)
+
+                    // generate invoice
+                    string formatInvoice = string.Empty;
+                    BookingInvoice? bookingInvoiceCollection = null;
+                    if (modules.ContainsKey("invoice") && modules["invoice"]?.IsEnabled == 1)
+                    {
+                        if (modules.ContainsKey("price") && modules["price"]?.IsEnabled == 1)
+                        {
+                            var bookingDate = request.Date.ToDateTime(TimeOnly.MinValue); // parse date string to DateTime
+                            var years = bookingDate.Year; // get year from date
+                            var y_years = bookingDate.ToString("yy"); // get year in two digits from date
+                            var months = bookingDate.Month; // get month from date
+                            var days = bookingDate.Day; // get day from date
+
+                            string alocationOrderId = alocation != null ? alocation.Id + "-E-Meeting" : string.Empty;
+
+                            var bookingOrderNo = await generateBookingOrderNumber(years.ToString());
+                            formatInvoice = $"{bookingOrderNo}/{alocationOrderId}/{months}/{y_years}";
+                        }
+
+                        bookingInvoiceCollection = new BookingInvoice
+                        {
+                            InvoiceNo = invoiceId,
+                            InvoiceFormat = formatInvoice,
+                            BookingId = id,
+                            RentCost = reservationCost,
+                            Alocation = alocation?.Id ?? "",
+                            TimeBefore = now,
+                            CreatedAt = now,
+                            CreatedBy = authUserNIK ?? "",
+                            InvoiceStatus = "0",
+                            IsDeleted = 0,
+                        };
+                    }
+                    // generate invoice
+
+                    // generate booking
+                    Booking bookingCollection = new Booking
+                    {
+                        BookingId = id,
+                        BookingDevices = request.Device ?? "web",
+                        NoOrder = formatInvoice,
+                        Title = request.Title,
+                        RoomId = roomId,
+                        Date = bookDate,
+                        Start = bookStart,
+                        End = bookEnd,
+                        TotalDuration = (int)bookDuration.TotalMinutes,
+                        DurationPerMeeting = fHour,
+                        CostTotalBooking = reservationCost,
+                        AlocationId = request.AlocationId,
+                        AlocationName = request.AlocationName,
+                        Pic = pic!.Name ?? "",
+                        IsMeal = 0,
+                        IsAlive = request.BookingType != "specialroom" ? 1 : 0,
+                        IsDeleted = 0,
+                        IsRescheduled = 0,
+                        IsCanceled = 0,
+                        IsExpired = 0,
+                        IsDevice = 0,
+                        ExternalLink = request.ExternalLink,
+                        Note = request.Note ?? "",
+                        RoomName = room.Name,
+                        IsMerge = 0,
+                        MergeRoomName = "",
+                        MergeRoomId = "",
+                        MergeRoom = "",
+                        CreatedAt = now,
+                        CreatedBy = authUserNIK ?? "",
+                        UpdatedAt = now,
+                        UpdatedBy = authUserNIK ?? "",
+                        IsVip = 0,
+                        VipUser = "",
+                        IsApprove = 0,
+                        UserApproval = "",
+                        Category = (pantryPackage != null) ? (int)pantryPackage.PantryId : 0,
+                        Timezone = localZone.Id,
+                        IsPrivate = request.IsPrivate == "on" ? 1 : 0,
+                        ServerDate = bookStart,
+                        ServerStart = bookStart,
+                        ServerEnd = bookEnd,
+                        CanceledNote = "",
+                        EarlyEndedBy = "",
+                        ExpiredBy = "",
+                        RescheduledBy = "",
+                        CanceledBy = "",
+                        Participants = "",
+                        BookingType = request.BookingType,
+
+                        // bookingAdjustAdvanceMeeting
+                        IsConfigSettingEnable = room.IsConfigSettingEnable ?? 0,
+                        IsEnableApproval = room.IsEnableApproval ?? 0,
+                        IsEnablePermission = room.IsEnablePermission ?? 0,
+                        IsEnableRecurring = room.IsEnableRecurring ?? 0,
+                        IsEnableCheckin = room.IsEnableCheckin ?? 0,
+                        IsRealeaseCheckinTimeout = room.IsRealeaseCheckinTimeout ?? 0,
+                        IsEnableCheckinCount = room.IsEnableCheckinCount ?? 0, 
+                    };
+                    
+                    bookingCollection = await checkMeetingVipAndApprovalAccess(bookingCollection, room, modules);
+                    // .generate booking
+
+                    // generate pantry transaction & pantry transaction detail
+                    PantryTransaksi? pantryTransaksiCollection = null;
+                    List<PantryTransaksiD> pantryTransaksiDCollections = new List<PantryTransaksiD>();
+                    if (pantryPackage != null && setPantryConfig?.Status == 1 && modules.ContainsKey("pantry") && modules["pantry"]?.IsEnabled == 1)
+                    {
+                        var pantryTransaksiStatus = await _pantryTransaksiStatusRepository.GetAllPantryTransaksiStatus(0);
+
+                        // pantry detail (menu item)
+                        var pantryDetail = generatePantryTransaksiD(request.MenuItems);
+                        // .pantry detail (menu item)
+                        
+                        var orderPantryDateTime = DateTime.Parse($"{request.Date} {request.Start}");
+                        var orderPantryDateTimeBefore = orderPantryDateTime.AddMinutes(-pantryBeforeOrderMeeting);
+                        var orderPantryDate = request.Date.ToDateTime(TimeOnly.MinValue);
+
+                        var pantrTrxId = $"MEETING-{DateTime.Now:yyyyMMddHHmmss}{_Random.Numeric(3)}";
+                        var orderNo = generatePantryOrderNumber(pantryPackage.PantryId, orderPantryDate);
+
+                        pantryTransaksiCollection = new PantryTransaksi
+                        {
+                            Id = pantrTrxId,
+                            PantryId = pantryPackage.PantryId,
+                            RoomId = roomId,
+                            PackageId = request.MeetingCategory,
+                            OrderNo = orderNo,
+                            EmployeeId = pic?.Nik ?? "",
+                            BookingId = id,
+                            Via = "booking",
+                            Datetime = now,
+                            OrderDatetime = orderPantryDateTime,
+                            OrderDatetimeBefore = orderPantryDateTimeBefore,
+                            OrderSt = (int)(pantryTransaksiStatus?.Id ?? 0),
+                            OrderStName = pantryTransaksiStatus?.Name ?? "",
+                            Process = 0,
+                            Complete = 0,
+                            Failed = 0,
+                            Done = 0,
+                            Note = "",
+                            CreatedAt = now,
+                            IsDeleted = 0,
+
+                            UpdatedAt = now,
+                            UpdatedBy = authUserNIK ?? "",
+                            Timezone = localZone.Id,
+                            IsBlive = 0,
+                            
+                            ProcessBy = string.Empty,
+                            CompletedBy = string.Empty,
+
+                            IsRejectedPantry = 0,
+                            RejectedBy = string.Empty,
+                            NoteReject = string.Empty,
+                            
+                            CanceledBy = string.Empty,
+                            NoteCanceled = string.Empty,
+
+                            ExpiredAt = bookEnd
+                        };
+
+                        if (pantryDetail.Any())
+                        {
+                            foreach (var item in pantryDetail)
+                            {
+                                if (pantryMaxOrderQty < item.Qty)
+                                {
+                                    return (null, $"Orders per item exceed. Maximum quantity of {pantryMaxOrderQty}");
+                                }
+
+                                PantryTransaksiD pantryTransaksiD = new PantryTransaksiD
+                                {
+                                    TransaksiId = pantrTrxId,
+                                    MenuId = item.MenuId,
+                                    Qty = item.Qty,
+                                    // NoteOrder = "Order Number: " + orderNo,
+                                    NoteOrder = item.Note,
+                                    NoteReject = string.Empty,
+                                    IsRejected = 0,
+                                    IsDeleted = 0,
+                                    Status = 0,
+
+                                    Detailorder = string.Empty,
+                                    RejectedBy = string.Empty,
+                                };
+
+                                pantryTransaksiDCollections.Add(pantryTransaksiD);
+                            }
+                        }
+                    }
+                    // .generate pantry transaction & pantry transaction detail
+
+                    // generate attendees
+                    var attendanceCollections = new List<BookingInvitation>();
+
+                    // internal attendees
+                    var internalAttendees = await generateInternalAttendees(request.InternalAttendees);
+                    if (internalAttendees.Any())
+                    {
+                        foreach (var item in internalAttendees)
+                        {
+                            // var isPic = (item.Id == request.Pic) ? 1 : 0;
+                            var isPic = (item.Id == pic!.Id) ? 1 : 0;
+                            var pinRoom =_Random.Numeric(6).ToString();
+
+                            var attendance = new BookingInvitation
+                            {
+                                BookingId = bookingCollection.BookingId,
+                                Nik = item.Nik,
+                                Name = item.Name,
+                                IsVip = pic.Nik == bookingCollection.VipUser ? 0 : item.IsVip,
+                                Internal = 1,
+                                AttendanceStatus = 0,
+                                Email = item.Email,
+                                IsPic = (short)isPic,
+                                PinRoom = pinRoom,
+                                Company = item.CompanyName ?? "", // alocationtype name
+                                Position = item.DepartmentName, // alocation name
+                                CreatedAt = now,
+                                CreatedBy = authUserNIK ?? "",
+                                UpdatedAt = now,
+                                UpdatedBy = authUserNIK ?? "",
+                                IsDeleted = 0,
+                            };
+
+                            attendanceCollections.Add(attendance);
+                        }
+
+                        // buat data pic jika tidak ada pic pada internal attendees
+                        if (attendanceCollections.Where(q => q.IsPic == 1).FirstOrDefault() == null && pic != null)
+                        {
+                            attendanceCollections.Add(new BookingInvitation
+                            {
+                                BookingId = bookingCollection.BookingId,
+                                Nik = pic.Nik,
+                                Name = pic.Name ?? string.Empty,
+                                IsVip = pic.Nik == bookingCollection.VipUser ? 0 : pic.IsVip,
+                                Internal = 1,
+                                AttendanceStatus = 0,
+                                Email = pic.Email,
+                                IsPic = 1,
+                                PinRoom = _Random.Numeric(6).ToString(),
+                                Company = alocation?.TypeName ?? "", // alocationtype name
+                                Position = alocation?.Name, // alocation name
+                                CreatedAt = now,
+                                CreatedBy = authUserNIK ?? "",
+                                UpdatedAt = now,
+                                UpdatedBy = authUserNIK ?? "",
+                                IsDeleted = 0,
+                            });
+                        }
+                    } else if (pic != null) {
+                        attendanceCollections.Add(new BookingInvitation
+                        {
+                            BookingId = bookingCollection.BookingId,
+                            Nik = pic.Nik,
+                            Name = pic.Name ?? string.Empty,
+                            IsVip = pic.Nik == bookingCollection.VipUser ? 0 : pic.IsVip,
+                            Internal = 1,
+                            AttendanceStatus = 0,
+                            Email = pic.Email,
+                            IsPic = 1,
+                            PinRoom = _Random.Numeric(6).ToString(),
+                            Company = alocation?.TypeName ?? "", // alocationtype name
+                            Position = alocation?.Name, // alocation name
+                            CreatedAt = now,
+                            CreatedBy = authUserNIK ?? "",
+                            UpdatedAt = now,
+                            UpdatedBy = authUserNIK ?? "",
+                            IsDeleted = 0,
+                        });
+                    }
+                    // .internal attendees
+
+                    // external attendees
+                    var externalAttendess = generateExternalAttendees(request.ExternalAttendees);
+                    if (externalAttendess.Any())
+                    {
+                        foreach (var item in externalAttendess)
+                        {
+                            var pinRoom =_Random.Numeric(6).ToString();
+                            
+                            var attendance = new BookingInvitation
+                            {
+                                BookingId = bookingCollection.BookingId,
+                                Nik = item.Nik,
+                                Internal = 0,
+                                Email = item.Email,
+                                Name = item.Name,
+                                Company = item.Company, // alocationtype id
+                                Position = item.Position, // alocation id
+                                IsPic = 0,
+                                IsVip = 0,
+                                PinRoom = pinRoom,
+                                CreatedAt = now,
+                                CreatedBy = authUserNIK ?? "",
+                                UpdatedAt = now,
+                                UpdatedBy = authUserNIK ?? "",
+                                IsDeleted = 0,
+                            };
+
+                            attendanceCollections.Add(attendance);
+                        }
+                    }
+                    // .external attendees
+                    
+                    // .generate attendees
+
+                    // booking invoice stage
+                    // storing booking invoice data
+                    if (bookingInvoiceCollection != null)
+                    {
+                        await _bookingInvoiceRepo.Create(bookingInvoiceCollection);
+                    }
+
+                    // booking stage
+                    // storing booking data
+                    // var booking = await _bookingRepo.Create(bookingCollection);
+                    booking = await _bookingRepo.Create(bookingCollection);
+
+                    // pantry stage
+                    if (pantryTransaksiCollection != null)
+                    {
+                        // storing transaction data
+                        await _pantryTransaksiRepo.AddAsync(pantryTransaksiCollection);
+
+                        if (pantryTransaksiDCollections.Any())
+                        {
+                            // storing transaction detail data
+                            await _pantryTransaksiDetailRepo.CreateBulk(pantryTransaksiDCollections);
+                        }
+                    }
+
+                    // attendess stage
+                    // storing attendees data
+                    if (attendanceCollections.Any())
+                    {
+                        await _bookingInvitationRepo.CreateBulk(attendanceCollections);
+                    }
+
+
+                    scope.Complete();
+
+                    // return ((booking != null) ? _mapper.Map<BookingViewModel>(booking) : null, "Get success");
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+            
+            // send mail
+            // Jalankan SendMailInvitation di latar belakang
+            await Task.Run(() => _emailService.SendMailInvitation(booking!.BookingId));
+
+            return ((booking != null) ? _mapper.Map<BookingViewModel>(booking) : null, "Get success");
+        }
+        
+        private async Task<(BookingViewModel?, string?)> createReserveTrainingRoom(BookingVMCreateReserveFR request)
+        {
+
+            List<BookingInvoice> bookingInvoiceCollections = new List<BookingInvoice>();
+            List<Booking> bookingCollections = new List<Booking>();
+            List<PantryTransaksi> pantryTransaksiCollections = new List<PantryTransaksi>();
+            List<PantryTransaksiD> pantryTransaksiDCollections = new List<PantryTransaksiD>();
+            List<BookingInvitation> attendanceCollections = new List<BookingInvitation>();
+
+            string recurringId = await generateRecurringId();
+
+            using (var scope = new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+                TransactionScopeAsyncFlowOption.Enabled
+            ))
+            {
+                try
+                {
+            
+                    // from token
+                    var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+                    // .from token
+
+                    // time
+                    DateTime now = DateTime.Now;
+                    var timeStart = TimeOnly.FromTimeSpan(request.Start);
+                    var timeEnd = TimeOnly.FromTimeSpan(request.End);
+
+                    var bookDate = request.Date;
+                    var bookDateUntil = request.DateUntil;
+                    var bookFromDate = bookDate.ToDateTime(timeStart);
+                    var bookUntilDate = bookDateUntil.ToDateTime(timeEnd);
+                    // .time
+
+                    // check available room
+                    var roomId = request.RoomId;
+                    var room = await CheckAvailableRoom(roomId, DateOnly.MinValue, bookFromDate, bookUntilDate);
+
+                    if (room == null)
+                    {
+                        return (null, "Room is not available");
+                    }
+                    // .check available room
+                    
+                    List<DateOnly>? rangeDates = room.WorkDay != null ? getDateRangeByRoomWorkDay(bookFromDate, bookUntilDate, room.WorkDay) : new List<DateOnly>();
+
+                    if (!rangeDates.Any())
+                    {
+                        return (null, "Room work day is not available");
+                    }
+
+                    List<string> rangeYears = rangeDates.Select(q => q.Year.ToString()).Distinct().ToList();
+
+                    // generate ids
+                    List<string> randomIds = await generateBookingId(rangeDates.Count());
+                    List<string> pantrTrxIds = generateOrderId(rangeDates.Count());
+                    // .generate ids
+
+                    // config & settings
+                    var modules = await getModules();
+
+                    int modulesRoomAdvEnabled = modules.ContainsKey("room_adv") ? (modules["room_adv"]?.IsEnabled ?? 0) - 0 : 0;
+                    int modulesVipEnabled = modules.ContainsKey("vip") ? (modules["vip"]?.IsEnabled ?? 0) - 0 : 0;
+
+                    var statusInvoice = await getStatusInvoiceName();
+
+                    var alocation = await getBookingAlocation(request.AlocationId);
+
+                    var generalSetting = await _settingRuleBookingRepo.GetSettingRuleBookingTopOne();
+
+                    var setPantryConfig = await _settingPantryConfigRepository.GetSettingPantryConfigTopOne();
+                    var pantryExpired = setPantryConfig?.PantryExpired ?? 0;
+                    var pantryMaxOrderQty = setPantryConfig?.MaxOrderQty ?? 0;
+                    var pantryBeforeOrderMeeting = setPantryConfig?.BeforeOrderMeeting ?? 0;
+                    // .config & settings
+
+                    // pic
+                    var pic = await _employeeRepo.GetItemByIdAsync(request.Pic);
+                    // .pic
+
+                    // pantry package (pantry menu)
+                    var pantryPackage = await _pantryMenuPaketRepo.GetPackageWithPantry(request.MeetingCategory);
+                    // .pantry package (pantry menu)
+                    
+                    // time zone
+                    TimeZoneInfo localZone = TimeZoneInfo.Local;
+                    // .time zone
+
+                    var orderNoByYear = await generateBookingOrderNumberByYears(rangeYears);
+                    
+                    var internalAttendees = await generateInternalAttendees(request.InternalAttendees);
+                    var externalAttendess = generateExternalAttendees(request.ExternalAttendees);
+
+                    for (int i = 0; i < rangeDates.Count(); i++)
+                    {
+                        // id
+                        string randomId = randomIds[i];
+                        string id = randomId; // booking id
+                        string invoiceId = randomId;
+                        // .id
+
+                        // date room
+                        var bookStart = rangeDates[i].ToDateTime(timeStart);
+                        var bookEnd = rangeDates[i].ToDateTime(timeEnd);
+                        var bookDuration = bookEnd - bookStart;
+                        // .date room
+
+                        // module price setting
+                        var fHour = generalSetting?.Duration ?? 0;
+                        var duration = bookDuration.TotalMinutes;
+                        int reservationCost = 0;
+                        long cost = 0;
+                        double getHoursMeeting = 0;
+                        double checkHours = 0;
+                        if (modules.ContainsKey("price") && modules["price"]?.IsEnabled == 1)
+                        {
+                            cost = room.Price;
+                            getHoursMeeting = Math.Floor(duration / fHour);
+                            checkHours = duration % fHour;
+                            if (checkHours > 0)
+                            {
+                                getHoursMeeting += 1;
+                            }
+                            reservationCost = (int)(cost * getHoursMeeting);
+                        }
+                        // .module price setting
+
+                        // generate invoice
+                        string formatInvoice = string.Empty;
+                        if (modules.ContainsKey("invoice") && modules["invoice"]?.IsEnabled == 1)
+                        {
+                            if (modules.ContainsKey("price") && modules["price"]?.IsEnabled == 1)
+                            {
+                                // var bookingDate = request.Date.ToDateTime(TimeOnly.MinValue);
+                                var bookingDate = rangeDates[i].ToDateTime(TimeOnly.MinValue); // parse date string to DateTime
+                                var years = bookingDate.Year; // get year from date
+                                var y_years = bookingDate.ToString("yy"); // get year in two digits from date
+                                var months = bookingDate.Month; // get month from date
+                                var days = bookingDate.Day; // get day from date
+
+                                string alocationOrderId = alocation != null ? alocation.Id + "-E-Meeting" : string.Empty;
+
+                                var bookingOrderNo = orderNoByYear[years.ToString()].ToString("D3");
+
+                                formatInvoice = $"{bookingOrderNo}/{alocationOrderId}/{months}/{y_years}";
+
+                                orderNoByYear[years.ToString()]++;
+                            }
+
+                            var bookingInvoiceCollection = new BookingInvoice
+                            {
+                                InvoiceNo = invoiceId,
+                                InvoiceFormat = formatInvoice,
+                                BookingId = id,
+                                RentCost = reservationCost,
+                                Alocation = alocation?.Id ?? "",
+                                TimeBefore = now,
+                                CreatedAt = now,
+                                CreatedBy = authUserNIK ?? "",
+                                InvoiceStatus = "0",
+                                IsDeleted = 0,
+                            };
+
+                            bookingInvoiceCollections.Add(bookingInvoiceCollection);
+                        }
+                        // generate invoice
+
+                        // generate booking
+                        Booking bookingCollection = new Booking
+                        {
+                            BookingId = id,
+                            BookingDevices = request.Device ?? "web",
+                            NoOrder = formatInvoice,
+                            Title = request.Title,
+                            RoomId = roomId,
+                            Date = rangeDates[i],
+                            Start = bookStart,
+                            End = bookEnd,
+                            TotalDuration = (int)bookDuration.TotalMinutes,
+                            DurationPerMeeting = fHour,
+                            CostTotalBooking = reservationCost,
+                            AlocationId = request.AlocationId,
+                            AlocationName = request.AlocationName,
+                            Pic = pic!.Name ?? "",
+                            IsMeal = 0,
+                            IsAlive = request.BookingType != "specialroom" ? 1 : 0,
+                            IsDeleted = 0,
+                            IsRescheduled = 0,
+                            IsCanceled = 0,
+                            IsExpired = 0,
+                            IsDevice = 0,
+                            ExternalLink = request.ExternalLink,
+                            Note = request.Note ?? "",
+                            RoomName = room.Name,
+                            IsMerge = 0,
+                            MergeRoomName = "",
+                            MergeRoomId = "",
+                            MergeRoom = "",
+                            CreatedAt = now,
+                            CreatedBy = authUserNIK ?? "",
+                            UpdatedAt = now,
+                            UpdatedBy = authUserNIK ?? "",
+                            IsVip = 0,
+                            VipUser = "",
+                            IsApprove = 0,
+                            UserApproval = "",
+                            Category = (pantryPackage != null) ? (int)pantryPackage.PantryId : 0,
+                            Timezone = localZone.Id,
+                            IsPrivate = request.IsPrivate == "on" ? 1 : 0,
+                            ServerDate = bookStart,
+                            ServerStart = bookStart,
+                            ServerEnd = bookEnd,
+                            CanceledNote = "",
+                            EarlyEndedBy = "",
+                            ExpiredBy = "",
+                            RescheduledBy = "",
+                            CanceledBy = "",
+                            Participants = "",
+                            BookingType = request.BookingType,
+                            IsRecurring = 1,
+                            RecurringId = recurringId,
+
+                            // bookingAdjustAdvanceMeeting
+                            IsConfigSettingEnable = room.IsConfigSettingEnable ?? 0,
+                            IsEnableApproval = room.IsEnableApproval ?? 0,
+                            IsEnablePermission = room.IsEnablePermission ?? 0,
+                            IsEnableRecurring = room.IsEnableRecurring ?? 0,
+                            IsEnableCheckin = room.IsEnableCheckin ?? 0,
+                            IsRealeaseCheckinTimeout = room.IsRealeaseCheckinTimeout ?? 0,
+                            IsEnableCheckinCount = room.IsEnableCheckinCount ?? 0, 
+                        };
+                        
+                        bookingCollection = await checkMeetingVipAndApprovalAccess(bookingCollection, room, modules);
+
+                        bookingCollections.Add(bookingCollection);
+                        // .generate booking
+
+                        // generate pantry transaction & pantry transaction detail
+                        if (pantryPackage != null && setPantryConfig?.Status == 1 && modules.ContainsKey("pantry") && modules["pantry"]?.IsEnabled == 1)
+                        {
+                            var pantryTransaksiStatus = await _pantryTransaksiStatusRepository.GetAllPantryTransaksiStatus(0);
+
+                            // pantry detail (menu item)
+                            var pantryDetail = generatePantryTransaksiD(request.MenuItems);
+                            // .pantry detail (menu item)
+                            
+                            // var orderPantryDateTime = DateTime.Parse($"{request.Date} {request.Start}");
+                            var orderPantryDateTime = DateTime.Parse($"{rangeDates[i]} {timeStart}");
+                            var orderPantryDateTimeBefore = orderPantryDateTime.AddMinutes(-pantryBeforeOrderMeeting);
+                            var orderPantryDate = rangeDates[i].ToDateTime(TimeOnly.MinValue);
+
+                            // var pantrTrxId = $"MEETING-{DateTime.Now:yyyyMMddHHmmss}{_Random.Numeric(3)}";
+                            var pantrTrxId = pantrTrxIds[i];
+                            var orderNo = generatePantryOrderNumber(pantryPackage.PantryId, orderPantryDate);
+
+                            PantryTransaksi pantryTransaksiCollection = new PantryTransaksi
+                            {
+                                Id = pantrTrxId,
+                                PantryId = pantryPackage.PantryId,
+                                RoomId = roomId,
+                                PackageId = request.MeetingCategory,
+                                OrderNo = orderNo,
+                                EmployeeId = pic?.Nik ?? "",
+                                BookingId = id,
+                                Via = "booking",
+                                Datetime = now,
+                                OrderDatetime = orderPantryDateTime,
+                                OrderDatetimeBefore = orderPantryDateTimeBefore,
+                                OrderSt = (int)(pantryTransaksiStatus?.Id ?? 0),
+                                OrderStName = pantryTransaksiStatus?.Name ?? "",
+                                Process = 0,
+                                Complete = 0,
+                                Failed = 0,
+                                Done = 0,
+                                Note = "",
+                                CreatedAt = now,
+                                IsDeleted = 0,
+
+                                UpdatedAt = now,
+                                UpdatedBy = authUserNIK ?? "",
+                                Timezone = localZone.Id,
+                                IsBlive = 0,
+                                
+                                ProcessBy = string.Empty,
+                                CompletedBy = string.Empty,
+
+                                IsRejectedPantry = 0,
+                                RejectedBy = string.Empty,
+                                NoteReject = string.Empty,
+                                
+                                CanceledBy = string.Empty,
+                                NoteCanceled = string.Empty,
+
+                                ExpiredAt = bookEnd
+                            };
+
+                            pantryTransaksiCollections.Add(pantryTransaksiCollection);
+
+                            if (pantryDetail.Any())
+                            {
+                                foreach (var item in pantryDetail)
+                                {
+                                    if (pantryMaxOrderQty < item.Qty)
+                                    {
+                                        return (null, $"Orders per item exceed. Maximum quantity of {pantryMaxOrderQty}");
+                                    }
+
+                                    PantryTransaksiD pantryTransaksiD = new PantryTransaksiD
+                                    {
+                                        TransaksiId = pantrTrxId,
+                                        MenuId = item.MenuId,
+                                        Qty = item.Qty,
+                                        // NoteOrder = "Order Number: " + orderNo,
+                                        NoteOrder = item.Note,
+                                        NoteReject = string.Empty,
+                                        IsRejected = 0,
+                                        IsDeleted = 0,
+                                        Status = 0,
+
+                                        Detailorder = string.Empty,
+                                        RejectedBy = string.Empty,
+                                    };
+
+                                    pantryTransaksiDCollections.Add(pantryTransaksiD);
+                                }
+                            }
+                        }
+                        // .generate pantry transaction & pantry transaction detail
+                    
+                        // generate attendees
+
+                        // internal attendees
+                        if (internalAttendees.Any())
+                        {
+                            foreach (var item in internalAttendees)
+                            {
+                                // var isPic = (item.Id == request.Pic) ? 1 : 0;
+                                var isPic = (item.Id == pic!.Id) ? 1 : 0;
+                                var pinRoom =_Random.Numeric(6).ToString();
+
+                                var attendance = new BookingInvitation
+                                {
+                                    BookingId = bookingCollection.BookingId,
+                                    Nik = item.Nik,
+                                    Name = item.Name,
+                                    IsVip = pic.Nik == bookingCollection.VipUser ? 0 : item.IsVip,
+                                    Internal = 1,
+                                    AttendanceStatus = 0,
+                                    Email = item.Email,
+                                    IsPic = (short)isPic,
+                                    PinRoom = pinRoom,
+                                    Company = item.CompanyName ?? "", // alocationtype name
+                                    Position = item.DepartmentName, // alocation name
+                                    CreatedAt = now,
+                                    CreatedBy = authUserNIK ?? "",
+                                    UpdatedAt = now,
+                                    UpdatedBy = authUserNIK ?? "",
+                                    IsDeleted = 0,
+                                };
+
+                                attendanceCollections.Add(attendance);
+                            }
+
+                            // buat data pic jika tidak ada pic pada internal attendees
+                            if (attendanceCollections.Where(q => q.IsPic == 1).FirstOrDefault() == null && pic != null)
+                            {
+                                attendanceCollections.Add(new BookingInvitation
+                                {
+                                    BookingId = bookingCollection.BookingId,
+                                    Nik = pic.Nik,
+                                    Name = pic.Name ?? string.Empty,
+                                    IsVip = pic.Nik == bookingCollection.VipUser ? 0 : pic.IsVip,
+                                    Internal = 1,
+                                    AttendanceStatus = 0,
+                                    Email = pic.Email,
+                                    IsPic = 1,
+                                    PinRoom = _Random.Numeric(6).ToString(),
+                                    Company = alocation?.TypeName ?? "", // alocationtype name
+                                    Position = alocation?.Name, // alocation name
+                                    CreatedAt = now,
+                                    CreatedBy = authUserNIK ?? "",
+                                    UpdatedAt = now,
+                                    UpdatedBy = authUserNIK ?? "",
+                                    IsDeleted = 0,
+                                });
+                            }
+                        } else if (pic != null) {
+                            attendanceCollections.Add(new BookingInvitation
+                            {
+                                BookingId = bookingCollection.BookingId,
+                                Nik = pic.Nik,
+                                Name = pic.Name ?? string.Empty,
+                                IsVip = pic.Nik == bookingCollection.VipUser ? 0 : pic.IsVip,
+                                Internal = 1,
+                                AttendanceStatus = 0,
+                                Email = pic.Email,
+                                IsPic = 1,
+                                PinRoom = _Random.Numeric(6).ToString(),
+                                Company = alocation?.TypeName ?? "", // alocationtype name
+                                Position = alocation?.Name, // alocation name
+                                CreatedAt = now,
+                                CreatedBy = authUserNIK ?? "",
+                                UpdatedAt = now,
+                                UpdatedBy = authUserNIK ?? "",
+                                IsDeleted = 0,
+                            });
+                        }
+                        // .internal attendees
+
+                        // external attendees
+                        if (externalAttendess.Any())
+                        {
+                            foreach (var item in externalAttendess)
+                            {
+                                var pinRoom =_Random.Numeric(6).ToString();
+                                
+                                var attendance = new BookingInvitation
+                                {
+                                    BookingId = bookingCollection.BookingId,
+                                    Nik = item.Nik,
+                                    Internal = 0,
+                                    Email = item.Email,
+                                    Name = item.Name,
+                                    Company = item.Company, // alocationtype id
+                                    Position = item.Position, // alocation id
+                                    IsPic = 0,
+                                    IsVip = 0,
+                                    PinRoom = pinRoom,
+                                    CreatedAt = now,
+                                    CreatedBy = authUserNIK ?? "",
+                                    UpdatedAt = now,
+                                    UpdatedBy = authUserNIK ?? "",
+                                    IsDeleted = 0,
+                                };
+
+                                attendanceCollections.Add(attendance);
+                            }
+                        }
+                        // .external attendees
+                        
+                        // .generate attendees
+                    }
+
+                    // booking invoice stage
+                    // storing booking invoice data
+                    if (bookingInvoiceCollections.Any())
+                    {
+                        await _bookingInvoiceRepo.CreateBulk(bookingInvoiceCollections);
+                    }
+
+                    // booking stage
+                    // storing booking data
+                    // var booking = await _bookingRepo.Create(bookingCollection);
+                    if (bookingCollections.Any())
+                    {
+                        await _bookingRepo.CreateBulk(bookingCollections);
+                    }
+
+                    // pantry stage
+                    if (pantryTransaksiCollections.Any())
+                    {
+                        // storing transaction data
+                        await _pantryTransaksiRepo.CreateBulk(pantryTransaksiCollections);
+
+                        if (pantryTransaksiDCollections.Any())
+                        {
+                            // storing transaction detail data
+                            await _pantryTransaksiDetailRepo.CreateBulk(pantryTransaksiDCollections);
+                        }
+                    }
+
+                    // attendess stage
+                    // storing attendees data
+                    if (attendanceCollections.Any())
+                    {
+                        await _bookingInvitationRepo.CreateBulk(attendanceCollections);
+                    }
+
+                    scope.Complete();
+
+                    // return ((booking != null) ? _mapper.Map<BookingViewModel>(booking) : null, "Get success");
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+            
+            // send mail
+            // Jalankan SendMailInvitationRecurring di latar belakang
+            await Task.Run(() => _emailService.SendMailInvitationRecurring(recurringId));
+
+            var booking = bookingCollections.FirstOrDefault();
+            return ((booking != null) ? _mapper.Map<BookingViewModel>(booking) : null, "Get success");
+        }
+
+        private async Task<List<string>> generateBookingId(int total = 1)
+        {
+            List<string> bookingIds = new List<string>();
+
+            for (int i = 0; i < total; i++)
+            {
+                string bookingId = "";
+                bool isExist = true;
+
+                while (isExist)
+                {
+                    bookingId = _Random.Numeric(10, true).ToString();
+                    int count = await _bookingRepo.GetCountFilteredByBookingId(bookingId);
+                    isExist = count > 0 ? true : false;
+                }
+
+                bookingIds.Add(bookingId);
+            }
+
+            return bookingIds;
+        }
+
+        private async Task<string> generateRecurringId(int total = 1)
+        {
+            string recurringId = string.Empty;
+            bool isExist = true;
+
+            while (isExist)
+            {
+                recurringId = _Random.Numeric(10, true).ToString();
+                int count = await _bookingRepo.GetCountFilteredByBookingId(recurringId);
+                isExist = count > 0 ? true : false;
+            }
+
+            return recurringId;
+        }
+
+        private List<string> generateOrderId(int total = 1)
+        {
+            List<string> orderIds = new List<string>();
+            bool isExist = true;
+            for (int i = 0; i < total; i++)
+            {
+                string orderId = string.Empty;
+                while (isExist)
+                {
+                    orderId = $"MEETING-{DateTime.Now:yyyyMMddHHmmss}{_Random.Numeric(3)}";
+                    isExist = orderIds.Any() && orderIds.Contains(orderId) ? true : false;
+                }
+                orderIds.Add(orderId);
+                isExist = true;
+            }
+
+            return orderIds;
+        }
+        
         private async Task<IEnumerable<EmployeeVMResp>> generateInternalAttendees(string[] request)
         {
             IEnumerable<EmployeeVMResp> internalAttendees = new List<EmployeeVMResp>();
@@ -1328,10 +2495,26 @@ namespace _3.BusinessLogic.Services.Implementation
             Room cRoom = new Room
             {
                 Radid = roomId,
-                WorkDay = new List<string> { _String.ToDayName(bookDate.ToString("yyyy-MM-dd")) },
+                // WorkDay = new List<string> { _String.ToDayName(bookDate.ToString("yyyy-MM-dd")) },
                 WorkStart = bookStart.ToString("HH:mm:ss") ?? "00:00:00",
                 WorkEnd = bookEnd.ToString("HH:mm:ss") ?? "23:59:00",
             };
+
+            if (bookDate != DateOnly.MinValue)
+            {
+                cRoom.WorkDay = new List<string> { _String.ToDayName(bookDate.ToString("yyyy-MM-dd")) };
+            }
+            else
+            {
+                var workDay = Enumerable
+                    .Range(0, (bookEnd - bookStart).Days + 1)
+                    .Select(offset => bookStart.AddDays(offset).ToString("dddd").ToUpper())
+                    .Distinct()
+                    .ToList();
+
+                cRoom.WorkDay = workDay;
+            }
+
             var roomExist = await _roomRepo.GetAllRoomAvailableAsync(cRoom);
 
             if (!roomExist.Any())
@@ -1388,6 +2571,20 @@ namespace _3.BusinessLogic.Services.Implementation
             }
         }
 
+        private async Task<Dictionary<string, int>> generateBookingOrderNumberByYears(List<string> years)
+        {
+            Dictionary<string, int> orderNumbers = new Dictionary<string, int>();
+
+            foreach (var year in years)
+            {
+                var maxOrderNo = (await _bookingRepo.GetMaxOrderNumberAsync(year))?.NoOrder;
+                int orderNo = !string.IsNullOrEmpty(maxOrderNo) ? int.Parse(maxOrderNo.Split('/')[0]) + 1 : 1;
+                orderNumbers.Add(year, orderNo);
+            }
+
+            return orderNumbers;
+        }
+
         private async Task<Booking> checkMeetingVipAndApprovalAccess(Booking booking, RoomViewModelAlt room, Dictionary<string, ModuleBackend?>? modules)
         {
             var authUserId = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -1420,7 +2617,7 @@ namespace _3.BusinessLogic.Services.Implementation
 
             booking.IsApprove = 0;
             booking.UserApproval = "";
-            if ((booking.IsVip == 1 && booking.VipApproveBypass == 1) || room.IsEnableApproval == 0)
+            if ((booking.IsVip == 1 && booking.VipApproveBypass == 1) || room.IsEnableApproval == 0 || room.IsEnableApproval == null)
             {
                 booking.IsApprove = 1;
                 booking.UserApproval = authUser?.Nik ?? "";
@@ -1444,6 +2641,17 @@ namespace _3.BusinessLogic.Services.Implementation
             // booking.IsApprove = 1;
             // booking.UserApproval = booking.VipUser;
             return booking;
+        }
+    
+        private List<DateOnly> getDateRangeByRoomWorkDay(DateTime start, DateTime end, List<string> days)
+        {
+            HashSet<DayOfWeek> targetDays = new HashSet<DayOfWeek>(days.Select(d => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), d, true)));
+            
+            return Enumerable.Range(0, (end - start).Days + 1)
+                            .Select(offset => DateOnly.FromDateTime(start.AddDays(offset)))
+                            .Where(date => targetDays.Contains(date.DayOfWeek))
+                            .Distinct()
+                            .ToList();
         }
     }
 }

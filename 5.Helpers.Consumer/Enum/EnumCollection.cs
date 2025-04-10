@@ -6,6 +6,22 @@ public static class Gender
     public const string Female = "FEMALE";
     public const string Other = "OTHER";
 }
+
+public static class DefaultPin
+{
+    public const string Id1 = "667928";
+    public const string Id2 = "882915";
+    public const string Id3 = "882914";
+    public const string Id4 = "882913";
+    public const string Id5 = "882912";
+    public const string Id6 = "882911";
+    public const string Id7 = "528974";
+
+    public static readonly string[] Values =
+    {
+        Id1, Id2, Id3, Id4, Id5, Id6, Id7
+    };
+}
 public static class EnumStatus
 {
     public const string Failed = "FAILED";
@@ -55,6 +71,21 @@ public static class EnumBookingTypeRoom
 {
     public const string AllRoom = "allroom";
     public const string Receptionist = "receptionist";
+}
+public static class EnumAccessControlType
+{
+    public const string Falco = "falco";
+    public const string FalcoId = "falcoid";
+    public const string CustId = "custid";
+    public const string EntryPassId = "entrypassid";
+    public const string Custom = "custom";
+}
+
+
+public static class EnumAccessControlModelControl
+{
+    public const string Reader = "reader";
+    public const string FaceReader = "face_reader";
 }
 
 public enum AlarmLevel : int
@@ -202,4 +233,25 @@ public static class ReturnalType
     public const string Forbidden = "forbidden";
     public const string UnderConstruction = "under_construction";
     public const string UnAuthorized = "Token must be provided";
+}
+
+public static class HelpItGaStatus
+{
+    public const string Pending = "pending";
+    public const string Process = "process";
+    public const string Reject = "reject";
+    public const string Done = "done";
+}
+
+public static class HelpItGaType
+{
+    public const string IT = "it";
+    public const string GA = "ga";
+}
+
+public static class HelpItGaProblemReason
+{
+    public const string Comfort = "comfort";
+    public const string Connection = "connection";
+    public const string Facility = "facility";
 }

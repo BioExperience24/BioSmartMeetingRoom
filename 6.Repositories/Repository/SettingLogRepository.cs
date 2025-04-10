@@ -85,5 +85,13 @@ namespace _6.Repositories.Repository
 
             return true;
         }
+
+
+        public async Task<List<SettingLogConfig>> GetListByIdAsync(long id)
+        {
+            return await _dbContext.SettingLogConfigs
+                            .Where(e => e.Id == id && e.IsDeleted == 0)
+                            .ToListAsync(); 
+        }
     }
 }

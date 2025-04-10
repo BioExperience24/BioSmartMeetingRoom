@@ -1,0 +1,71 @@
+@page "/approval-order"
+@model _1.PAMA.Razor.Views.Pages.ApprovalOrder.IndexModel
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["PageName"] = "Approval Order";
+}
+
+@section Styles
+{
+    <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="~/assets/external/daterangepicker/daterangepicker.css" rel="stylesheet" />
+    <style>
+        .swal-wide {
+            width:950px !important;
+        }
+    </style>
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="block-header">
+            <h2>@ViewData["PageName"]</h2>
+        </div>
+        <div class="row clearfix">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="body">
+                        <ul class="nav nav-tabs tab-nav-right" role="tablist">
+                            <li role="presentation" class="active" ><a href="#approval" data-toggle="tab" >Approval</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane fade in active" id="approval">
+                                @await Html.PartialAsync("ApprovalOrder/Components/Filter")
+                                @await Html.PartialAsync("ApprovalOrder/Components/Table")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- base url -->
+<input type="hidden" id="id_baseurl" value="@Model.ApiUrl">
+<input type="hidden" id="id_appurl" value="@Model.AppUrl">
+
+@section Scripts
+{
+    <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
+    <script src="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
+    <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.min.js"></script>
+    <!-- Moment Plugin Js -->
+    <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
+    <script src="~/assets/theme/plugins/momentjs/moment-timezone.js"></script>
+    <script src="~/assets/theme/plugins/momentjs/moment-timezone-data.min.js"></script>
+    <script src="~/assets/external/daterangepicker/daterangepicker.js"></script>
+    <script src="~/assets/external/numeral/numeral.min.js"></script>
+    <script src="~/assets/external/numeral/locale.id.js"></script>
+    <script type="text/javascript">
+        const ajax = {
+            url : {
+                get_pantry_packages : "@Model.PantryPackages",
+                get_pantrytransaksi_approval_datatables : "@Model.GetBookingWithApprovalDataTables",
+                post_process_order_approval : "@Model.ProcessOrderApproval",
+                get_order_detail : "@Model.GetOrderDetail",
+            }
+        };
+    </script>
+    <script src="~/assets/process/approval/order/index.js" asp-append-version="true"></script>
+}

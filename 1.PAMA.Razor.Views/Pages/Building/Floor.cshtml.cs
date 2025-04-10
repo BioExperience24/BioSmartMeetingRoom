@@ -3,6 +3,7 @@ using _1.PAMA.Razor.Views.Attributes;
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer._Encryption;
+using _5.Helpers.Consumer._Encryption._Secure;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,11 @@ namespace _1.PAMA.Razor.Views.Pages.Building
 {
     [Authorize]
     [PermissionAccess("/building")]
-    public class FloorModel(IConfiguration config, IBuildingService service) : PageModel
+    public class FloorModel(IConfiguration config, IBuildingService service, ISecureService secureService) : PageModel
     {
         private readonly IConfiguration _config = config;
         private readonly IBuildingService _service = service;
+        private readonly ISecureService _secureService = secureService;
 
         private readonly _Aes _aes = new _Aes(config["EncryptSetting:AesKeyEncryptor"] ?? "SUp3RsEcr3tKeY!!");
 
@@ -38,7 +40,8 @@ namespace _1.PAMA.Razor.Views.Pages.Building
         public async Task<IActionResult?> OnGetAsync()
         {
             BuildingEncId = BuildingEncId.Replace(" ", "+");
-            BuildingId = Convert.ToInt64(_aes.Decrypt(BuildingEncId));
+            BuildingId = Convert.ToInt64(_secureService.Decrypt(BuildingEncId));
+            // BuildingId = Convert.ToInt64(_aes.Decrypt(BuildingEncId));
 
             var building = await _service.GetItemByIdAsync(BuildingId);
             if (building == null)

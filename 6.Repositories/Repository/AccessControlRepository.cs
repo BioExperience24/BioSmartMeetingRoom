@@ -137,6 +137,38 @@ public class AccessControlRepository : BaseRepository<AccessControl>
         
         return list;
     }
+
+    public async Task<DoorAccessDto> CheckDataDoorOpen(string radId, string model = "")
+    {
+        var query = from accessControl in _dbContext.AccessControls
+                    from accessIntegrated in _dbContext.AccessIntegrateds
+                            .Where(q => q.AccessId == accessControl.Id).DefaultIfEmpty()
+                    where accessControl.IsDeleted == 0 && accessIntegrated.RoomId == radId
+                    select new DoorAccessDto
+                    {
+                        RoomId = accessIntegrated.RoomId ?? string.Empty,
+                        Id = accessControl.Id ?? string.Empty,
+                        AccessId = accessControl.AccessId ?? string.Empty,
+                        Type = accessControl.Type ?? string.Empty,
+                        IpController = accessControl.IpController ?? "0.0.0.0",
+                        Delay = accessControl.Delay,
+                        Channel = accessControl.Channel,
+                        Name = accessControl.Name ?? string.Empty,
+                        ModelController = accessControl.ModelController ?? "reader"
+                    };
+
+        // Apply filtering if model is not empty
+        if (!string.IsNullOrEmpty(model))
+        {
+            query = query.Where(q => q.ModelController == model);
+        }
+
+        var data = await query.FirstOrDefaultAsync();
+
+        return data!;
+    }
+
+
 }
 
 public class AccessControlConfiguration : IEntityTypeConfiguration<AccessControl>

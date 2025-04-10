@@ -40,7 +40,7 @@
                             }
                             else
                             {
-                                <img src="" id="id_pic_preview" style="height: 100px;">
+                                <img src="~/media/bg_logo_company.jpg" id="id_pic_preview" style="height: 100px;">
                             }
                         </div>
                         <p align="center"><br>Maximum size <b>8MB</b> </p>
@@ -83,7 +83,7 @@
                             }
                             else
                             {
-                                <img src="" id="id_icon_preview" style="height: 100px;">
+                                <img src="~/media/icon_logo_company.png" id="id_icon_preview" style="height: 100px;">
                             }
                         </div>
 
@@ -127,7 +127,7 @@
                             }
                             else
                             {
-                                <img src="" id="id_logo_preview" style="height: 100px;">
+                                <img src="~/media/logo_company.png" id="id_logo_preview" style="height: 100px;">
                             }
                         </div>
 
@@ -172,7 +172,7 @@
                             }
                             else
                             {
-                                <img src="" id="id_menu_preview" style="height: 100px;">
+                                <img src="~/media/menu_logo_company.png" id="id_menu_preview" style="height: 100px;">
                             }
                         </div>
 
@@ -322,17 +322,18 @@
                 console.log(parseC);
                 if(parseC.picture == ""){
                     gBeforImage = "http://placehold.it/500x300";
-                    $('#id_pic_preview').prop("src", gBeforImage);
+                    // $('#id_pic_preview').prop("src", gBeforImage);
                 }else{
                     @* gBeforImage =bs +"assets/file/company/" +parseC.picture; *@
                     gBeforImage = parseC.picture;
-                    $('#id_pic_preview').prop("src", gBeforImage);
-                    @* $('#id_logo_preview').prop("src", bs +"assets/file/company/" + parseC.logo);
-                    $('#id_icon_preview').prop("src", bs +"assets/file/company/" + parseC.icon);
-                    $('#id_menu_preview').prop("src", bs +"assets/file/company/" + parseC.menu_bar); *@
-                    $('#id_logo_preview').prop("src", parseC.logo);
-                    $('#id_icon_preview').prop("src", parseC.icon);
-                    $('#id_menu_preview').prop("src", parseC.menu_bar);
+                    // $('#id_pic_preview').prop("src", "~/media/bg_logo_company.jpg");
+                    // $('#id_icon_preview').prop("src", "~/media/icon_logo_company.png");
+                    // $('#id_logo_preview').prop("src", "~/media/logo_company.png");
+                    // $('#id_menu_preview').prop("src", "~/media/menu_logo_company.png");
+
+                    // $('#id_logo_preview').prop("src", parseC.logo);
+                    // $('#id_icon_preview').prop("src", parseC.icon);
+                    // $('#id_menu_preview').prop("src", parseC.menu_bar);
                 }
             }catch(error){
                 gBeforImage = "http://placehold.it/500x300";

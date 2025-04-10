@@ -20,5 +20,10 @@ namespace _5.Helpers.Consumer._Common
         {
             return date.ToDateTime(time);
         }
+
+        public static string Format(DateTime dateTime, string format = "dd MMMM yyyy HH:mm:ss")
+        {
+            return dateTime != DateTime.MinValue ? dateTime.ToString("dd MMMM yyyy HH:mm:ss") : "";
+        }
     }
 }

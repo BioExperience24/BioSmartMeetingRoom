@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace _1.PAMA.Razor.Views.Pages.Integration;
 
     [Authorize]
+    [RejectWebviewUser]
     [PermissionAccess]
     public class IndexModel(
         IConfiguration config

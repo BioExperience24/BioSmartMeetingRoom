@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace _4.Data.ViewModels;
 
@@ -194,6 +195,8 @@ public class PantryTransactionDetail
 
     [JsonPropertyName("expired_at")]
     public DateTime? ExpiredAt { get; set; }
+    [JsonPropertyName("updated_at")]
+    public DateTime? UpdatedAt { get; set; }
 
     [JsonPropertyName("order_datetime")]
 
@@ -285,4 +288,116 @@ public class PantryTransactionMobileHistory
 
     [JsonPropertyName("process_pantry_by_name")]
     public string ProcessPantryByName { get; set; }
+}
+
+public class PantryTransaksiVMNeedApprovalDataTableFR : DataTableViewModel
+{
+    [FromQuery(Name = "start_date")]
+    public DateOnly StartDate { get; set; }
+
+    [FromQuery(Name = "end_date")]
+    public DateOnly EndDate { get; set; }
+
+    [FromQuery(Name = "package_id")]
+    public string PackageId { get; set; } = string.Empty;
+}
+
+public class PantryTransaksiVMApporval : PantryTransaksiViewModel
+{
+    [JsonPropertyName("no")]
+    public int No { get; set; }
+
+    [JsonPropertyName("booking_room_name")]
+    public string? BookingRoomName { get; set; }
+    
+    [JsonPropertyName("booking_title")]
+    public string? BookingTitle { get; set; }
+
+    [JsonPropertyName("booking_is_approve")]
+    public int? BookingIsApprove { get; set; }
+    
+    [JsonPropertyName("booking_is_canceled")]
+    public int? BookingIsCanceled { get; set; }
+
+    [JsonPropertyName("booking_date")]
+    public DateOnly? BookingDate { get; set; }
+
+    [JsonPropertyName("booking_start")]
+    public DateTime? BookingStart { get; set; }
+
+    [JsonPropertyName("booking_end")]
+    public DateTime? BookingEnd { get; set; }
+}
+
+public class PantryTransaksiVMProcessApproval
+{
+    [BindProperty(Name = "id")]
+    public string Id { get; set; } = string.Empty;
+
+    [BindProperty(Name = "approval")]
+    public int Approval { get; set; }
+
+    [BindProperty(Name = "note")]
+    public string Note { get; set; } = string.Empty;
+}
+
+public class PantryTransaksiVMProcessCancel
+{
+    [BindProperty(Name = "id")]
+    public string Id { get; set; } = string.Empty;
+
+    [BindProperty(Name = "note")]
+    public string Note { get; set; } = string.Empty;
+}
+
+public class PantryTransaksiVMOrderApproval
+{
+    [JsonPropertyName("pantry_package_name")]
+    public string PantryPackageName { get; set; } = string.Empty;
+    [JsonPropertyName("pantry_transaksi_id")]
+    public string PantryTransaksiId { get; set; } = string.Empty;
+
+    // [JsonPropertyName("booking_id")]
+    // public string BookingId { get; set; } = string.Empty;
+
+    // [JsonPropertyName("room_id")]
+    // public string RoomId { get; set; } = string.Empty;
+
+    [JsonPropertyName("booking_title")]
+    public string BookingTitle { get; set; } = string.Empty;
+
+    [JsonPropertyName("room_name")]
+    public string RoomName { get; set; } = string.Empty;
+
+    [JsonPropertyName("building_name")]
+    public string BuildingName { get; set; } = string.Empty;
+
+    [JsonPropertyName("building_floor_name")]
+    public string BuildingFloorName { get; set; } = string.Empty;
+
+    [JsonPropertyName("employee_organize")]
+    public string EmployeeOrganize { get; set; } = string.Empty;
+
+    [JsonPropertyName("employee_approve")]
+    public string EmployeeApprove { get; set; } = string.Empty;
+    
+    [JsonPropertyName("order_detail")]
+    public List<PantryDetailVMMenus> OrderDetail { get; set; } = new List<PantryDetailVMMenus>();
+
+    [JsonPropertyName("room_image")]
+    public string? RoomImage { get; set; }
+    [JsonPropertyName("order_status")]
+    public int? OrderStatus { get; set; }
+    [JsonPropertyName("order_status_name")]
+    public string? OrderStatusName { get; set; }
+    [JsonPropertyName("booking_date")]
+    public DateOnly? BookingDate { get; set; }
+    [JsonPropertyName("booking_start")]
+    public DateTime? BookingStart { get; set; }
+    [JsonPropertyName("booking_end")]
+    public DateTime? BookingEnd { get; set; }
+    [JsonPropertyName("expired_at")]
+    public DateTime? ExpiredAt { get; set; }
+    [JsonPropertyName("update_at")]
+    public DateTime? UpdatedAt { get; set; }
 }

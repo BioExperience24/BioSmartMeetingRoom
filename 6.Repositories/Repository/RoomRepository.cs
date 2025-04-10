@@ -221,27 +221,11 @@ public class RoomRepository : BaseLongRepository<Room>
             qRoom = qRoom.Where(q => q.room.BuildingId == entity.BuildingId);
         }
 
-        if (entity.IsAllDay == true)
+        if (entity.KindRoom == "trainingroom")
         {
-            DateOnly workDate = (entity.WorkDate != null) ? (DateOnly)entity.WorkDate : DateOnly.FromDateTime(DateTime.Now);
-            // Console.WriteLine($"workDate: {workDate}");
 
-            qRoom = qRoom.Where(q => (
-                from b in _dbContext.Bookings
-                where q.room.Radid == b.RoomId
-                && b.Date == workDate
-                select b
-            ).Count() <  1);
-        } 
-        else 
-        {
             if (entity.WorkDay != null)
             {
-                /* var dayKeywords = entity.WorkDay.ToArray();
-                qRoom = from qroom in qRoom
-                        where dayKeywords.Any(keyword => qroom.room.WorkDay!.Contains(keyword))
-                        select qroom; */
-
                 qRoom = qRoom.Where(q => entity.WorkDay!.Any(WorkDay => q.room.WorkDay!.Contains(WorkDay)));
 
             }
@@ -254,9 +238,108 @@ public class RoomRepository : BaseLongRepository<Room>
                     string.Compare(q.room.WorkStart, entity.WorkEnd) <= 0 
                     && string.Compare(q.room.WorkEnd, entity.WorkStart) >= 0
                 );
+
+            }
+
+            DateTime? startDate = entity.WorkDate.HasValue && !string.IsNullOrEmpty(entity.WorkStart) 
+                ? entity.WorkDate.Value.ToDateTime(TimeOnly.Parse(entity.WorkStart)) 
+                : null;
+            DateTime? endDate = entity.WorkDateUntil.HasValue && !string.IsNullOrEmpty(entity.WorkEnd) 
+                ? entity.WorkDateUntil.Value.ToDateTime(TimeOnly.Parse(entity.WorkEnd)) 
+                : null;
+
+            if (startDate != null && endDate != null)
+            {
+                if (entity.WorkDate == entity.WorkDateUntil)
+                {
+                    qRoom = qRoom.Where(q => 
+                        !_dbContext.Bookings
+                            .Any(b => 
+                                b.RoomId == q.room.Radid 
+                                && b.Start <= endDate 
+                                && b.End >= startDate
+                            ));
+
+                }
+                else
+                {
+                    qRoom = qRoom.Where(q => 
+                        !_dbContext.Bookings
+                            .Any(b => 
+                                b.RoomId == q.room.Radid 
+                                && b.Start.Date >= startDate.Value.Date
+                                && b.End <= endDate.Value.Date
+
+                                // && b.Start.TimeOfDay >= startDate.Value.TimeOfDay
+                                // && b.End.TimeOfDay <= endDate.Value.TimeOfDay
+                                && b.Start.TimeOfDay <= endDate.Value.TimeOfDay
+                                && b.End.TimeOfDay >= startDate.Value.TimeOfDay
+                            ));
+                }
             }
         }
+        else 
+        {
+            if (entity.IsAllDay == true)
+            {
+                DateOnly workDate = (entity.WorkDate != null) ? (DateOnly)entity.WorkDate : DateOnly.FromDateTime(DateTime.Now);
+                // Console.WriteLine($"workDate: {workDate}");
 
+                /* qRoom = qRoom.Where(q => (
+                    from b in _dbContext.Bookings
+                    where q.room.Radid == b.RoomId
+                    && b.Date == workDate
+                    select b
+                ).Count() <  1); */
+                qRoom = qRoom.Where(q => 
+                    !_dbContext.Bookings  
+                        .Any(b => 
+                            b.RoomId == q.room.Radid 
+                            && b.Date == workDate
+                        ));
+            } 
+            else 
+            {
+                if (entity.WorkDay != null)
+                {
+                    /* var dayKeywords = entity.WorkDay.ToArray();
+                    qRoom = from qroom in qRoom
+                            where dayKeywords.Any(keyword => qroom.room.WorkDay!.Contains(keyword))
+                            select qroom; */
+
+                    qRoom = qRoom.Where(q => entity.WorkDay!.Any(WorkDay => q.room.WorkDay!.Contains(WorkDay)));
+
+                }
+
+                if (entity.WorkStart != null && entity.WorkEnd != null)
+                {
+                    qRoom = qRoom.Where(q => 
+                        // string.Compare(q.room.WorkStart, entity.WorkStart) <= 0 
+                        // && string.Compare(q.room.WorkEnd, entity.WorkEnd) >= 0 
+                        string.Compare(q.room.WorkStart, entity.WorkEnd) <= 0 
+                        && string.Compare(q.room.WorkEnd, entity.WorkStart) >= 0
+                    );
+                }
+
+                if (entity.WorkDay != null && entity.WorkStart != null && entity.WorkEnd != null)
+                {
+                    DateTime? startDate = entity.WorkDate.HasValue && !string.IsNullOrEmpty(entity.WorkStart) 
+                        ? entity.WorkDate.Value.ToDateTime(TimeOnly.Parse(entity.WorkStart)) 
+                        : null;
+                    DateTime? endDate = entity.WorkDate.HasValue && !string.IsNullOrEmpty(entity.WorkEnd) 
+                        ? entity.WorkDate.Value.ToDateTime(TimeOnly.Parse(entity.WorkEnd)) 
+                        : null;
+
+                    qRoom = qRoom.Where(q => 
+                        !_dbContext.Bookings
+                            .Any(b => 
+                                b.RoomId == q.room.Radid 
+                                && b.Start <= endDate 
+                                && b.End >= startDate
+                            ));
+                }
+            }
+        }
 
         if (entity.FacilityRoom != null)
         {

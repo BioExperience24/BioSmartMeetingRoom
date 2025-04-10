@@ -4,6 +4,7 @@ using _5.Helpers.Consumer.EnumType;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using _5.Helpers.Consumer.Policy;
 
 namespace Controllers;
 
@@ -14,7 +15,7 @@ namespace Controllers;
 /// 
 /// </remarks>
 /// <param name="service"></param>
-[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
 [Route("api/[controller]/[action]")]
 [ApiController]
 public class PantrySatuanController(IPantrySatuanService service)

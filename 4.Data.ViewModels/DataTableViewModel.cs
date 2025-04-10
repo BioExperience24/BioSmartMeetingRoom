@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _4.Data.ViewModels
@@ -7,11 +8,20 @@ namespace _4.Data.ViewModels
         [FromQuery(Name = "draw")]
         public int Draw { get; set; }
 
-        [FromQuery(Name = "columns")]
-        public List<DataTableColumnQuery>? Columns { get; set; }
+        // [FromQuery(Name = "columns")]
+        // public List<DataTableColumnQuery>? Columns { get; set; }
 
-        [FromQuery(Name = "order")]
-        public List<DataTableOrderQuery>? Order { get; set; }
+        // [FromQuery(Name = "order")]
+        // public List<DataTableOrderQuery>? Order { get; set; }
+
+        // [FromQuery(Name = "sort")]
+        // public List<DataTableOrderQuery>? Sort { get; set; }
+
+        [FromQuery(Name = "sort_column")]
+        public string SortColumn { get; set; } = string.Empty;
+
+        [FromQuery(Name = "sort_dir")]
+        public string SortDir { get; set; } = string.Empty;
 
         [FromQuery(Name = "start")]
         public int Start { get; set; }
@@ -19,10 +29,10 @@ namespace _4.Data.ViewModels
         [FromQuery(Name = "length")]
         public int Length { get; set; }
 
-        [FromQuery(Name = "search_value")]
+        [FromQuery(Name = "search[value]")]
         public string? SearchValue { get; set; }
 
-        [FromQuery(Name = "search_regex")]
+        [FromQuery(Name = "search[regex]")]
         public bool SearchRegex { get; set; }
     }
 
@@ -50,10 +60,12 @@ namespace _4.Data.ViewModels
     public class DataTableOrderQuery
     {
         [FromQuery(Name = "column")]
-        public int Column { get; set; }
+        [JsonPropertyName("column")]
+        public string Column { get; set; } = string.Empty;
 
         [FromQuery(Name = "dir")]
-        public string? Dir { get; set; }
+        [JsonPropertyName("name")]
+        public string Dir { get; set; } = string.Empty;
     }
 
     public class DataTableResponse

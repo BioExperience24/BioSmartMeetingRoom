@@ -1,5 +1,4 @@
-
-
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -85,11 +84,35 @@ namespace _4.Data.ViewModels
         public string RoomName { get; set; } = string.Empty;
 
         [JsonPropertyName("room_select_data")]
-        public IEnumerable<AccessControlVMRoom> RoomSelectData { get; set; } = new List<AccessControlVMRoom>();
+        public IEnumerable<RoomDisplayInformationViewModel> RoomSelectData { get; set; } = new List<RoomDisplayInformationViewModel>();
+
+        [JsonIgnore]
+        public long BuildingId { get; set; }
+
+        [JsonIgnore]
+        public long FloorId { get; set; }
+
+        [JsonPropertyName("building_id")]
+        public string BuildingIdEnc { get; set; } = string.Empty;
+
+        [JsonPropertyName("floor_id")]
+        public string FloorIdEnc { get; set; } = string.Empty;
+
+        [JsonPropertyName("building_name")]
+        public string BuildingName { get; set; } = string.Empty;
+        
+        [JsonPropertyName("floor_name")]
+        public string FloorName { get; set; } = string.Empty;
+
+        // [JsonPropertyName("display_information")]
+        // public List<RoomDisplayVMRoomSelected> DisplayInformation { get; set; } = new List<RoomDisplayVMRoomSelected>();
     }
 
     public class RoomDisplayVMCreateFR
     {
+        [BindProperty(Name = "id")]
+        public long? Id { get; set; } = null;
+        
         [BindProperty(Name = "display_serial")]
         public string DisplaySerial { get; set; } = string.Empty;
         
@@ -114,14 +137,30 @@ namespace _4.Data.ViewModels
         [BindProperty(Name = "color_available")]
         public string ColorAvailable { get; set; } = string.Empty;
 
-        [BindProperty(Name = "room_select")]
+        [BindProperty(Name = "room_select[]")]
         public string[] RoomSelectArr { get; set; } = new string[]{};
+
+        [BindProperty(Name = "building")]
+        public string Building { get; set; } = string.Empty;
+
+        [BindProperty(Name = "floor")]
+        public string Floor { get; set; } = string.Empty;
+        
+        public List<RoomDisplayInformationViewModel> RoomSelected { get; set; } = new List<RoomDisplayInformationViewModel>();
+
+        [BindProperty(Name = "roomSelected")]
+        // public string RoomSelected { get; set; } = string.Empty;
+        public string RoomSelectedJson
+        {
+            get => JsonSerializer.Serialize(RoomSelected);
+            set => RoomSelected = JsonSerializer.Deserialize<List<RoomDisplayInformationViewModel>>(value) ?? new List<RoomDisplayInformationViewModel>();
+        }
     }
 
     public class RoomDisplayVMUpdateFR : RoomDisplayVMCreateFR
     {
-        [BindProperty(Name = "id")]
-        public long Id { get; set; }
+        // [BindProperty(Name = "id")]
+        // public long Id { get; set; }
     }
     
     public class RoomDisplayVMChangeStatusFR
@@ -133,7 +172,7 @@ namespace _4.Data.ViewModels
         public int Action { get; set; }
 
         [BindProperty(Name = "disable_msg")]
-        public int DisableMsg { get; set; }
+        public string DisableMsg { get; set; } = string.Empty;
     }
 
     public class RoomDisplayVMDeleteFR
@@ -147,5 +186,15 @@ namespace _4.Data.ViewModels
         [JsonPropertyName("room_select_data")]
         public new List<RoomViewModel> RoomSelectData { get; set; } = new();
     }
+    public class DisplayUpdateSerialSyncFRViewModel
+    {
+        [JsonPropertyName("serial")]
+        public string? Serial { get; set; }
 
+        [JsonPropertyName("hardware_uuid")]
+        public string? HardwareUuid { get; set; }
+
+        [JsonPropertyName("hardware_info")]
+        public string? HardWareInfo { get; set; }
+    }
 }

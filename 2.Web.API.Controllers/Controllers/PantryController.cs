@@ -9,6 +9,7 @@ namespace Controllers;
 
 
 [ApiController]
+[ApiExplorerSettings(GroupName = "pama_smeet")]
 [Route("api")]
 public class PantryController(IAPIMainPantryService service, IPantryService pantryService, IPantryDetailService pantryDetailService)
     : ControllerBase

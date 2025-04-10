@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace _1.PAMA.Razor.Views.Pages.Building
 {
     [Authorize]
+    [RejectWebviewUser]
     [PermissionAccess]
     public class IndexModel : PageModel
     {

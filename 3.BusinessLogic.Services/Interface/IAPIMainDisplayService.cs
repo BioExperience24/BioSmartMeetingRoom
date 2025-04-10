@@ -15,4 +15,8 @@ public interface IAPIMainDisplayService
     Task<ReturnalModel> GetDisplayBySerial(ListDisplaySerialFRViewModel request);
     Task<ReturnalModel> DisplayMeetingWithMoreRoomListDisplay(ListDisplayMeetingScheduleTodayFRViewModel request);
     Task<ReturnalModel> DisplayMeetingWithMoreRoomOccupiedListDisplay(ListDisplayMeetingScheduleTodayFRViewModel request);
+    Task<FileReady> GetQrCodeDetailView(string id, int h = 60);
+    Task<ReturnalModel> CheckDoorOpenMeetingPin(CheckDoorOpenMeetingPinFRViewModel request);
+    Task<ReturnalModel> CheckSerialIsAlready(string serial);
+    Task<ReturnalModel> GetScheduledDisplay(DisplayScheduledFRViewModel request);
 }

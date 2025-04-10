@@ -10,6 +10,7 @@
     <link href="~/assets/theme/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
     <!-- Colorpicker Css -->
     <link href="~/assets/theme/plugins/bootstrap-colorpicker/css/bootstrap-colorpicker.css" rel="stylesheet" />
+    <link href="~/assets/external/tippy-theme-light.min.css" rel="stylesheet" />
 
     <style>
         .demo-filepond-wrapper{
@@ -46,6 +47,61 @@
             opacity: 1;
             /*width: 150px;*/
         }
+
+        .iconroom{
+            background: #0e0e0e;
+            height: 42px;
+            width: 42px;
+            border: solid 1px grey;
+            border-radius: 5px;
+            padding: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .iconroom:hover{
+            background: #4754a2;
+
+        }
+        .nomarqin-left{
+            margin-left:0px !important;
+        }
+        .boxleft {
+            display : flex;
+            align-items : center;
+            background: #f9dcdc;
+            justify-content: flex-end
+
+        }
+        .boxleft label {
+            padding:5px;
+            margin-bottom: 0px !important;
+        }
+        .boxleft-all {
+            display : flex;
+            background: #f9dcdc;
+
+        }
+        .boxleft-all label {
+            padding:5px;
+            margin-bottom: 0px !important;
+        }
+        .boxright {
+            display : flex;
+            align-items : center;
+/*            border: 1px solid #000;*/
+        }
+        .boxright label{
+            padding:5px;
+            margin-bottom: 0px !important;
+        }
+        .openside{
+            right: 0px !important;
+        }
+        .aClickDetail{
+            cursor: pointer;
+        }
         
     </style>
 }
@@ -79,7 +135,7 @@
                     <div class="content">
                         <div class="text">LICENSE</div>
                         <div class="number count-to" data-from="0" data-to="0" data-speed="1000" data-fresh-interval="20" id="">
-                            1 / 5
+                            <span id="id_count_total_license"></span> / 15
                         </div>
                     </div>
                 </div>
@@ -115,35 +171,31 @@
                     <div class="body table-responsive responsive">
                         <table class="table table-hover" id="tbldata">
                             <thead>
-                                    <th>#</th>
-                                    <th>Serial</th>
-                                    <th>Room</th>
-                                    <th>Background</th>
-                                    <th>Color Occupied</th>
-                                    <th>Color Standby</th>
-                                    <th>Sync</th>
-                                    <th>Status</th>
-                                    <th><button 
-                                            onclick="createData($(this))" 
-                                            type="button" class="btn btn-primary waves-effect ">
-                                            <i class="material-icons">add_circle</i> CREATE</button></th>
-                                    <!-- <th>
-                                        
-                                    </th> -->
+                                <th>#</th>
+                                <th>Serial</th>
+                                <th>Room</th>
+                                <th>Background</th>
+                                <th>Color Occupied</th>
+                                <th>Color Standby</th>
+                                <th>Sync</th>
+                                <th>Status</th>
+                                <th><button 
+                                    onclick="createData($(this))" 
+                                    type="button" class="btn btn-primary waves-effect ">
+                                    <i class="material-icons">add_circle</i> CREATE</button></th>
                             </thead>
                             <tbody>
-                                        
                             </tbody>
-                            </table>
+                        </table>
                     </div>
                 </div>
             </div>
-            
         </div>
-
     </div>
 </section>
-<div class="modal fade" id="id_mdl_create" tabindex="-1" role="dialog">
+@await Html.PartialAsync("Display/Components/_Modals")
+
+@* <div class="modal fade" id="id_mdl_create" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -473,12 +525,9 @@
             </div>
         </div>
     </div>
-</div>
+</div> *@
 
-<textarea id="id_modules" style="display: none;"> 
-    @Html.Raw(Model.ModuleDisplay)
-</textarea> 
-<input type="hidden" id="id_baseurl" value="@Model.ApiUrl">
+@await Html.PartialAsync("Display/Components/_Aside")
 
 @section Scripts
 {
@@ -490,7 +539,9 @@
                 post_create_room_display : "@Model.PostCreate",
                 post_update_room_display : "@Model.PostUpdate",
                 post_delete_room_display : "@Model.PostDelete",
-                post_change_status_room_display : "@Model.PostChangeStatusDisplay"
+                post_change_status_room_display : "@Model.PostChangeStatusDisplay",
+                get_buildings : "@Model.GetBuildings",
+                get_building_floors : "@Model.GetBuildingFloors",
             }
         }
     </script>
@@ -502,6 +553,8 @@
     <!-- Bootstrap Colorpicker Js -->
     <script src="~/assets/theme/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.js"></script>
     <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.min.js"></script>
+    <script src="~/assets/external/popper.min.js"></script>
+    <script src="~/assets/external/tippy-bundle.umd.min.js"></script>
     <!-- Input Mask Plugin Js -->
-    <script src="~/assets/process/display/index.js"></script>
+    <script src="~/assets/process/display/index.js" asp-append-version="true"></script>
 }

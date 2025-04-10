@@ -9,5 +9,12 @@ namespace _6.Repositories.Repository
         {
             _dbContext = dbContext;
         }
+
+        public async Task<IEnumerable<PantryTransaksiD>> GetAllItemFilteredByTransaksiIdAsync(string transaksiId)
+        {
+            return await _dbContext.PantryTransaksiDs
+                .Where(x => x.TransaksiId == transaksiId)
+                .ToListAsync();
+        }
     }
 }

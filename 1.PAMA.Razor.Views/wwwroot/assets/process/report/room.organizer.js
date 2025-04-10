@@ -6,6 +6,22 @@ $("#id_organizer_search").click(function (e) {
     reloadOrganizerTable();
 });
 
+$("#id_organizer_print").on("click", function(e) {
+    e.preventDefault();
+    let param = {};
+    let date = $("#id_organizer_daterange_search").val().split(" - ");
+    param.start_date = date[0];
+    param.end_date = date[1];
+    param.nik = $("#id_organizer_employee_search").val();
+    param.nik_name = $("#id_organizer_employee_search").find(":selected").text();
+    param.building_id = $("#id_organizer_building_search").val();
+    param.building_name = $("#id_organizer_building_search").find(":selected").text();
+    param.room_id = $("#id_organizer_room_search").val();
+    param.room_name = $("#id_organizer_room_search").find(":selected").text();
+    let url = `${window.location.href}/print/organizer?${$.param(param)}`;
+    window.open(url, '_blank');
+});
+
 function initOrganizerUsageTable() {
     let module = getModule();
     

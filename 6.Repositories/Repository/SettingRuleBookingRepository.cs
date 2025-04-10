@@ -42,6 +42,10 @@ namespace _6.Repositories.Repository
         {
             return await _dbContext.SettingRuleBookings.FirstOrDefaultAsync(c => c.Id == id);
         }
+        public async Task<SettingRuleBooking?> GetSettingRuleBookingByPinDefault(string pin)
+        {
+            return await _dbContext.SettingRuleBookings.FirstOrDefaultAsync(c => c.RoomPinNumber == pin);
+        }
 
         public async Task<SettingRuleBooking?> AddSettingRuleBookingAsync(SettingRuleBooking item)
         {

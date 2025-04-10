@@ -1,5 +1,7 @@
 ﻿
 
+using System.Text.Json.Serialization;
+
 namespace _5.Helpers.Consumer;
 
 public class EmailSettingModel
@@ -65,4 +67,14 @@ public class MailInfo
     public string Name { get; set; }
     public string Address { get; set; }
 
+}
+public class FastBookListlDataInternalFRViewModel
+{
+    public string Nik { get; set; }
+}
+public class FastBookListlDataExternalFRViewModel : FastBookListlDataInternalFRViewModel
+{
+    public string Email { get; set; }
+    public string Company { get; set; }
+    public string Name { get; set; }
 }

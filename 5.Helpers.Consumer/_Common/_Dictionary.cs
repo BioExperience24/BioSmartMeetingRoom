@@ -14,6 +14,7 @@ namespace _5.Helpers.Consumer._Common
             { "module_invoice", "invoice" },
             { "module_email", "email" },
             { "module_loker", "loker" },
+            { "module_display", "display" },
         };
 
         public static readonly Dictionary<int, string> PantryTransaksiOrderStatusDictionary = new Dictionary<int, string>

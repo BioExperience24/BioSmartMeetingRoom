@@ -119,7 +119,7 @@ namespace _6.Repositories.Repository
 
             return result;
         }
-    
+
         public async Task<BookingInvitation?> GetPicFilteredByBookingId(string bookingId)
         {
             var query = from bi in _dbContext.BookingInvitations
@@ -132,5 +132,42 @@ namespace _6.Repositories.Repository
 
             return result;
         }
+
+        public async Task<BookingInvitation?> CheckDoorOpenMeetingPin(
+            DateOnly date, DateTime startTime, DateTime endTime, string pin, string radId)
+        {
+            var query = from bi in _dbContext.BookingInvitations
+                        join b in _dbContext.Bookings on bi.BookingId equals b.BookingId
+                        where b.Date == date
+                            && b.IsAlive == 1
+                            && b.IsCanceled == 0
+                            && b.IsExpired == 0
+                            && bi.PinRoom == pin
+                            && b.EndEarlyMeeting == 0
+                            && b.RoomId == radId
+                            && b.Start <= startTime 
+                            && b.End >= endTime   
+                        select bi;
+
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<BookingInvitation?> GetItemFilteredByBookingIdAndNik(string bookingId, string nik)
+        {
+            if (string.IsNullOrEmpty(bookingId) || string.IsNullOrEmpty(nik))
+            {
+                return null;
+            }
+
+            var query = from bi in _dbContext.BookingInvitations
+                        where bi.BookingId == bookingId
+                        && bi.Nik == nik
+                        && bi.IsDeleted == 0
+                        && bi.AttendanceStatus == 0
+                        select bi;
+
+            return await query.FirstOrDefaultAsync();
+        }
+
     }
 }

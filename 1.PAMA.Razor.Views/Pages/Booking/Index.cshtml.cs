@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace _1.PAMA.Razor.Views.Pages.Booking
 {
     [Authorize]
+    [RejectWebviewUser]
     [PermissionAccess]
     public class IndexModel(
         IConfiguration config
@@ -59,12 +60,18 @@ namespace _1.PAMA.Razor.Views.Pages.Booking
             config["ApiUrls:Endpoints:Booking:RescheduleBooking"] ?? string.Empty;
         public string CancelBooking { get; private set; } = 
             config["ApiUrls:Endpoints:Booking:CancelBooking"] ?? string.Empty;
+        public string CancelAllBooking { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:CancelAllBooking"] ?? string.Empty;
         public string EndMeeting { get; private set; } = 
             config["ApiUrls:Endpoints:Booking:EndMeeting"] ?? string.Empty;
         public string CheckExtendMeetingTime { get; private set; } = 
             config["ApiUrls:Endpoints:Booking:CheckExtendMeetingTime"] ?? string.Empty;
         public string SetExtendMeeting { get; private set; } = 
             config["ApiUrls:Endpoints:Booking:SetExtendMeeting"] ?? string.Empty;
+        public string ConfirmAttendance { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:ConfirmAttendance"] ?? string.Empty;
+        public string AdditionalAttendees { get; private set; } = 
+            config["ApiUrls:Endpoints:Booking:AdditionalAttendees"] ?? string.Empty;
 
         // public string Modules { get; set; } = "{}";
         // public string SettingGeneral { get; set; } = "{}";
