@@ -92,11 +92,14 @@
                                 <th>Username</th>
                                 <th>Password</th>
                                 <th>
-                                    @* <button 
+                                    <button 
                                     onclick="createData($(this))" 
                                     data-id="" 
                                     data-name="" 
-                                    type="button" class="btn btn-primary waves-effect">CREATE</button> *@
+                                    type="button" 
+                                    class="btn btn-primary waves-effect"
+                                    id="btn-create"
+                                    style="display: none;">CREATE</button>
                                 </th>
                             </thead>
                             <tbody>
@@ -362,6 +365,13 @@
                 }
 
             });
+
+            if (app.auth.level == 1 || app.auth.level == 7)
+            {
+                $("#btn-create").show();
+            } else {
+                $("#btn-create").hide();
+            }
         }) 
         function initPassword(){
             $('#id_crt_password').attr("type", "password");
@@ -634,9 +644,15 @@
                                 
                              }
                              html += '<li role="separator" class="divider"></li>';
-                             if(username != item.username){
-                                html += '<li><a href="#" onclick="removeData($(this))" data-id="'+item.id+'" data-name="'+item.name+'" >Delete</a></li>';
-                             }
+                             
+                            if (app.auth.level == "7") {
+                                if (item.level_id != 1) {
+                                    html += '<li><a href="#" onclick="removeData($(this))" data-id="'+item.id+'" data-name="'+item.name+'" >Delete</a></li>';
+                                }
+                            } else if (username != item.username) {
+                                    html += '<li><a href="#" onclick="removeData($(this))" data-id="'+item.id+'" data-name="'+item.name+'" >Delete</a></li>';
+                            }
+
                              
                              html += '</ul> \
                                 </div>';
@@ -854,7 +870,7 @@
                             success:function(data){
                                 $('#id_loader').html('');
                                 if (data.status == "success") {
-                                    showNotification('alert-success', "Succes deleted user "+name ,'top','center')
+                                    showNotification('alert-success', "Succes "+sd+" user "+name ,'top','center')
                                     init();
                                 }else{
                                     showNotification('alert-danger', "Data not found",'bottom','left')

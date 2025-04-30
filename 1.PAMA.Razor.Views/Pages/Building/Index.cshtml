@@ -430,7 +430,7 @@
                             var btnedit = `<a  onclick="editData($(this))"
                                     data-id="${item.id}"  data-id="${item.name}"  type="button" >Edit/Detail</a>`
                             var btndelete= `<a  onclick="removeData($(this))"
-                                    data-id="${item.id}"  data-id="${item.name}"  type="button" >Delete</a>`
+                                    data-id="${item.id}"  data-name="${item.name}"  type="button" >Delete</a>`
                             clone_dc = clone_dc.replace("%Edit/Detail%", btnedit);
                             clone_dc = clone_dc.replace("%Delete%", btndelete);
                             clone_dc = clone_dc.replace("%buildingId%", bIdEnc);

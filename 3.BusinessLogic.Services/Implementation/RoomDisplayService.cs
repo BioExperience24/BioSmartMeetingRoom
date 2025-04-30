@@ -102,7 +102,7 @@ namespace _3.BusinessLogic.Services.Implementation
         public async Task<ReturnalModel> SaveAsync(RoomDisplayVMCreateFR request)
         {
             ReturnalModel ret = new();
-            ret.Message = "Success create a display";
+            ret.Message = "Success save a display";
 
             // from token
             var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;

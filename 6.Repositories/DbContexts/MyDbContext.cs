@@ -2874,7 +2874,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
                 .HasColumnName("created_at");
-            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Description)
+                .HasColumnName("description")
+                .HasDefaultValueSql("(NULL)");
             entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.Name)
                 .HasMaxLength(255)

@@ -671,10 +671,16 @@
                         $('#id_edt_menu_name').val(col.name);
                         $('#id_edt_menu_id').val(id);
                         $('#id_edt_menu_pic').val(col.pic);
-                        var htmlbtn = '<button style="display:none;" \
+                        /*var htmlbtn = '<button style="display:none;" \
                                 id="id_edt_menu_btn_html_v" \
                                 onclick="pantryMenu($(this))" \
                                 data-id="'+ col.id + '" \
+                                data-name="'+ col.name + '" \
+                                type="button" class="btn btn-danger waves-effect btn-lg ">S</button>';*/
+                        var htmlbtn = '<button style="display:none;" \
+                                id="id_edt_menu_btn_html_v" \
+                                onclick="pantryMenu($(this))" \
+                                data-id="'+ col.pantry_id + '" \
                                 data-name="'+ col.name + '" \
                                 type="button" class="btn btn-danger waves-effect btn-lg ">S</button>';
                         // console.log(htmlbtn);

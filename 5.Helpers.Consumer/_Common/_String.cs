@@ -52,6 +52,21 @@ namespace _5.Helpers.Consumer._Common
             }
         }
 
+        public static DateOnly ToDateOnlyMultiFormat(string dateString, string[] dateFormat = null!)
+        {
+            dateFormat ??= new[] { "yyyy-MM-dd" };
+
+            foreach (var format in dateFormat)
+            {
+                if (DateOnly.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))
+                {
+                    return date;
+                }
+            }
+
+            throw new FormatException("Format tanggal tidak valid.");
+        }
+
         public static TimeOnly ToTimeOnly(string timeString, string timeFormat = "HH:mm:ss")
         {
             if (string.IsNullOrEmpty(timeString))

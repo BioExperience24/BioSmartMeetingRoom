@@ -18,59 +18,43 @@ public class BookingRepository : BaseLongRepository<Booking>
 
     public async Task<IEnumerable<BookingChart>> GetAllItemChartAsync(int year)
     {
-        var now = new DateTime(year, 1, 1);
-        var startDate = now.AddMonths(-12);
+        var endDate = new DateOnly(year + 1, 1, 1);    
+        var startDate = endDate.AddMonths(-12);
+        var targetYear = year;
 
-        // Data untuk tabel virtual (subquery pertama)
-        var dateRange = Enumerable.Range(0, 366)
-                .Select(offset => now.AddDays(-offset))
-                .Where(date => date <= now && date >= startDate)
-                .Select(date => new
+        // Generate list of months between startDate and endDate
+        var months = Enumerable.Range(0, 12)
+            .Select(i =>
+            {
+                var dt = startDate.AddMonths(i);
+                return new
                 {
-                    Month = date.ToString("MMM"),
-                    Md = date.ToString("MM-yyyy"),
-                    Tahun = date.Year
-                })
-                .GroupBy(x => x.Md)
-                .Select(g => new
-                {
-                    Month = g.First().Month,
-                    Md = g.Key,
-                    Amount = 0, // Jumlah awal
-                    Tahun = g.First().Tahun
-                });
+                    Md = dt.ToString("MM-yyyy"),
+                    Month = dt.ToString("MMM"),
+                    Year = dt.ToString("yyyy")
+                };
+            })
+            .ToList();
 
-        // Mengambil data dari Booking secara asinkron
-        var bookingData = await (from booking in _dbContext.Bookings
-                                 where booking.Date <= DateOnly.FromDateTime(now) && booking.Date >= DateOnly.FromDateTime(startDate)
-                                 select new
-                                 {
-                                     Month = booking.Date.ToString("MMM"),
-                                     Md = booking.Date.ToString("MM-yyyy"),
-                                     Tahun = booking.Date.Year,
-                                     Amount = (
-                                         from b in _dbContext.Bookings
-                                         where b.Date <= DateOnly.FromDateTime(now) && b.Date >= DateOnly.FromDateTime(startDate)
-                                         select b
-                                     ).Count()
-                                 }).Distinct().ToListAsync();
+        // Ambil data booking, lalu materialisasi ke memory
+        var bookingSummary = (await _dbContext.Bookings
+            .Where(b => b.Date >= startDate && b.Date <= endDate)
+            .ToListAsync())
+            .GroupBy(b => b.Date.ToString("MM-yyyy"))
+            .ToDictionary(g => g.Key, g => g.Count());
 
-        // Gabungkan dateRange dan bookingData
-        var query = (from t1 in dateRange
-                     join t2 in bookingData on t1.Md equals t2.Md into gj
-                     from subT2 in gj.DefaultIfEmpty()
-                     where t1.Tahun == year
-                     orderby t1.Md
-                     group new { t1, subT2 } by t1.Md into grouped
-                     select new BookingChart
-                     {
-                         Month = grouped.First().t1.Month,
-                         Md = grouped.Key,
-                         Total = grouped.Sum(x => (x.subT2?.Amount ?? 0) + x.t1.Amount),
-                         Tahun = grouped.First().t1.Tahun
-                     });
-
-        var result = query.ToList();
+        // Gabungkan data bulan dan jumlah booking
+        var result = months
+            .Where(m => m.Year == targetYear.ToString())
+            .Select(m => new BookingChart
+            {
+                Month = m.Month,
+                Md = m.Md,
+                Total = bookingSummary.TryGetValue(m.Md, out var count) ? count : 0,
+                Tahun = int.Parse(m.Year)
+            })
+            .OrderBy(x => x.Md)
+            .ToList();
 
         return result;
     }
@@ -858,7 +842,7 @@ public class BookingRepository : BaseLongRepository<Booking>
     public async Task<List<Booking>> GetMeetingListOccupiedByDisplay(DateTime dateTime, List<string>? roomSelect)
     {
         DateOnly parsedDate = DateOnly.FromDateTime(dateTime);
-        TimeSpan parsedTime = dateTime.TimeOfDay; // ✅ Use TimeSpan instead of TimeOnly
+        TimeSpan parsedTime = dateTime.TimeOfDay;
 
         var query = from b in _context.Bookings
                     join r in _context.Rooms on b.RoomId equals r.Radid
@@ -1097,7 +1081,38 @@ public class BookingRepository : BaseLongRepository<Booking>
 
     public async Task<BookingMailData?> GetMailDataParticipantByBookingId(string bookingId, string? participantNik = null)
     {
-        var participants = _dbContext.BookingInvitations.AsQueryable();
+        // var participants = _dbContext.BookingInvitations.AsQueryable();
+        var participants = (from bi in _dbContext.BookingInvitations
+                            from e in _dbContext.Employees
+                                .Where(e => bi.Nik == e.Nik).DefaultIfEmpty()
+                            select new BookingInvitationEmployee {
+                                Id = bi.Id,
+                                BookingId = bi.BookingId,
+                                Nik = bi.Nik,
+                                Internal = bi.Internal,
+                                AttendanceStatus = bi.AttendanceStatus,
+                                AttendanceReason = bi.AttendanceReason,
+                                ExecuteAttendance = bi.ExecuteAttendance,
+                                ExecuteDoorAccess = bi.ExecuteDoorAccess,
+                                Email = bi.Email,
+                                Name = bi.Name,
+                                Company = bi.Company,
+                                Position = bi.Position,
+                                IsPic = bi.IsPic,
+                                IsVip = bi.IsVip,
+                                PinRoom = bi.PinRoom,
+                                CreatedAt = bi.CreatedAt,
+                                CreatedBy = bi.CreatedBy,
+                                UpdatedAt = bi.UpdatedAt,
+                                UpdatedBy = bi.UpdatedBy,
+                                EmployeeName = e.Name,
+                                EmployeeNoPhone = e.NoPhone,
+                                EmployeeEmail = e.Email,
+                                EmployeeId = e.Id,
+                                EmployeeNrp = e.Nik,
+                                EmployeeNikDisplay = e.NikDisplay,
+                            }
+                            ).AsQueryable();   
 
         if (participantNik != null)
         {
@@ -1119,7 +1134,9 @@ public class BookingRepository : BaseLongRepository<Booking>
                         Date = b.Date,
                         Start = b.Start,
                         End = b.End,
+                        RoomId = r.Radid,
                         RoomName = r.Name,
+                        RoomType = r.KindRoom ?? "room",
                         BuildingName = bu.Name ?? string.Empty,
                         BuildingAddress = bu.DetailAddress ?? string.Empty,
                         BuildingMapLink = bu.GoogleMap ?? string.Empty,

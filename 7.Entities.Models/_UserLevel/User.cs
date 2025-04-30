@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using _7.Entities.Models;
 
 namespace _7.Entities.Models;
 
@@ -45,4 +46,9 @@ public partial class User : BaseLongEntity
 public partial class UserLogin : User
 {
     public string Nik { get; set; } = null!;
+}
+
+public partial class UserFilter : User
+{
+    public string? ExceptEmployeeId { get; set; }
 }

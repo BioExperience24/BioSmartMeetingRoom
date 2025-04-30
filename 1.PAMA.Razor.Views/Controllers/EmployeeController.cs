@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using _5.Helpers.Consumer.Policy;
+using System.Text.Json;
 
 namespace _1.PAMA.Razor.Views.Controllers
 {
@@ -167,6 +168,15 @@ namespace _1.PAMA.Razor.Views.Controllers
             }
 
             
+            return StatusCode(ret.StatusCode, ret);
+        }
+    
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Import([FromForm] EmployeeVMImportFR request)
+        {
+            ReturnalModel ret = await _service.ImportAsync(request);
+        
             return StatusCode(ret.StatusCode, ret);
         }
     }

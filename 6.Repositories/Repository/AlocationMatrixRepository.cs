@@ -64,6 +64,11 @@ namespace _6.Repositories.Repository
             return item;
         }
 
+        public async Task AddRangeAsync(IEnumerable<AlocationMatrix> entities)
+        {
+            await _dbContext.BulkInsertAsync(entities.ToList());
+        }
+
         public async Task<int> UpdateAsync(AlocationMatrix item)
         {
             // _dbContext.Entry(item).State = EntityState.Modified;

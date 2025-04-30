@@ -1,6 +1,8 @@
 using _3.BusinessLogic.Services.Interface;
 using _4.Data.ViewModels;
 using _5.Helpers.Consumer.EnumType;
+using _5.Helpers.Consumer.Policy;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -51,6 +53,7 @@ public class UserController : ControllerBase
         return Ok(claims);
     }
 
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
     [HttpGet]
     public async Task<ActionResult> GetItems()
     {
@@ -61,6 +64,7 @@ public class UserController : ControllerBase
         return StatusCode(ret.StatusCode, ret);
     }
 
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
     [HttpGet("{id}")]
     public async Task<ActionResult> GetItemById(long id)
     {
@@ -78,6 +82,7 @@ public class UserController : ControllerBase
         return StatusCode(ret.StatusCode, ret);
     }
 
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
     [HttpPost]
     public async Task<IActionResult> Create([FromForm] UserVMCreateFR request)
     {
@@ -95,6 +100,7 @@ public class UserController : ControllerBase
         return StatusCode(ret.StatusCode, ret);
     }
 
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
     [HttpPost]
     public async Task<IActionResult> Update([FromForm] UserVMUpdateFR request)
     {

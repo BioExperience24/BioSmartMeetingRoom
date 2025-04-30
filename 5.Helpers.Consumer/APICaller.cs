@@ -42,7 +42,7 @@ namespace _4.Helpers.Consumer
 
         public async Task<string> TryGETRequest(string urlWebRequest)
         {
-            var url = baseurl + urlWebRequest;
+            var url = urlWebRequest;
             var client = GetHttpClient();
             int attempt = 0;
 

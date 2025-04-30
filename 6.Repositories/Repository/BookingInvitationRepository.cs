@@ -138,6 +138,8 @@ namespace _6.Repositories.Repository
         {
             var query = from bi in _dbContext.BookingInvitations
                         join b in _dbContext.Bookings on bi.BookingId equals b.BookingId
+                        join r in _dbContext.Rooms on b.RoomId equals r.Radid
+                        // join r in _dbContext.Rooms on b.RoomId equals r.Radid
                         where b.Date == date
                             && b.IsAlive == 1
                             && b.IsCanceled == 0
@@ -148,6 +150,62 @@ namespace _6.Repositories.Repository
                             && b.Start <= startTime 
                             && b.End >= endTime   
                         select bi;
+
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<BookingInvitationPinAccess?> CheckDoorOpenMeetingPinAdvance(
+            DateOnly date, DateTime startTime, DateTime endTime, string pin, string radId)
+        {
+            var query = from bi in _dbContext.BookingInvitations
+                        join b in _dbContext.Bookings on bi.BookingId equals b.BookingId
+                        join r in _dbContext.Rooms on b.RoomId equals r.Radid
+                        // join r in _dbContext.Rooms on b.RoomId equals r.Radid
+                        where b.Date == date
+                            && b.IsAlive == 1
+                            && b.IsCanceled == 0
+                            && b.IsExpired == 0
+                            && bi.PinRoom == pin
+                            && b.EndEarlyMeeting == 0
+                            && b.RoomId == radId
+                            && b.Start <= startTime 
+                            && b.End >= endTime   
+                        select new BookingInvitationPinAccess
+                        {
+                            Id = bi.Id,
+                            BookingId = bi.BookingId, 
+                            Nik = bi.Nik, 
+                            Internal = bi.Internal, 
+                            AttendanceStatus = bi.AttendanceStatus, 
+                            AttendanceReason = bi.AttendanceReason, 
+                            ExecuteAttendance = bi.ExecuteAttendance, 
+                            ExecuteDoorAccess = bi.ExecuteDoorAccess, 
+                            Email = bi.Email, 
+                            Name = bi.Name, 
+                            Company = bi.Company, 
+                            Position = bi.Position, 
+                            IsPic = bi.IsPic, 
+                            IsVip = bi.IsVip, 
+                            PinRoom = bi.PinRoom, 
+                            CreatedAt = bi.CreatedAt, 
+                            CreatedBy = bi.CreatedBy, 
+                            UpdatedAt = bi.UpdatedAt, 
+                            UpdatedBy = bi.UpdatedBy, 
+                            LastUpdate365 = bi.LastUpdate365, 
+                            Checkin = bi.Checkin, 
+                            EndMeeting = bi.EndMeeting,
+                            IsDeleted = bi.IsDeleted,
+                            IsConfigSettingEnable = r.IsConfigSettingEnable,
+                            IsEnableCheckin = r.IsEnableCheckin,
+                            IsRealeaseCheckinTimeout = r.IsRealeaseCheckinTimeout,
+                            ConfigPermissionCheckin = r.ConfigPermissionCheckin,
+                            ConfigPermissionEnd = r.ConfigPermissionEnd,
+                            ConfigReleaseRoomCheckinTimeout = r.ConfigReleaseRoomCheckinTimeout
+                        };
+            var sql = query.ToQueryString();
+            Console.WriteLine("ToQueryString");
+            Console.WriteLine(sql);
+            Console.WriteLine("END ToQueryString");
 
             return await query.FirstOrDefaultAsync();
         }
@@ -167,6 +225,24 @@ namespace _6.Repositories.Repository
                         select bi;
 
             return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task UpdateAccessOpenPinRoomAsync(string bookingId, string pin)
+        {
+            await _dbContext.BookingInvitations
+                .Where(bi => bi.BookingId == bookingId && bi.PinRoom == pin)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(b => b.Checkin, 1)
+                );
+        }
+
+        public async Task UpdateAccessCheckinRoom(string bookingId, string pin)
+        {
+            await _dbContext.BookingInvitations
+                .Where(bi => bi.BookingId == bookingId && bi.PinRoom == pin)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(b => b.Checkin, 1)
+                );
         }
 
     }

@@ -6,7 +6,7 @@ public partial class PantryDetail : BaseLongEntity
 
     public string Name { get; set; } = null!;
 
-    public string Description { get; set; } = null!;
+    public string? Description { get; set; }
 
     public string Pic { get; set; } = null!;
 

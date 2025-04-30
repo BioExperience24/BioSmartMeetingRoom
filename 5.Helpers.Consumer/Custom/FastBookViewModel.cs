@@ -766,7 +766,65 @@ namespace _5.Helpers.Consumer.Custom
         public string EndMeeting { get; set; } = string.Empty;
         [JsonPropertyName("location")]
         public string Location { get; set; } = string.Empty;
+        [JsonPropertyName("organizer")]
+        public SendMailVMOrganizer Organizer { get; set; } = new SendMailVMOrganizer();
+        [JsonPropertyName("attendees")]
+        public SendMailVMAttendees Attendees { get; set; } = new SendMailVMAttendees();
+        [JsonPropertyName("place")]
+        public SendMailVMPlace Place { get; set; } = new SendMailVMPlace();
     }
 
+    public class SendMailVMOrganizer
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
 
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("email")]
+        public string Email { get; set; } = string.Empty;
+
+        [JsonPropertyName("nrp")]
+        public string Nrp { get; set; } = string.Empty;
+
+        [JsonPropertyName("nik_display")]
+        public string NikDisplay { get; set; } = string.Empty;
+
+        [JsonPropertyName("phone")]
+        public string Phone { get; set; } = string.Empty;
+    }
+
+    public class SendMailVMAttendees
+    {
+        [JsonPropertyName("id")]
+        public long Id { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("email")]
+        public string Email { get; set; } = string.Empty;
+
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = string.Empty; // external or internal
+    }
+
+    public class SendMailVMPlace
+    {
+        [JsonPropertyName("building")]
+        public string Building { get; set; } = string.Empty;
+
+        [JsonPropertyName("floor")]
+        public string Floor { get; set; } = string.Empty;
+
+        [JsonPropertyName("room")]
+        public string Room { get; set; } = string.Empty;
+
+        [JsonPropertyName("room_id")]
+        public string RoomId { get; set; } = string.Empty;
+
+        [JsonPropertyName("kind_room")]
+        public string KindRoom { get; set; } = string.Empty;
+    }
 }

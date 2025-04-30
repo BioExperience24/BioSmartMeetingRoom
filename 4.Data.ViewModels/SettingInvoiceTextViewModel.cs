@@ -75,7 +75,7 @@ namespace _4.Data.ViewModels
     public class SettingInvoiceTextUpdateViewModelFR : SettingInvoiceTextCreateViewModelFR
     {
         [BindProperty(Name = "id", SupportsGet = false)]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [BindProperty(Name = "is_deleted", SupportsGet = false)]
         public bool IsDeleted { get; set; }
@@ -84,7 +84,7 @@ namespace _4.Data.ViewModels
     public class SettingInvoiceTextDeleteViewModelFR
     {
         [BindProperty(Name = "id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [BindProperty(Name = "name")]
         public string Name { get; set; } = string.Empty;

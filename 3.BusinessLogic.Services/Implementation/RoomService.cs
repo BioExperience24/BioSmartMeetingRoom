@@ -23,8 +23,8 @@ namespace _3.BusinessLogic.Services.Implementation
             _repoModuleBackend = repoModuleBackend;
             _repoBooking = repoBooking;
 
-            attachmentListService.SetTableFolder(
-                config["UploadFileSetting:tableFolder:room"] ?? "room");
+            // attachmentListService.SetTableFolder(config["UploadFileSetting:tableFolder:room"] ?? "room");
+            attachmentListService.SetTableFolder("images");
             attachmentListService.SetExtensionAllowed(config["UploadFileSetting:imageExtensionAllowed"]!);
             attachmentListService.SetTypeAllowed(config["UploadFileSetting:imageContentTypeAllowed"]!);
             attachmentListService.SetSizeLimit(Convert.ToInt32(config["UploadFileSetting:imageSizeLimit"] ?? "8")); // MB

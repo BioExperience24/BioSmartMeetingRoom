@@ -27,4 +27,10 @@
 		<ProjectReference Include="..\7.Entities.Models\7.Entities.Models.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Update="Seeders\sql\*.sql">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
 </Project>

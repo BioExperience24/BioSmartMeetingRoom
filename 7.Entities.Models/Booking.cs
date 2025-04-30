@@ -304,12 +304,14 @@ public class BookingMailData
     public DateOnly Date { get; set; }
     public DateTime Start { get; set; }
     public DateTime End { get; set; }
+    public string RoomId { get; set; } = string.Empty;
     public string RoomName { get; set; } = string.Empty;
+    public string RoomType { get; set; } = string.Empty;
     public string BuildingName { get; set; } = string.Empty;
     public string BuildingAddress { get; set; } = string.Empty;
     public string BuildingMapLink { get; set; } = string.Empty;
     public string BuildingFloorName { get; set; } = string.Empty;
-    public List<BookingInvitation> Participants { get; set; } = new List<BookingInvitation>();
+    public List<BookingInvitationEmployee> Participants { get; set; } = new List<BookingInvitationEmployee>();
 }
 
 public class BookingDto

@@ -84,8 +84,8 @@
         function createData(){
             var ctrl_type = $('#id_controller_type').val()
             var jsctrl_type = JSON.parse(ctrl_type);
-            var htmlctrl = '<option value="">List Controller</option>';
-            var htmlmodelctrl = '<option value="">List Model</option>';
+            var htmlctrl = '<option value="">--List Controller--</option>';
+            var htmlmodelctrl = '<option value="">--List Model--</option>';
             var html = '';
             html += '<option value=""></option>';
             $.each(gChannel, (index, item)=>{
@@ -510,8 +510,8 @@
                         $('#id_edt_room').html(htmlx)
                         var ctrl_type = $('#id_controller_type').val()
                         var jsctrl_type = JSON.parse(ctrl_type);
-                        var htmlctrl = '<option value="">List Controller</option>';
-                        var htmlmodelctrl = '<option value="">List Model</option>';
+                        var htmlctrl = '<option value="">--List Controller--</option>';
+                        var htmlmodelctrl = '<option value="">--List Model--</option>';
 
                         var controller_type = input['type'];
                         if(controller_type == "falcoid"){

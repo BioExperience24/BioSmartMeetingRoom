@@ -206,6 +206,20 @@ public class RoomRepository : BaseLongRepository<Room>
                         }
                     };
 
+        DateTime today = DateTime.Today;
+        // DateOnly requestedDate = entity.WorkDate != null ? (DateOnly)entity.WorkDate : DateOnly.FromDateTime(DateTime.Now);
+        DateOnly requestedDate = entity.WorkDate ?? DateOnly.FromDateTime(DateTime.Today);
+        qRoom = qRoom.Where(q => 
+            // Tampilkan jika is_config_setting_enable != 1
+            q.room.IsConfigSettingEnable != 1 ||
+
+            // Tampilkan jika config_advance_booking null atau 0
+            q.room.ConfigAdvanceBooking == null || q.room.ConfigAdvanceBooking == 0 ||
+
+            // Tampilkan jika requestedDate <= today + config_advance_booking
+            requestedDate <= DateOnly.FromDateTime(today.AddDays((int)q.room.ConfigAdvanceBooking))
+        );
+
         if (entity.Radid != null)
         {
             qRoom = qRoom.Where(q => q.room.Radid == entity.Radid);
@@ -258,6 +272,9 @@ public class RoomRepository : BaseLongRepository<Room>
                                 b.RoomId == q.room.Radid 
                                 && b.Start <= endDate 
                                 && b.End >= startDate
+                                && b.EndEarlyMeeting == 0
+                                && b.IsExpired == 0
+                                && b.IsCanceled == 0
                             ));
 
                 }
@@ -269,6 +286,9 @@ public class RoomRepository : BaseLongRepository<Room>
                                 b.RoomId == q.room.Radid 
                                 && b.Start.Date >= startDate.Value.Date
                                 && b.End <= endDate.Value.Date
+                                && b.EndEarlyMeeting == 0
+                                && b.IsExpired == 0
+                                && b.IsCanceled == 0
 
                                 // && b.Start.TimeOfDay >= startDate.Value.TimeOfDay
                                 // && b.End.TimeOfDay <= endDate.Value.TimeOfDay
@@ -336,6 +356,9 @@ public class RoomRepository : BaseLongRepository<Room>
                                 b.RoomId == q.room.Radid 
                                 && b.Start <= endDate 
                                 && b.End >= startDate
+                                && b.EndEarlyMeeting == 0
+                                && b.IsExpired == 0
+                                && b.IsCanceled == 0
                             ));
                 }
             }

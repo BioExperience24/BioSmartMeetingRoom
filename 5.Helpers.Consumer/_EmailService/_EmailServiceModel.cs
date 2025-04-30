@@ -11,6 +11,7 @@ public class _EmailServiceVMAttendance
     public string MeetingHost { get; set; } = string.Empty;
     public string MeetingAgenda { get; set; } = string.Empty;
     public string AttendanceStatus { get; set; } = string.Empty;
+    public string SincerelyName { get; set; } = string.Empty;
 }
 
 public class _EmailServiceVMInvitation
@@ -21,9 +22,10 @@ public class _EmailServiceVMInvitation
     public string Location { get; set; } = string.Empty;
     public string Room { get; set; } = string.Empty;
     public string LinkMap { get; set; } = string.Empty;
-    public string Orginizer { get; set; } = string.Empty;
+    public string Organizer { get; set; } = string.Empty;
     public string Agenda { get; set; } = string.Empty;
     public string Pin { get; set; } = string.Empty;
+    public string HormatKami { get; set; } = string.Empty;
     
     public string Qrtattendance { get; set; } = string.Empty;
     public string TanggalText { get; set; } = string.Empty;

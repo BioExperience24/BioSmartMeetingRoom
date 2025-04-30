@@ -23,7 +23,7 @@
             <div class="card">
                 <ul class="nav nav-tabs tab-nav-right" role="tablist">
                     <li role="presentation" class="active"><a href="#home" data-toggle="tab">Employee List</a></li>
-                    @* <li role="presentation"><a href="#upload" data-toggle="tab">Upload Employee</a></li> *@
+                    <li role="presentation"><a href="#upload" data-toggle="tab">Upload Employee</a></li>
                     <li role="presentation"><a href="#add-new" data-toggle="tab">Create New</a></li>
                 </ul>
                 
@@ -55,24 +55,27 @@
                                 </div>
                             </div>
                         </div>
-                        @* <div role="tabpanel" class="tab-pane table-responsive responsive" id="upload">
+                        <div role="tabpanel" class="tab-pane table-responsive responsive" id="upload">
                             
-                            <form id="frm_create_new_upload">
+                            <form id="frm_import" enctype="multipart/form-data" method="post">
                                 <div class="row clearfix">
-                                    <div class="col-xs-12 ">
+                                    <div class="col-xs-10">
                                         <label for="id_crt_new_photo">Uplaod </label>
                                         <div class="form-group">
                                             <div class="form-line">
-                                                <input type="file" name="upload" id="id_crt_upload" class="form-control" >
+                                                <input type="file" name="upload" id="id_imp_upload" class="form-control" >
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-xs-2">
+                                        <a href="~/csvtemplates/employee_template.csv" target="_blank" class="btn btn-success m-t-15 btn-block waves-effect">Download Template</a>
+                                    </div>
                                     <div class="col-xs-12 ">
-                                        <button type="submit" id="id_btn_type_crt_new_submit" class="btn btn-primary m-t-15 btn-block waves-effect">S A V E</button>
+                                        <button type="submit" id="id_imp_submit" class="btn btn-primary m-t-15 btn-block waves-effect">S A V E</button>
                                     </div>
                                 </div>
                             </form>
-                        </div> *@
+                        </div>
                         <!--  -->
                         <!--  -->
                         <div role="tabpanel" class="tab-pane table-responsive responsive" id="add-new">
@@ -453,6 +456,7 @@
                 post_update_employee : "@Model.UpdateEmployee",
                 post_update_employee_vip : "@Model.UpdateEmployeeVip",
                 post_delete_employee : "@Model.DeleteEmployee",
+                post_import_employee : "@Model.ImportEmployee",
             }
         };
     </script>
@@ -627,8 +631,14 @@
             })
         }
         function oncEdtDiv(value = ""){
-           var div = $('#id_edt_div').val()
-           var bs = $('#id_baseurl').val();
+            var div = $('#id_edt_div').val();
+            if (value != "" && div == "") {
+                div = value;
+            }
+            if (div == "") {
+                return false;
+            }
+            var bs = $('#id_baseurl').val();
             $.ajax({
                 @* url : bs+"employee/get/departement/"+div, *@
                 @* url : ajax.url.get_department_by_id + `&id=${div}`,*@
@@ -711,13 +721,18 @@
                     },
                     error: errorAjax
             })
-        }) 
+        })
+
+        let ajaxCreate = "";
         $('#frm_create_new').submit(function(e){
             e.preventDefault();
+            if (ajaxCreate != "") {
+                ajaxCreate.abort();
+            }
             var form =  $('#frm_create_new')[0];
             var form_data = new FormData(form); 
             var bs = $('#id_baseurl').val();
-            $.ajax({
+            ajaxCreate = $.ajax({
                 @* url : bs+"employee/post/create/new", *@
                 url : ajax.url.post_create_employee,
                 type : "POST",
@@ -763,29 +778,90 @@
                 },
                 success:function(data){
                         if(data.status == "success"){
-                          showNotification('alert-success', data.msg,'top','center')
+                            showNotification('alert-success', data.msg,'top','center')
                         }else{
-                          showNotification('alert-danger', data.msg,'top','center')
+                            showNotification('alert-danger', data.msg,'top','center')
                         }
                         $('#id_loader').html('');
                         window.location.reload();
                     },
                     error: errorAjax
             })
-        }) 
+        });
 
+        let ajaxImport = "";
+        $('#frm_import').submit(function(e){
+            e.preventDefault();
+            if (ajaxImport != "") {
+                ajaxImport.abort();
+            }
+            var form_data = new FormData(); 
+            var file_data = $('#id_imp_upload').prop('files')[0];
+
+            if (file_data == undefined) {
+                showNotification('alert-danger', "Please select file to upload",'top','center')
+                return false;
+            }
+            var form =  new FormData();
+            form.append('file_import', file_data);
+            ajaxImport = $.ajax({
+                url : ajax.url.post_import_employee,
+                type : "POST",
+                dataType: "json",
+                data : form,
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function(){
+                    $('#id_imp_upload').prop("disabled", true);
+                    $("#id_imp_submit").prop("disabled", true);
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                },
+                success:function(data){
+                    ajaxImport = "";
+                    if(data.status == "success"){
+                        showNotification('alert-success', data.msg,'top','center')
+                    }else{
+                        showNotification('alert-danger', data.msg,'top','center')
+                    }
+                    $('#id_loader').html('');
+                    $('#id_imp_upload').prop("disabled", false);
+                    $("#id_imp_submit").prop("disabled", false);
+                    
+                    if(data.status == "success"){
+                        window.location.reload();
+                    }
+                },
+                error: errorAjax
+            })
+        });
+
+        let ajaxUpdate = 0;
         async function submitFrmUpdate() {
+            if (ajaxUpdate == 1) {
+                return;
+            }
             var ressUpdate = {status:'fail',collection:[],msg :""};
             var ressUpdateAdv = {status:'fail',collection:[],msg :""};
             var ressUpdateCheckin = {status:'fail',collection:[],msg :""};
             $('#id_loader').html('<div class="linePreloader"></div>');
             loadingg('Please wait ! ', 'Loading . . . ')
-            try { ressUpdate = await submitFrmModuleUpdate();
-            }catch(error){ console.log(error); }
-            if( (modules['vip']['is_enabled'] - 0) == 1  ){
-                 try { ressUpdateAdv = await submitFrmModuleUpdateVIP();
-                }catch(error){ console.log(error); }
+            ajaxUpdate = 1;
+            try { 
+                ressUpdate = await submitFrmModuleUpdate();
+            } catch(error) {
+                ajaxUpdate = 0;
+                return;
+                console.log(error); 
             }
+            if( (modules['vip']['is_enabled'] - 0) == 1  ){
+                try { 
+                    ressUpdateAdv = await submitFrmModuleUpdateVIP();
+                } catch(error) { 
+                    console.log(error); 
+                }
+            }
+            ajaxUpdate = 0;
             setTimeout(function(){
                 $('#id_loader').html('');
                 $('#frm_update')[0].reset();

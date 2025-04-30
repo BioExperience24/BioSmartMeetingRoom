@@ -50,7 +50,14 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
 
     public async Task<IEnumerable<UserViewModel>> GetItemsAsync()
     {
-        var items = await _repo.GetItemsAsync();
+        var authUserNIK = _httpCont?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+        var filter = new UserFilter{};
+        if (!string.IsNullOrEmpty(authUserNIK))
+        {
+            filter.ExceptEmployeeId = authUserNIK;
+        }
+
+        var items = await _repo.GetItemsFilteredByEntityAsync(filter);
 
         return __mapper.Map<List<UserViewModel>>(items);
     }

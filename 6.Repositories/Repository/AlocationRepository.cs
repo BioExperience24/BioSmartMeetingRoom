@@ -74,5 +74,14 @@ namespace _6.Repositories.Repository
 
             return await _dbContext.SaveChangesAsync();
         }
+
+        public async Task<int> CountByIds(string[] ids)
+        {
+            var query = _context.Alocations.AsQueryable();
+
+            query = query.Where(c => c.IsDeleted == 0 && ids.Contains(c.Id));
+
+            return await query.CountAsync();
+        }
     }
 }

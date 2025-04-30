@@ -34,14 +34,15 @@
                     </div>
                     <div class="body ">
                         <div class="row clearfix align-center">
-                            @if(Model.Company?.Picture == "")
+                            <img src="~/media/bg_logo_company.jpg" id="id_pic_preview" style="height: 100px;width: 160px;" asp-append-version="true">
+                            @* @if(Model.Company?.Picture == "")
                             {
-                                <img src="http://placehold.it/500x300" id="id_pic_preview" style="height: 100px;width: 160px;">
+                                <img src="~/media/bg_logo_company.jpg" id="id_pic_preview" style="height: 100px;width: 160px;" asp-append-version="true">
                             }
                             else
                             {
-                                <img src="~/media/bg_logo_company.jpg" id="id_pic_preview" style="height: 100px;">
-                            }
+                                <img src="@Model.Company?.Picture" id="id_pic_preview" style="height: 100px;" asp-append-version="true">
+                            } *@
                         </div>
                         <p align="center"><br>Maximum size <b>8MB</b> </p>
                         <div class="row clearfix">
@@ -77,14 +78,15 @@
                     </div>
                     <div class="body ">
                         <div class="row clearfix align-center">
-                            @if (Model.Company?.Icon == "")
+                            <img src="~/media/icon_logo_company.png" id="id_icon_preview" style="height: 100px;" asp-append-version="true">
+                            @* @if (Model.Company?.Icon == "")
                             {
-                                <img src="http://placehold.it/500x300" id="id_icon_preview" style="height: 100px;">
+                                <img src="~/media/icon_logo_company.png" id="id_icon_preview" style="height: 100px;" asp-append-version="true">
                             }
                             else
                             {
-                                <img src="~/media/icon_logo_company.png" id="id_icon_preview" style="height: 100px;">
-                            }
+                                <img src="@Model.Company?.Icon" id="id_icon_preview" style="height: 100px;" asp-append-version="true">
+                            } *@
                         </div>
 
                         <p align="center"><br>Maximum size <b>8MB</b> </p>
@@ -121,14 +123,15 @@
                     </div>
                     <div class="body ">
                         <div class="row clearfix align-center">
-                            @if (Model.Company?.Logo == "")
-                            {
-                                <img src="http://placehold.it/500x300" id="id_logo_preview" style="height: 100px;">
-                            }
-                            else
+                            <img src="~/media/logo_company.png" id="id_logo_preview" style="height: 100px;" asp-append-version="true">
+                            @* @if (Model.Company?.Logo == "")
                             {
                                 <img src="~/media/logo_company.png" id="id_logo_preview" style="height: 100px;">
                             }
+                            else
+                            {
+                                <img src="@Model.Company?.Logo" id="id_logo_preview" style="height: 100px;">
+                            } *@
                         </div>
 
                         <p align="center"><br>Maximum size <b>8MB</b> </p>
@@ -166,14 +169,15 @@
                     </div>
                     <div class="body ">
                         <div class="row clearfix align-center">
-                            @if (Model.Company?.MenuBar == "")
-                            {
-                                <img src="http://placehold.it/500x300" id="id_menu_preview" style="height: 100px;">
-                            }
-                            else
+                            <img src="~/media/menu_logo_company.png" id="id_menu_preview" style="height: 100px;" asp-append-version="true">
+                            @* @if (Model.Company?.MenuBar == "")
                             {
                                 <img src="~/media/menu_logo_company.png" id="id_menu_preview" style="height: 100px;">
                             }
+                            else
+                            {
+                                <img src="@Model.Company?.MenuBar" id="id_menu_preview" style="height: 100px;">
+                            } *@
                         </div>
 
                         <p align="center"><br>Maximum size <b>8MB</b> </p>

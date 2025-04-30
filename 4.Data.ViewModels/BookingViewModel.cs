@@ -564,42 +564,53 @@ public class BookingVMCancelAllFR : BookingVMCancelFR
 
 public class BookingVMEndMeetingFR
 {
+    [JsonPropertyName("id")]
     [BindProperty(Name = "id")]
     public string Id { get; set; } = string.Empty;
 
+    [JsonPropertyName("booking_id")]
     [BindProperty(Name = "booking_id")]
     public string BookingId { get; set; } = string.Empty;
 
+    [JsonPropertyName("name")]
     [BindProperty(Name = "name")]
     public string Name { get; set; } = string.Empty;
 
+    [JsonPropertyName("user")]
     [BindProperty(Name = "user")]
     public bool User { get; set; } = false;
 }
 
 public class BookingVMCheckExtendMeetingFR
 {
+    [JsonPropertyName("booking_id")]
     [BindProperty(Name = "booking_id")]
     public string BookingId { get; set; } = string.Empty;
 
+    [JsonPropertyName("time")]
     [BindProperty(Name = "time")]
     public TimeOnly Time { get; set; }
 
+    [JsonPropertyName("date")]
     [BindProperty(Name = "date")]
     public DateOnly Date { get; set; }
 }
 
 public class BookingVMExtendMeetingFR
 {
+    [JsonPropertyName("booking_id")]
     [BindProperty(Name = "booking_id")]
     public string BookingId { get; set; } = string.Empty;
 
+    [JsonPropertyName("index")]
     [BindProperty(Name = "index")]
     public int Index { get; set; }
 
+    [JsonPropertyName("extend")]
     [BindProperty(Name = "extend")]
     public int Extend { get; set; }
 
+    [JsonPropertyName("name")]
     [BindProperty(Name = "name")]
     public string Name { get; set; } = string.Empty;
 }
@@ -964,15 +975,15 @@ public class DateSimpleRoomViewModel
 public class CheckDoorOpenMeetingPinFRViewModel
 {
     [JsonPropertyName("room_id")]
-    public string RadId { get; set; }
+    public string RadId { get; set; } = string.Empty;
     [JsonPropertyName("date")]
-    [JsonConverter(typeof(DateOnlyJsonConverter))] // Force "yyyy-MM-dd" format
+    // [JsonConverter(typeof(DateOnlyJsonConverter))] // Force "yyyy-MM-dd" format
     public DateOnly Date { get; set; }
     [JsonPropertyName("time")]
-    [JsonConverter(typeof(TimeOnlyJsonConverter))] // Correctly applies TimeOnly converter
-    public TimeOnly Time { get; set; }
+    // [JsonConverter(typeof(TimeOnlyJsonConverter))] // Correctly applies TimeOnly converter
+    public string? Time { get; set; }
     [JsonPropertyName("pin")]
-    public string Pin { get; set; }
+    public string Pin { get; set; } = string.Empty;
 }
 
 
@@ -1008,3 +1019,14 @@ public class BookingVMAdditionalAttendeesFR
     [BindProperty(Name = "internal_attendees[]")]
     public string[] InternalAttendees { get; set; } = new string[]{};
 }
+
+
+// public class SetExtendBookingDisplayFRViewModel : BookingVMExtendMeetingFR
+// {
+
+//     [JsonPropertyName("npk")]
+//     public string Npk { get; set; } = string.Empty;
+
+//     [JsonPropertyName("password")]
+//     public string Password { get; set; } = string.Empty;
+// }

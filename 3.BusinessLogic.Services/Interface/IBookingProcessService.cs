@@ -11,7 +11,7 @@ namespace _3.BusinessLogic.Services.Interface
         Task<ReturnalModel> RescheduleBookingAsync(BookingVMRescheduleFR request);
         Task<ReturnalModel> CancelBookingAsync(BookingVMCancelFR request);
         Task<ReturnalModel> CancelAllBookingAsync(BookingVMCancelFR request);
-        Task<ReturnalModel> EndMeetingAsync(BookingVMEndMeetingFR request);
+        Task<ReturnalModel> EndMeetingAsync(BookingVMEndMeetingFR request, bool fromApi = false);
         Task<ReturnalModel> CheckExtendMeetingTimeAsync(BookingVMCheckExtendMeetingFR request);
         Task<ReturnalModel> SetExtendMeetingAsync(BookingVMExtendMeetingFR request);
         Task<DataTableResponse> GetAllItemWithApprovalDataTablesAsync(BookingVMNeedApprovalDataTableFR request);

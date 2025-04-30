@@ -81,6 +81,8 @@ const capSeats = {
     '' : {text : "Any", min : 0, max:null},
 }
 
+let lastSelectedHost;
+
 $(function () {
     bs = $('#id_baseurl').val();
     
@@ -169,6 +171,7 @@ $("#id_frm_crt_pic").on("change", function () {
     const t = $(this);
 
     genDepartmentFromPic(t.val());
+    addInternalParticipantByHost(t.val());
 });
 
 $(document).on("keyup", ".inp_qty_package_detail", function () {
@@ -755,9 +758,9 @@ function init_date_book_filter(roomType = "room")
             format: 'YYYY-MM-DD'
         },
         isInvalidDate: function(date) {
-            if (roomType == "noroom") {
-                return date.day() === 0 || date.day() === 6;
-            }
+            // if (roomType == "noroom" || roomType == "room") {
+            //     return date.day() === 0 || date.day() === 6;
+            // }
         }
         // minYear: 1901,
         // maxYear: parseInt(moment().format('YYYY'),10),
@@ -775,10 +778,14 @@ function init_date_book_filter(roomType = "room")
     };
 
     // if (app.auth.level == "2") {
-        if (roomType == "noroom") {
-            opt["minDate"] = moment();
-            opt["maxDate"] = moment().add(3, 'days');
-        } else if (roomType == "trainingroom") {
+        // if (roomType == "noroom" || roomType == "room") {
+        //     opt["minDate"] = moment();
+        //     opt["maxDate"] = moment().add(3, 'days');
+        // } else if (roomType == "trainingroom") {
+        //     optUntil["minDate"] = moment($('#id_book_filter_when').val());
+        //     optUntil["maxDate"] = moment($('#id_book_filter_when').val()).add(1, 'year');
+        // }
+        if (roomType == "trainingroom") {
             optUntil["minDate"] = moment($('#id_book_filter_when').val());
             optUntil["maxDate"] = moment($('#id_book_filter_when').val()).add(1, 'year');
         }
@@ -902,15 +909,21 @@ function generateOptTime(id, times = [], disableTimes = [], selected = "")
 
 function init_time_reserve_form(date, from, to, disableTimes = [])
 {
-    
     let now = getMinutesForNow(moment());
-    let times = generateTimes(now);
+    // let times = generateTimes(now);
+    let times = generateTimes();
+
+    from = from == "" ? getMinutesForNow(moment()).format("HH:mm") : from.trim();
+    to = to == "" ? getMinutesForNow(moment()).format("HH:mm") : to.trim();
 
     // let fromTimes = generateTimes(getMinutesForNow(moment()));
-    generateOptTime("#id_frm_crt_timestart", times, disableTimes);
+    // generateOptTime("#id_frm_crt_timestart", times, disableTimes);
+    // generateOptTime("#id_frm_crt_timestart", times, disableTimes, now.format("HH:mm"));
+    generateOptTime("#id_frm_crt_timestart", times, disableTimes, from);
     
     // let toTimes = generateTimes(getMinutesForNow(moment()).add(5, "minutes"));
-    generateOptTime("#id_frm_crt_timeend", times, disableTimes);
+    // generateOptTime("#id_frm_crt_timeend", times, disableTimes);
+    generateOptTime("#id_frm_crt_timeend", times, disableTimes, to);
 }
 
 function init_time_reserve_form_old(date, from, to, disableTimes = []) {
@@ -950,16 +963,37 @@ function init_time_reserve_form_old(date, from, to, disableTimes = []) {
 function init_pic_reserve_form() {
     $("#id_frm_crt_pic").empty();
 
-    $.each(employeeCollection, function (_, item) { 
-        let opt = document.createElement("option");
+    let employeeByAuth = employeeCollection.filter(emp =>
+        emp.id === app.auth.nik || emp.nik === app.auth.nik
+    );
 
-        $(opt).text(`${item.name}`);
-        // $(opt).val(item.department_id);
-        $(opt).val(item.id);
+    if (app.auth.level == "2" && employeeByAuth.length > 0) {
+        $.each(employeeByAuth, function (_, item) { 
+            let opt = document.createElement("option");
+    
+            $(opt).text(`${item.name}`);
+            // $(opt).val(item.department_id);
+            $(opt).val(item.id);
 
-        $("#id_frm_crt_pic").append(opt);
-        select_enable();
-    });
+            $(opt).attr("selected", true);
+    
+            $("#id_frm_crt_pic").append(opt);
+            select_enable();
+            $("#id_frm_crt_pic").trigger("change");
+        });
+    } else {
+        $.each(employeeCollection, function (_, item) { 
+            let opt = document.createElement("option");
+    
+            $(opt).text(`${item.name}`);
+            // $(opt).val(item.department_id);
+            $(opt).val(item.id);
+    
+            $("#id_frm_crt_pic").append(opt);
+            select_enable();
+        });
+    }
+
 }
 
 function init_alocation_reserve_form() {
@@ -1456,7 +1490,7 @@ function reloadPartisipantSelected(withDelete = true) {
     $.each(gEmployeesSelected, (index, item) => {
         htmlEmp += '<tr id="id_tr_id_' + item + '" data-id="' + item + '">';
         htmlEmp += '<td style="width: 90%;">' + gEmployeesSelectedArray[index].name + '</td>';
-        if (withDelete == true)
+        if (withDelete == true && (gEmployeesSelectedArray[index].nik != lastSelectedHost || gEmployeesSelectedArray[index].id != lastSelectedHost))
         {
             htmlEmp += '<td>\
                 <button data-item="' + item + '" onclick="removeCrtParticipant($(this))" type="button" class="btn bg-red btn-sm waves-effect">\
@@ -1474,10 +1508,15 @@ function removeCrtParticipant(t) {
     var item = t.data('item');
     var idtr = '#id_tr_id_' + item;
     var removeN = gEmployeesSelected.indexOf(item);
-    gEmployeesSelected.splice(removeN, 1);
-    gEmployeesSelectedArray.splice(removeN, 1);
-    $(idtr).remove().delay(200);
+    // Hapus dari array string
+    gEmployeesSelected = gEmployeesSelected.filter(id => id !== item.toString());
+    // Hapus dari array object berdasarkan `nik` atau `id`
+    gEmployeesSelectedArray = gEmployeesSelectedArray.filter(emp => emp.nik !== item.toString() || emp.id !== item.toString());
     reloadPartisipant();
+    reloadPartisipantSelected();
+    // gEmployeesSelected.splice(removeN, 1);
+    // gEmployeesSelectedArray.splice(removeN, 1);
+    // $(idtr).remove().delay(200);
 }
 
 // table booking list
@@ -1715,7 +1754,7 @@ function init_table_booking_list() {
                             }
 
                             let isShowCancel = true;
-                            if (item.booking_type == "trainingroom" && !isHMinus(item.date, 14)) {
+                            if (item.booking_type == "trainingroom" && !isHPlus(item.date, 14)) {
                                 isShowCancel = false;
                             }
                             if (isShowCancel == true) {
@@ -2490,6 +2529,13 @@ function extendMeeting(t) {
                     confirmButtonAriaLabel: 'Close',
                 })
                 // gAlocation = data.collection;
+            } else {
+                Swal.fire({
+                    title: data.msg,
+                    icon: "error",
+                    showCloseButton: true,
+                    confirmButtonText: 'Close',
+                })
             }
             // gBookingCrt['change'] = ;
 
@@ -3201,4 +3247,27 @@ function isHMinus(inputDate, minus = 14) {
 
     // return today.isSameOrBefore(targetDate.subtract(14, 'days'), 'day'); // Cek apakah sama dengan H-14
     return targetDate.diff(today, 'days') <= minus; // Cek apakah sama dengan H-14
+}
+
+function isHPlus(inputDate, plus = 14) {
+    const today = moment().startOf('day'); // Ambil tanggal hari ini tanpa jam
+    const targetDate = moment(inputDate).startOf('day'); // Ambil tanggal input tanpa jam
+
+    return targetDate.diff(today, 'days') > plus; // Cek apakah sama dengan lebi dari H+14 atau lebih
+}
+
+function addInternalParticipantByHost(id) {
+    if (lastSelectedHost != undefined) {
+        // Hapus dari array string
+        gEmployeesSelected = gEmployeesSelected.filter(id => id !== lastSelectedHost);
+
+        // Hapus dari array object berdasarkan `nik` atau `id`
+        gEmployeesSelectedArray = gEmployeesSelectedArray.filter(emp => emp.nik !== lastSelectedHost || emp.id !== lastSelectedHost);
+    }
+    gEmployeesSelected.push(id);
+    let employee = employeeCollection.find((item) => item.id == id || item.nik == id);
+    gEmployeesSelectedArray.push(employee);
+    lastSelectedHost = id;
+    reloadPartisipant();
+    reloadPartisipantSelected();
 }

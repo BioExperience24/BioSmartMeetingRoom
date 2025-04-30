@@ -34,6 +34,7 @@ public class APIMainDisplayService(
     SendingEmailRepository _sendingEmailRepository,
     SendingNotifRepository _sendingNotifRepository,
     SettingLogConfigRepository _settingLogConfigRepository,
+    IS3Service _s3Service,
     IPantryTransaksiService _pantryTransaksiService,
     IAttachmentListService _attachmentListService,
     IExportReport _exp
@@ -1109,6 +1110,22 @@ public class APIMainDisplayService(
         var fetchRoomData = await _repoRoomDisplayRepository.GetDataRoomDisplayByListID(fetch.Id);
         fetch.RoomSelectData = _mapper.Map<List<RoomDisplayInformationViewModel>>(fetchRoomData);
 
+
+        var presignedUrlResult = _s3Service.GetPresignedUrl("display/background", fetch.Background, 120);
+
+        if (presignedUrlResult != null)
+        {
+            fetch.Background = presignedUrlResult;
+        }
+        else
+        {
+            fetch.Background = string.Empty;
+        }
+
+        fetch.FloorIdEnc = fetch.FloorId.ToString();
+        fetch.BuildingIdEnc = fetch.BuildingId.ToString();
+
+
         return new ReturnalModel
         {
             Status = ReturnalType.Success,
@@ -1885,7 +1902,9 @@ public class APIMainDisplayService(
             "dd/MM/yyyy HH:mm",     // Another possible variation
             "yyyy-MM-dd HH:mm",     // Without seconds
             "dd/MM/yyyy HH.mm:ss",  // Similar issue with dots
-            "yyyy-MM-dd HH.mm"      // Similar issue with dots
+            "yyyy-MM-dd HH.mm",      // Similar issue with dots
+            "MM/dd/yyyy HH:mm",
+            "MM/dd/yyyy HH:mm:ss"
         };
 
         if (!DateTime.TryParseExact(dateTimeString, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
@@ -1921,6 +1940,8 @@ public class APIMainDisplayService(
                 }
 
                 await InsertLogPin(settingRuleBooking.BookingId, request.RadId, 0, request.Pin, dateTime, message, 1);
+
+                await _repoBI.UpdateAccessOpenPinRoomAsync(settingRuleBooking.BookingId, request.Pin);
 
                 ret.Message = message;
                 return ret;
@@ -2050,6 +2071,13 @@ public class APIMainDisplayService(
 
                 return ret;
             }
+            else if (settingRuleBooking.Type == EnumAccessControlType.EntryPass || settingRuleBooking.Type == EnumAccessControlType.EntryPassId)
+            {
+
+                var urlDoorPulse = _config["ApiUrls:URLApiDoorPulse"] + "/api/door/pulse?doorname=" + settingRuleBooking.AccessId;
+                await _apiCaller.TryGETRequest(urlDoorPulse!);
+                return ret;
+            }
             else if (settingRuleBooking.Type == EnumAccessControlType.Custom || settingRuleBooking.Type == EnumAccessControlType.CustId)
             {
                 var url = $"http://{settingRuleBooking.IpController}{port}/api/door/ON{settingRuleBooking.Channel}/{settingRuleBooking.Delay}";
@@ -2063,7 +2091,8 @@ public class APIMainDisplayService(
 
                 return ret;
             }
-        }else{
+        }
+        else{
 
             ret.Status = ReturnalType.Failed;
             ret.Message = $"Error when fetch to Open Door PIN";

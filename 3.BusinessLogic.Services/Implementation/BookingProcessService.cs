@@ -48,6 +48,8 @@ namespace _3.BusinessLogic.Services.Implementation
 
         private readonly BookingInvoiceRepository _bookingInvoiceRepo;
 
+        private readonly int _lengthPinRoom;
+
         public BookingProcessService(
             IMapper mapper,
             IHttpContextAccessor httpCtx,
@@ -91,6 +93,8 @@ namespace _3.BusinessLogic.Services.Implementation
             _pantryTransaksiStatusRepository = pantryTransaksiStatusRepository;
             _settingInvoiceTextRepository = settingInvoiceTextRepository;
             _bookingInvoiceRepo = bookingInvoiceRepo;
+
+            _lengthPinRoom = 4;
         }
 
         public async Task<(BookingViewModel?, string?)> CreateBookingAsync(BookingVMCreateReserveFR request)
@@ -693,7 +697,7 @@ namespace _3.BusinessLogic.Services.Implementation
             return ret;
         }
 
-        public async Task<ReturnalModel> EndMeetingAsync(BookingVMEndMeetingFR request)
+        public async Task<ReturnalModel> EndMeetingAsync(BookingVMEndMeetingFR request, bool fromApi = false)
         {
             ReturnalModel ret = new();
 
@@ -729,6 +733,10 @@ namespace _3.BusinessLogic.Services.Implementation
                     dataBooking.IsAlive = 4;
                     dataBooking.EarlyEndedBy = authUserNIK ?? "";
                     dataBooking.EarlyEndedAt = now;
+                    if(fromApi){
+
+                        dataBooking.TextEarly = "By Display Signage";
+                    }
                     dataBooking.TextEarly = request.User ? authUsername : "By Admin";
                     dataBooking.IsDeleted = 0;
                     dataBooking.IsExpired = 0;
@@ -761,8 +769,8 @@ namespace _3.BusinessLogic.Services.Implementation
                 return ret;
             }
 
-            var max = dataSettingGeneral?.ExtendMeetingMax ?? 0;
-            var pieceTime = dataSettingGeneral?.ExtendCountTime ?? 0;
+            var max = dataSettingGeneral?.ExtendMeetingMax ?? 30;
+            var pieceTime = dataSettingGeneral?.ExtendCountTime ?? 30;
 
             if (max < pieceTime)
             {
@@ -1119,7 +1127,8 @@ namespace _3.BusinessLogic.Services.Implementation
                     {
                         foreach (var item in internalAttendees)
                         {
-                            var pinRoom =_Random.Numeric(6).ToString();
+                            // var pinRoom =_Random.Numeric(6).ToString();
+                            var pinRoom =_Random.Numeric(_lengthPinRoom).ToString();
 
                             var attendance = new BookingInvitation
                             {
@@ -1152,7 +1161,8 @@ namespace _3.BusinessLogic.Services.Implementation
                     {
                         foreach (var item in externalAttendess)
                         {
-                            var pinRoom =_Random.Numeric(6).ToString();
+                            // var pinRoom =_Random.Numeric(6).ToString();
+                            var pinRoom =_Random.Numeric(_lengthPinRoom).ToString();
                             
                             var attendance = new BookingInvitation
                             {
@@ -1664,7 +1674,8 @@ namespace _3.BusinessLogic.Services.Implementation
                         {
                             // var isPic = (item.Id == request.Pic) ? 1 : 0;
                             var isPic = (item.Id == pic!.Id) ? 1 : 0;
-                            var pinRoom =_Random.Numeric(6).ToString();
+                            // var pinRoom =_Random.Numeric(6).ToString();
+                            var pinRoom =_Random.Numeric(_lengthPinRoom).ToString();
 
                             var attendance = new BookingInvitation
                             {
@@ -1702,7 +1713,8 @@ namespace _3.BusinessLogic.Services.Implementation
                                 AttendanceStatus = 0,
                                 Email = pic.Email,
                                 IsPic = 1,
-                                PinRoom = _Random.Numeric(6).ToString(),
+                                // PinRoom = _Random.Numeric(6).ToString(),
+                                PinRoom = _Random.Numeric(_lengthPinRoom).ToString(),
                                 Company = alocation?.TypeName ?? "", // alocationtype name
                                 Position = alocation?.Name, // alocation name
                                 CreatedAt = now,
@@ -1723,7 +1735,8 @@ namespace _3.BusinessLogic.Services.Implementation
                             AttendanceStatus = 0,
                             Email = pic.Email,
                             IsPic = 1,
-                            PinRoom = _Random.Numeric(6).ToString(),
+                            // PinRoom = _Random.Numeric(6).ToString(),
+                            PinRoom = _Random.Numeric(_lengthPinRoom).ToString(),
                             Company = alocation?.TypeName ?? "", // alocationtype name
                             Position = alocation?.Name, // alocation name
                             CreatedAt = now,
@@ -1741,7 +1754,8 @@ namespace _3.BusinessLogic.Services.Implementation
                     {
                         foreach (var item in externalAttendess)
                         {
-                            var pinRoom =_Random.Numeric(6).ToString();
+                            // var pinRoom =_Random.Numeric(6).ToString();
+                            var pinRoom =_Random.Numeric(_lengthPinRoom).ToString();
                             
                             var attendance = new BookingInvitation
                             {
@@ -2154,11 +2168,15 @@ namespace _3.BusinessLogic.Services.Implementation
                         // internal attendees
                         if (internalAttendees.Any())
                         {
+                            bool isHasPic = false;
                             foreach (var item in internalAttendees)
                             {
                                 // var isPic = (item.Id == request.Pic) ? 1 : 0;
                                 var isPic = (item.Id == pic!.Id) ? 1 : 0;
-                                var pinRoom =_Random.Numeric(6).ToString();
+                                // var pinRoom =_Random.Numeric(6).ToString();
+                                var pinRoom =_Random.Numeric(_lengthPinRoom).ToString();
+
+                                isHasPic = isPic == 1 ? true : isHasPic;
 
                                 var attendance = new BookingInvitation
                                 {
@@ -2184,7 +2202,7 @@ namespace _3.BusinessLogic.Services.Implementation
                             }
 
                             // buat data pic jika tidak ada pic pada internal attendees
-                            if (attendanceCollections.Where(q => q.IsPic == 1).FirstOrDefault() == null && pic != null)
+                            if (isHasPic == false && pic != null)
                             {
                                 attendanceCollections.Add(new BookingInvitation
                                 {
@@ -2196,7 +2214,8 @@ namespace _3.BusinessLogic.Services.Implementation
                                     AttendanceStatus = 0,
                                     Email = pic.Email,
                                     IsPic = 1,
-                                    PinRoom = _Random.Numeric(6).ToString(),
+                                    // PinRoom = _Random.Numeric(6).ToString(),
+                                    PinRoom = _Random.Numeric(_lengthPinRoom).ToString(),
                                     Company = alocation?.TypeName ?? "", // alocationtype name
                                     Position = alocation?.Name, // alocation name
                                     CreatedAt = now,
@@ -2217,7 +2236,8 @@ namespace _3.BusinessLogic.Services.Implementation
                                 AttendanceStatus = 0,
                                 Email = pic.Email,
                                 IsPic = 1,
-                                PinRoom = _Random.Numeric(6).ToString(),
+                                // PinRoom = _Random.Numeric(6).ToString(),
+                                PinRoom = _Random.Numeric(_lengthPinRoom).ToString(),
                                 Company = alocation?.TypeName ?? "", // alocationtype name
                                 Position = alocation?.Name, // alocation name
                                 CreatedAt = now,
@@ -2234,7 +2254,8 @@ namespace _3.BusinessLogic.Services.Implementation
                         {
                             foreach (var item in externalAttendess)
                             {
-                                var pinRoom =_Random.Numeric(6).ToString();
+                                // var pinRoom =_Random.Numeric(6).ToString();
+                                var pinRoom =_Random.Numeric(_lengthPinRoom).ToString();
                                 
                                 var attendance = new BookingInvitation
                                 {

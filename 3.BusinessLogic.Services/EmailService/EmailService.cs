@@ -7,16 +7,25 @@ namespace _3.BusinessLogic.Services.EmailService
     public class EmailService(
         APICaller apiCaller,
         BookingRepository bookingRepo,
-        ModuleBackendRepository moduleBackendRepo
+        ModuleBackendRepository moduleBackendRepo,
+        CompanyRepository companyRepo
     ) 
         : IEmailService
     {
+        private const string DefaultCompanyName = "PT Pamapersada Nusantara";
+
         public async Task SendMailAttendanceConfirmation(string bookingId, string nik, int attendanceStatus)
         {
             var getHttpUrl = await moduleBackendRepo.GetHttpUrlTop();
             if (getHttpUrl == null)
             {
                 return;    
+            }
+
+            var company = await getInformationCompany();
+            if (company == null)
+            {
+                return;
             }
 
             var data = await bookingRepo.GetMailDataParticipantByBookingId(bookingId, nik);
@@ -51,6 +60,7 @@ namespace _3.BusinessLogic.Services.EmailService
                 MeetingHost = host.Name ?? string.Empty,
                 MeetingAgenda = data.Agenda,
                 AttendanceStatus = attendanceStatus == 1 ? "bersedia" : "tidak bersedia",
+                SincerelyName = company.Name ?? DefaultCompanyName
             };
 
             string emailBody = buildEmailAttendanceConfirmationBody(emailBodyData);
@@ -59,7 +69,7 @@ namespace _3.BusinessLogic.Services.EmailService
 
             var payload = new SendMailViewModel
             {
-                Name = "Bio Experience",
+                Name =  company.Name ?? DefaultCompanyName,
                 To = host.Email,
                 Subject = "Konfirmasi Kehadiran",
                 Body = emailBody,
@@ -68,7 +78,31 @@ namespace _3.BusinessLogic.Services.EmailService
                 Date = data.Date.ToString("dd MMMM yyyy"),
                 StartMeeting = $"{data.Start:HH:mm}",
                 EndMeeting = $"{data.End:HH:mm}",
-                Location = data.BuildingAddress
+                Location = data.BuildingAddress,
+                Organizer = new SendMailVMOrganizer
+                {
+                    Id = host.EmployeeId ?? string.Empty,
+                    Name = host.EmployeeName ?? string.Empty,
+                    Email = host.EmployeeEmail ?? string.Empty,
+                    Nrp = host.EmployeeNrp ?? string.Empty,
+                    NikDisplay = host.EmployeeNikDisplay ?? string.Empty,
+                    Phone = host.EmployeeNoPhone ?? string.Empty,
+                },
+                Attendees = new SendMailVMAttendees
+                {
+                    Id = participant.Id ?? 0,
+                    Name =  participant.Name ?? string.Empty,
+                    Email = participant.Email ?? string.Empty,
+                    Type = participant.Internal == 1 ? "internal" : "external"
+                },
+                Place = new SendMailVMPlace
+                {
+                    Building = data.BuildingName,
+                    Floor = data.BuildingFloorName,
+                    Room = data.RoomName,
+                    RoomId = data.RoomId,
+                    KindRoom = data.RoomType
+                }
             };
             
             // Ensure headers are not null or empty before deserialization
@@ -90,6 +124,12 @@ namespace _3.BusinessLogic.Services.EmailService
                 return;    
             }
 
+            var company = await getInformationCompany();
+            if (company == null)
+            {
+                return;
+            }
+
             var data = await bookingRepo.GetMailDataParticipantByBookingId(bookingId);
 
             if (data == null || !data.Participants.Any())
@@ -115,7 +155,7 @@ namespace _3.BusinessLogic.Services.EmailService
                 Location = data.BuildingAddress,
                 Room = meetingRoom,
                 LinkMap = generateLinkMeetingLocation(data.BuildingMapLink),
-                Orginizer = host.Name ?? string.Empty,
+                Organizer = host.Name ?? string.Empty,
                 Agenda = data.Agenda,
                 // Pin = string.Empty,
                 // Qrtattendance = string.Empty,
@@ -124,20 +164,38 @@ namespace _3.BusinessLogic.Services.EmailService
                 RoomText = emailBodyDataSetting?.Room ?? "Ruangan",
                 Url = emailBodyDataSetting?.MapLinkText ?? "Direction Map",
                 AgendaText = emailBodyDataSetting?.TitleAgendaText ?? "Agenda",
+                HormatKami = company.Name ?? DefaultCompanyName
             };
 
             var url = getHttpUrl.Url;
 
             var payload = new SendMailViewModel
             {
-                Name = "Bio Experience",
+                Name = company.Name ?? DefaultCompanyName,
                 Subject = $"{emailBodyDataSetting?.TitleOfText ?? "Undangan Meeting"} {data.Agenda}",
                 IsHtml = true,
                 EmailType = "meeting",
                 Date = data.Date.ToString("dd MMMM yyyy"),
                 StartMeeting = $"{data.Start:HH:mm}",
                 EndMeeting = $"{data.End:HH:mm}",
-                Location = data.BuildingAddress
+                Location = data.BuildingAddress,
+                Organizer = new SendMailVMOrganizer
+                {
+                    Id = host.EmployeeId ?? string.Empty,
+                    Name = host.EmployeeName ?? string.Empty,
+                    Email = host.EmployeeEmail ?? string.Empty,
+                    Nrp = host.EmployeeNrp ?? string.Empty,
+                    NikDisplay = host.EmployeeNikDisplay ?? string.Empty,
+                    Phone = host.EmployeeNoPhone ?? string.Empty,
+                },
+                Place = new SendMailVMPlace
+                {
+                    Building = data.BuildingName,
+                    Floor = data.BuildingFloorName,
+                    Room = data.RoomName,
+                    RoomId = data.RoomId,
+                    KindRoom = data.RoomType
+                }
             };
             
             // Ensure headers are not null or empty before deserialization
@@ -154,11 +212,23 @@ namespace _3.BusinessLogic.Services.EmailService
             {
                 foreach (var participant in participants)
                 {
-                    emailBodyData.Kepada = participant.Name;
-                    emailBodyData.Pin = participant.PinRoom ?? "";
+                    emailBodyData.Kepada = participant.Name ?? string.Empty;
+                    emailBodyData.Pin = participant.PinRoom ?? string.Empty;
+
+                    if (string.IsNullOrEmpty(participant.Email))
+                    {
+                        continue;
+                    }
 
                     payload.To = participant.Email;
                     payload.Body = buildEmailInvitationBody(emailBodyData);
+                    payload.Attendees = new SendMailVMAttendees
+                    {
+                        Id = participant.Id ?? 0,
+                        Name =  participant.Name ?? string.Empty,
+                        Email = participant.Email ?? string.Empty,
+                        Type = participant.Internal == 1 ? "internal" : "external"
+                    };
 
                     await apiCaller.POSTHttpRequest(url, payload, headers);
                 }
@@ -173,6 +243,12 @@ namespace _3.BusinessLogic.Services.EmailService
             if (getHttpUrl == null)
             {
                 return;    
+            }
+
+            var company = await getInformationCompany();
+            if (company == null)
+            {
+                return;
             }
 
             var bookRecurring = await bookingRepo.GetFirstAndLastByRecurringId(recurringId);
@@ -219,7 +295,7 @@ namespace _3.BusinessLogic.Services.EmailService
                 Location = data.BuildingAddress,
                 Room = meetingRoom,
                 LinkMap = generateLinkMeetingLocation(data.BuildingMapLink),
-                Orginizer = host.Name ?? string.Empty,
+                Organizer = host.Name ?? string.Empty,
                 Agenda = data.Agenda,
                 // Pin = string.Empty,
                 // Qrtattendance = string.Empty,
@@ -228,20 +304,38 @@ namespace _3.BusinessLogic.Services.EmailService
                 RoomText = emailBodyDataSetting?.Room ?? "Ruangan",
                 Url = emailBodyDataSetting?.MapLinkText ?? "Direction Map",
                 AgendaText = emailBodyDataSetting?.TitleAgendaText ?? "Agenda",
+                HormatKami = company.Name ?? DefaultCompanyName
             };
 
             var url = getHttpUrl.Url;
 
             var payload = new SendMailViewModel
             {
-                Name = "Bio Experience",
+                Name = company.Name ?? DefaultCompanyName,
                 Subject = $"{emailBodyDataSetting?.TitleOfText ?? "Undangan Meeting"} {data.Agenda}",
                 IsHtml = true,
                 EmailType = "meeting",
                 Date = data.Date.ToString("dd MMMM yyyy"),
                 StartMeeting = $"{data.Start:HH:mm}",
                 EndMeeting = $"{data.End:HH:mm}",
-                Location = data.BuildingAddress
+                Location = data.BuildingAddress,
+                Organizer = new SendMailVMOrganizer
+                {
+                    Id = host.EmployeeId ?? string.Empty,
+                    Name = host.EmployeeName ?? string.Empty,
+                    Email = host.EmployeeEmail ?? string.Empty,
+                    Nrp = host.EmployeeNrp ?? string.Empty,
+                    NikDisplay = host.EmployeeNikDisplay ?? string.Empty,
+                    Phone = host.EmployeeNoPhone ?? string.Empty,
+                },
+                Place = new SendMailVMPlace
+                {
+                    Building = data.BuildingName,
+                    Floor = data.BuildingFloorName,
+                    Room = data.RoomName,
+                    RoomId = data.RoomId,
+                    KindRoom = data.RoomType
+                }
             };
             
             // Ensure headers are not null or empty before deserialization
@@ -258,11 +352,23 @@ namespace _3.BusinessLogic.Services.EmailService
             {
                 foreach (var participant in participants)
                 {
-                    emailBodyData.Kepada = participant.Name;
-                    emailBodyData.Pin = participant.PinRoom ?? "";
+                    emailBodyData.Kepada = participant.Name ?? string.Empty;
+                    emailBodyData.Pin = participant.PinRoom ?? string.Empty;
+                    
+                    if (string.IsNullOrEmpty(participant.Email))
+                    {
+                        continue;
+                    }
 
                     payload.To = participant.Email;
                     payload.Body = buildEmailInvitationBody(emailBodyData);
+                    payload.Attendees = new SendMailVMAttendees
+                    {
+                        Id = participant.Id ?? 0,
+                        Name =  participant.Name ?? string.Empty,
+                        Email = participant.Email ?? string.Empty,
+                        Type = participant.Internal == 1 ? "internal" : "external"
+                    };
 
                     await apiCaller.POSTHttpRequest(url, payload, headers);
                 }
@@ -277,6 +383,12 @@ namespace _3.BusinessLogic.Services.EmailService
             if (getHttpUrl == null)
             {
                 return;    
+            }
+
+            var company = await getInformationCompany();
+            if (company == null)
+            {
+                return;
             }
 
             var data = await bookingRepo.GetMailDataParticipantByBookingId(bookingId);
@@ -301,20 +413,21 @@ namespace _3.BusinessLogic.Services.EmailService
                 Location = data.BuildingAddress,
                 Room = meetingRoom,
                 LinkMap = generateLinkMeetingLocation(data.BuildingMapLink),
-                Orginizer = host.Name ?? string.Empty,
+                Organizer = host.Name ?? string.Empty,
                 Agenda = data.Agenda,
                 TanggalText = "Tanggal",
                 LocationText = "Lokasi",
                 RoomText = "Ruangan",
                 Url = "Direction Map",
                 AgendaText = "Agenda",
+                HormatKami = company.Name ?? DefaultCompanyName
             };
 
             var url = getHttpUrl.Url;
 
             var payload = new SendMailViewModel
             {
-                Name = "Bio Experience",
+                Name = company.Name ?? DefaultCompanyName,
                 // Subject = $"Undangan Meeting {data.Agenda}",
                 Subject = $"Perubahan Jadwal Meeting {data.Agenda}",
                 IsHtml = true,
@@ -322,7 +435,24 @@ namespace _3.BusinessLogic.Services.EmailService
                 Date = data.Date.ToString("dd MMMM yyyy"),
                 StartMeeting = $"{data.Start:HH:mm}",
                 EndMeeting = $"{data.End:HH:mm}",
-                Location = data.BuildingAddress
+                Location = data.BuildingAddress,
+                Organizer = new SendMailVMOrganizer
+                {
+                    Id = host.EmployeeId ?? string.Empty,
+                    Name = host.EmployeeName ?? string.Empty,
+                    Email = host.EmployeeEmail ?? string.Empty,
+                    Nrp = host.EmployeeNrp ?? string.Empty,
+                    NikDisplay = host.EmployeeNikDisplay ?? string.Empty,
+                    Phone = host.EmployeeNoPhone ?? string.Empty,
+                },
+                Place = new SendMailVMPlace
+                {
+                    Building = data.BuildingName,
+                    Floor = data.BuildingFloorName,
+                    Room = data.RoomName,
+                    RoomId = data.RoomId,
+                    KindRoom = data.RoomType
+                }
             };
             
             // Ensure headers are not null or empty before deserialization
@@ -330,11 +460,23 @@ namespace _3.BusinessLogic.Services.EmailService
 
             foreach (var participant in data.Participants)
             {
-                emailBodyData.Kepada = participant.Name;
-                emailBodyData.Pin = participant.PinRoom ?? "";
+                emailBodyData.Kepada = participant.Name ?? string.Empty;
+                emailBodyData.Pin = participant.PinRoom ?? string.Empty;
+
+                if (string.IsNullOrEmpty(participant.Email))
+                {
+                    continue;
+                }
 
                 payload.To = participant.Email;
                 payload.Body = buildEmailRescheduleBody(emailBodyData);
+                payload.Attendees = new SendMailVMAttendees
+                {
+                    Id = participant.Id ?? 0,
+                    Name =  participant.Name ?? string.Empty,
+                    Email = participant.Email ?? string.Empty,
+                    Type = participant.Internal == 1 ? "internal" : "external"
+                };
 
                 using (var httpClient = new HttpClient())
                 {
@@ -353,6 +495,12 @@ namespace _3.BusinessLogic.Services.EmailService
                 return;    
             }
 
+            var company = await getInformationCompany();
+            if (company == null)
+            {
+                return;
+            }
+
             var data = await bookingRepo.GetMailDataParticipantByBookingId(bookingId);
 
             if (data == null || !data.Participants.Any())
@@ -375,27 +523,45 @@ namespace _3.BusinessLogic.Services.EmailService
                 Location = data.BuildingAddress,
                 Room = meetingRoom,
                 LinkMap = generateLinkMeetingLocation(data.BuildingMapLink),
-                Orginizer = host.Name ?? string.Empty,
+                Organizer = host.Name ?? string.Empty,
                 Agenda = data.Agenda,
                 TanggalText = "Tanggal",
                 LocationText = "Lokasi",
                 RoomText = "Ruangan",
                 Url = "Direction Map",
                 AgendaText = "Agenda",
+                HormatKami = company.Name ?? DefaultCompanyName
             };
 
             var url = getHttpUrl.Url;
 
             var payload = new SendMailViewModel
             {
-                Name = "Bio Experience",
+                Name = company.Name ?? DefaultCompanyName,
                 Subject = $"Pembatalan Meeting {data.Agenda}",
                 IsHtml = true,
                 EmailType = "cancel",
                 Date = data.Date.ToString("dd MMMM yyyy"),
                 StartMeeting = $"{data.Start:HH:mm}",
                 EndMeeting = $"{data.End:HH:mm}",
-                Location = data.BuildingAddress
+                Location = data.BuildingAddress,
+                Organizer = new SendMailVMOrganizer
+                {
+                    Id = host.EmployeeId ?? string.Empty,
+                    Name = host.EmployeeName ?? string.Empty,
+                    Email = host.EmployeeEmail ?? string.Empty,
+                    Nrp = host.EmployeeNrp ?? string.Empty,
+                    NikDisplay = host.EmployeeNikDisplay ?? string.Empty,
+                    Phone = host.EmployeeNoPhone ?? string.Empty,
+                },
+                Place = new SendMailVMPlace
+                {
+                    Building = data.BuildingName,
+                    Floor = data.BuildingFloorName,
+                    Room = data.RoomName,
+                    RoomId = data.RoomId,
+                    KindRoom = data.RoomType
+                }
             };
             
             // Ensure headers are not null or empty before deserialization
@@ -405,11 +571,23 @@ namespace _3.BusinessLogic.Services.EmailService
             {
                 foreach (var participant in data.Participants)
                 {
-                    emailBodyData.Kepada = participant.Name;
-                    emailBodyData.Pin = participant.PinRoom ?? "";
+                    emailBodyData.Kepada = participant.Name ?? string.Empty;
+                    emailBodyData.Pin = participant.PinRoom ?? string.Empty;
+
+                    if (string.IsNullOrEmpty(participant.Email))
+                    {
+                        continue;
+                    }
 
                     payload.To = participant.Email;
                     payload.Body = buildEmailCancellationBody(emailBodyData);
+                    payload.Attendees = new SendMailVMAttendees
+                    {
+                        Id = participant.Id ?? 0,
+                        Name =  participant.Name ?? string.Empty,
+                        Email = participant.Email ?? string.Empty,
+                        Type = participant.Internal == 1 ? "internal" : "external"
+                    };
 
                     await apiCaller.POSTHttpRequest(url, payload, headers);
                 }
@@ -424,6 +602,12 @@ namespace _3.BusinessLogic.Services.EmailService
             if (getHttpUrl == null)
             {
                 return;    
+            }
+
+            var company = await getInformationCompany();
+            if (company == null)
+            {
+                return;
             }
 
             var bookRecurring = await bookingRepo.GetFirstAndLastByRecurringId(recurringId);
@@ -467,27 +651,45 @@ namespace _3.BusinessLogic.Services.EmailService
                 Location = data.BuildingAddress,
                 Room = meetingRoom,
                 LinkMap = generateLinkMeetingLocation(data.BuildingMapLink),
-                Orginizer = host.Name ?? string.Empty,
+                Organizer = host.Name ?? string.Empty,
                 Agenda = data.Agenda,
                 TanggalText = "Tanggal",
                 LocationText = "Lokasi",
                 RoomText = "Ruangan",
                 Url = "Direction Map",
                 AgendaText = "Agenda",
+                HormatKami = company.Name ?? DefaultCompanyName
             };
 
             var url = getHttpUrl.Url;
 
             var payload = new SendMailViewModel
             {
-                Name = "Bio Experience",
+                Name = company.Name ?? DefaultCompanyName,
                 Subject = $"Pembatalan Meeting {data.Agenda}",
                 IsHtml = true,
                 EmailType = "cancel",
                 Date = data.Date.ToString("dd MMMM yyyy"),
                 StartMeeting = $"{data.Start:HH:mm}",
                 EndMeeting = $"{data.End:HH:mm}",
-                Location = data.BuildingAddress
+                Location = data.BuildingAddress,
+                Organizer = new SendMailVMOrganizer
+                {
+                    Id = host.EmployeeId ?? string.Empty,
+                    Name = host.EmployeeName ?? string.Empty,
+                    Email = host.EmployeeEmail ?? string.Empty,
+                    Nrp = host.EmployeeNrp ?? string.Empty,
+                    NikDisplay = host.EmployeeNikDisplay ?? string.Empty,
+                    Phone = host.EmployeeNoPhone ?? string.Empty,
+                },
+                Place = new SendMailVMPlace
+                {
+                    Building = data.BuildingName,
+                    Floor = data.BuildingFloorName,
+                    Room = data.RoomName,
+                    RoomId = data.RoomId,
+                    KindRoom = data.RoomType
+                }
             };
             
             // Ensure headers are not null or empty before deserialization
@@ -497,11 +699,23 @@ namespace _3.BusinessLogic.Services.EmailService
             {
                 foreach (var participant in data.Participants)
                 {
-                    emailBodyData.Kepada = participant.Name;
-                    emailBodyData.Pin = participant.PinRoom ?? "";
+                    emailBodyData.Kepada = participant.Name ?? string.Empty;
+                    emailBodyData.Pin = participant.PinRoom ?? string.Empty;
+
+                    if (string.IsNullOrEmpty(participant.Email))
+                    {
+                        continue;
+                    }
 
                     payload.To = participant.Email;
                     payload.Body = buildEmailCancellationBody(emailBodyData);
+                    payload.Attendees = new SendMailVMAttendees
+                    {
+                        Id = participant.Id ?? 0,
+                        Name =  participant.Name ?? string.Empty,
+                        Email = participant.Email ?? string.Empty,
+                        Type = participant.Internal == 1 ? "internal" : "external"
+                    };
 
                     await apiCaller.POSTHttpRequest(url, payload, headers);
                 }
@@ -544,7 +758,7 @@ namespace _3.BusinessLogic.Services.EmailService
                 { "%location%", emailBodyData.Location },
                 { "%room%", emailBodyData.Room },
                 { "%link_map%", emailBodyData.LinkMap },
-                { "%orginizer%", emailBodyData.Orginizer },
+                { "%orginizer%", emailBodyData.Organizer },
                 { "%agenda%", emailBodyData.Agenda },
                 { "%pin%", emailBodyData.Pin },
                 { "%qrtattendance%", string.Empty },
@@ -552,7 +766,8 @@ namespace _3.BusinessLogic.Services.EmailService
                 { "%location_text%", emailBodyData.LocationText },
                 { "%room_text%", emailBodyData.RoomText },
                 { "%url%", emailBodyData.Url },
-                { "%agenda_text%", emailBodyData.AgendaText }
+                { "%agenda_text%", emailBodyData.AgendaText },
+                { "%hormat_kami%", emailBodyData.HormatKami }
             };
 
             var sb = new StringBuilder(emailBodyTemplate);
@@ -582,7 +797,8 @@ namespace _3.BusinessLogic.Services.EmailService
                 { "%meeting_building%", emailBodyData.MeetingBuilding },
                 { "%meeting_host%", emailBodyData.MeetingHost },
                 { "%meeting_agenda%", emailBodyData.MeetingAgenda },
-                { "%attendance_status%", emailBodyData.AttendanceStatus }
+                { "%attendance_status%", emailBodyData.AttendanceStatus },
+                { "%sincerely_name%", emailBodyData.SincerelyName }
             };
 
             var sb = new StringBuilder(emailBodyTemplate);
@@ -610,14 +826,15 @@ namespace _3.BusinessLogic.Services.EmailService
                 { "%location%", emailBodyData.Location },
                 { "%room%", emailBodyData.Room },
                 { "%link_map%", emailBodyData.LinkMap },
-                { "%orginizer%", emailBodyData.Orginizer },
+                { "%orginizer%", emailBodyData.Organizer },
                 { "%agenda%", emailBodyData.Agenda },
                 { "%pin%", emailBodyData.Pin },
                 { "%tanggal_text%", emailBodyData.TanggalText },
                 { "%location_text%", emailBodyData.LocationText },
                 { "%room_text%", emailBodyData.RoomText },
                 { "%url%", emailBodyData.Url },
-                { "%agenda_text%", emailBodyData.AgendaText }
+                { "%agenda_text%", emailBodyData.AgendaText },
+                { "%hormat_kami%", emailBodyData.HormatKami }
             };
 
             var sb = new StringBuilder(emailBodyTemplate);
@@ -645,13 +862,14 @@ namespace _3.BusinessLogic.Services.EmailService
                 { "%location%", emailBodyData.Location },
                 { "%room%", emailBodyData.Room },
                 { "%link_map%", emailBodyData.LinkMap },
-                { "%orginizer%", emailBodyData.Orginizer },
+                { "%orginizer%", emailBodyData.Organizer },
                 { "%agenda%", emailBodyData.Agenda },
                 { "%tanggal_text%", emailBodyData.TanggalText },
                 { "%location_text%", emailBodyData.LocationText },
                 { "%room_text%", emailBodyData.RoomText },
                 { "%url%", emailBodyData.Url },
-                { "%agenda_text%", emailBodyData.AgendaText }
+                { "%agenda_text%", emailBodyData.AgendaText },
+                { "%hormat_kami%", emailBodyData.HormatKami }
             };
 
             var sb = new StringBuilder(emailBodyTemplate);
@@ -667,6 +885,16 @@ namespace _3.BusinessLogic.Services.EmailService
         private string generateLinkMeetingLocation(string linkMap)
         {
             return !string.IsNullOrEmpty(linkMap) ? $"<a href='{linkMap}' target='_blank'>Lokasi meeting</a>" : "-";
+        }
+    
+        private async Task<Company?> getInformationCompany()
+        {
+            var company = await companyRepo.GetOneItemAsync();
+            if (company == null)
+            {
+                return null;
+            }
+            return company;
         }
     }
 }

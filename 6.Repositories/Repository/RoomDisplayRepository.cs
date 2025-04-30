@@ -72,13 +72,49 @@ namespace _6.Repositories.Repository
             return list;
         }
 
-        public async Task<RoomDisplay> GetDisplaySerialBySerialNumber(string displaySerial)
+        public async Task<RoomDisplaySelect?> GetDisplaySerialBySerialNumber(string displaySerial)
         {
             var query = from roomDisplay in _dbContext.RoomDisplays
+                        join r in _dbContext.Rooms on roomDisplay.RoomId equals r.Radid
+                        join b in _dbContext.Buildings on roomDisplay.BuildingId equals b.Id
+                        join bf in _dbContext.BuildingFloors on roomDisplay.FloorId equals bf.Id
                         where roomDisplay.IsDeleted == 0 && roomDisplay.DisplaySerial == displaySerial
-                        select roomDisplay;
+                        select new RoomDisplaySelect
+                        {
+                            Id = roomDisplay.Id,
+                            RoomId = roomDisplay.RoomId,
+                            DisplaySerial = roomDisplay.DisplaySerial,
+                            Type = roomDisplay.Type,
+                            Background = roomDisplay.Background,
+                            BackgroundUpdate = roomDisplay.BackgroundUpdate,
+                            ColorOccupied = roomDisplay.ColorOccupied,
+                            ColorAvailable = roomDisplay.ColorAvailable,
+                            EnableSignage = roomDisplay.EnableSignage,
+                            SignageType = roomDisplay.SignageType,
+                            SignageMedia = roomDisplay.SignageMedia,
+                            SignageUpdate = roomDisplay.SignageUpdate,
+                            CreatedBy = roomDisplay.CreatedBy,
+                            UpdatedBy = roomDisplay.UpdatedBy,
+                            CreatedAt = roomDisplay.CreatedAt,
+                            UpdatedAt = roomDisplay.UpdatedAt,
+                            StatusSync = roomDisplay.StatusSync,
+                            Enabled = roomDisplay.Enabled,
+                            HardwareUuid = roomDisplay.HardwareUuid,
+                            HardwareInfo = roomDisplay.HardwareInfo,
+                            HardwareLastsync = roomDisplay.HardwareLastsync,
+                            RoomSelect = roomDisplay.RoomSelect,
+                            DisableMsg = roomDisplay.DisableMsg,
+                            Name = roomDisplay.Name,
+                            Description = roomDisplay.Description,
+                            BuildingId = roomDisplay.BuildingId,
+                            FloorId = roomDisplay.FloorId,
 
-            return await query.FirstOrDefaultAsync()!;
+                            RoomName = r.Name,
+                            BuildingName = b.Name,
+                            FloorName = bf.Name
+                        };
+
+            return await query.FirstOrDefaultAsync();
         }
 
         public async Task<List<RoomDisplayInformationSelect>> GetDataRoomDisplayByListID(long? displayId)

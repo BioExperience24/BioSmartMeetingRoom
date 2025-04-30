@@ -13,7 +13,12 @@ namespace Controllers;
 [Authorize(Policy = AuthorizationWebviewPolicies.OnlyNonWebview)]
 [ApiController]
 [Route("api")]
-public class DisplayController(IAPIMainDisplayService _service, IRoomDisplayService _roomDisplayService, IMapper _mapper)
+public class DisplayController(
+    IAPIMainDisplayService _service, 
+    IRoomDisplayService _roomDisplayService, 
+    IMapper _mapper,
+    IBookingProcessService _processService
+    )
     : ControllerBase
 {
 
@@ -100,6 +105,30 @@ public class DisplayController(IAPIMainDisplayService _service, IRoomDisplayServ
     public async Task<IActionResult> DisplayGetMeetingListOccupiedToday(ListDisplayMeetingScheduleTodayFRViewModel request)
     {
         ReturnalModel ret = await _service.DisplayMeetingWithMoreRoomOccupiedListDisplay(request);
+        return StatusCode(ret.StatusCode, ret);
+    }
+
+    [HttpPost("display/set-extendtime")]
+    public async Task<IActionResult> SetExtendBookingDisplay(BookingVMExtendMeetingFR request)
+    {
+        ReturnalModel ret = await _processService.SetExtendMeetingAsync(request);
+
+        return StatusCode(ret.StatusCode, ret);
+    }
+
+    [HttpPost("display/get-extendtime")]
+    public async Task<IActionResult> GetExtendBookingDisplay(BookingVMCheckExtendMeetingFR request)
+    {
+        ReturnalModel ret = await _processService.CheckExtendMeetingTimeAsync(request);
+
+        return StatusCode(ret.StatusCode, ret);
+    }
+
+    [HttpPost("schedule/post/end-meeting")]
+    public async Task<IActionResult> SetExtendBookingDisplay(BookingVMEndMeetingFR request)
+    {
+        ReturnalModel ret = await _processService.EndMeetingAsync(request, true);
+
         return StatusCode(ret.StatusCode, ret);
     }
 

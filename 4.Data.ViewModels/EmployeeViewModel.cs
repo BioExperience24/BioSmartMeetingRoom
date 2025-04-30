@@ -98,6 +98,9 @@ public class EmployeeVMDefaultFR
 
     [FromForm(Name = "card_number")]
     public string? CardNumber { get; set; }
+    
+    [FromForm(Name = "head_employee")]
+    public string? HeadEmployee { get; set; }
 }
 
 public class EmployeeVMCreateFR : EmployeeVMDefaultFR
@@ -118,7 +121,6 @@ public class EmployeeVMCreateFR : EmployeeVMDefaultFR
     public IFormFile? FilePhoto { get; set; }
 
     public string? Photo { get; set; }
-
 }
 
 public class EmployeeVMUpdateVipFR
@@ -143,6 +145,32 @@ public class EmployeeVMDeleteFR
 
     [FromForm(Name = "name")]
     public string Name { get; set; } = string.Empty;
+}
+
+public class EmployeeVMImportFR
+{ 
+    [FromForm(Name = "file_import")]
+    public IFormFile? FileImport { get; set; }
+}
+
+public class EmployeeVMImportData
+{
+    public string Company { get; set; } = string.Empty;
+    public string CompanyId { get; set; } = string.Empty;
+    public string DepartmentName { get; set; } = string.Empty;
+    public string DepartmentId { get; set; } = string.Empty;
+    public string HeadEmployee { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Nrp { get; set; } = string.Empty;
+    public string? BirthDate { get; set; }
+    public string Gender { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string CardNumber { get; set; } = string.Empty;
+    public string? NoPhone { get; set; }
+    public string? NoExt { get; set; }
+    public int? IsVip { get; set; }
+    public int? VipApproveBypass { get; set; }
 }
 
 public class EmployeeVMResp : EmployeeViewModel

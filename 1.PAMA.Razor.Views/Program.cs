@@ -6,6 +6,7 @@ using _5.Helpers.Consumer.EnumType;
 using _5.Helpers.Consumer.Policy;
 using _6.Repositories.DB;
 using _6.Repositories.Repository;
+using _6.Repositories.Seeders;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -243,6 +244,13 @@ public class Program
 
         var app = builder.Build();
 
+        // run database seeder
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
+            DbSeeder.Seed(db, builder.Configuration);
+        }
+
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
@@ -264,7 +272,7 @@ public class Program
         {
             /* default sesuai urutan swagger doc */
             //c.SwaggerEndpoint("/swagger/report/swagger.json", "Report API");
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "ITM CORE Dashboard & Report Portal");
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "CMS API");
             c.RoutePrefix = "firedocumentation";
             c.DocExpansion(DocExpansion.None);
             c.InjectStylesheet("/themes/theme-flattop.css");

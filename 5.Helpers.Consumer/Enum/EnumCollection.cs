@@ -77,6 +77,7 @@ public static class EnumAccessControlType
     public const string Falco = "falco";
     public const string FalcoId = "falcoid";
     public const string CustId = "custid";
+    public const string EntryPass = "entrypass";
     public const string EntryPassId = "entrypassid";
     public const string Custom = "custom";
 }

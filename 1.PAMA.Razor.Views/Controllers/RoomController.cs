@@ -174,7 +174,7 @@ namespace _1.PAMA.Razor.Views.Controllers
                 return NotFound("File not found or access expired.");
             }
 
-            return File(fileStream, contentType, fileName);
+            return File(fileStream, contentType ?? "application/octet-stream", fileName);
         }
 
 
