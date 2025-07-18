@@ -169,7 +169,6 @@ namespace _8.PAMA.Scheduler.Services
             LogCallback("log :> run activity unused meeting");
 
             var data = await _bookingRepository.GetBookingReminderUnusedAsync();
-            // var notifConfig = await _notificationConfigRepository.GetData();
             var ruleConfig = await _settingRuleBookingRepository.GetData();
 
             if (data == null || !data.Any() || ruleConfig == null)
@@ -252,8 +251,6 @@ namespace _8.PAMA.Scheduler.Services
                 var datemeetingAccess = datemeetingStartUtc.AddMinutes(-waktuAccess);
                 var datemeetingUnix = new DateTimeOffset(datemeetingAccess).ToUnixTimeSeconds();
 
-                Console.WriteLine($"datenowUnix: {datenowUnix}, datemeetingUnix: {datemeetingUnix}, ifnya: {datenowUnix >= datemeetingUnix}");
-
                 if (datenowUnix >= datemeetingUnix)
                 {
                     var bookingId = row.BookingId;
@@ -296,7 +293,6 @@ namespace _8.PAMA.Scheduler.Services
 
                         var response = await _entrypassService.SendPostAsync<EntryPassGenericResponse>(apiUrl, payload, headers);
 
-                        // Console objecrt response
                         // Console.WriteLine($"Result: {System.Text.Json.JsonSerializer.Serialize(response)}");
 
                         var datetimelog = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
