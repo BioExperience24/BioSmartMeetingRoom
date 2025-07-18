@@ -28,3 +28,16 @@ services:
     volumes:
       - ~/.aws:/root/.aws:ro 
     restart: always
+
+  pama-scheduler:
+    container_name: pama-scheduler
+    build:
+      context: .
+      dockerfile: 8.PAMA.Scheduler/Dockerfile
+    ports:
+      - "8084:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ~/.aws:/root/.aws:ro 
+    restart: always

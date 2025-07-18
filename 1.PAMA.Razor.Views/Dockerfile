@@ -11,6 +11,7 @@ COPY 4.Data.ViewModels/*.csproj ./4.Data.ViewModels/
 COPY 5.Helpers.Consumer/*.csproj ./5.Helpers.Consumer/
 COPY 6.Repositories/*.csproj ./6.Repositories/
 COPY 7.Entities.Models/*.csproj ./7.Entities.Models/
+COPY 8.PAMA.Scheduler/*.csproj ./8.PAMA.Scheduler/
 
 RUN dotnet clean
 RUN dotnet restore

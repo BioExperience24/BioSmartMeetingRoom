@@ -18,7 +18,7 @@ RUN dotnet restore
 
 # Copy all files and publish
 COPY . ./
-RUN dotnet publish 2.Web.API.Controllers/2.Web.API.Controllers.csproj -c Release -o out
+RUN dotnet publish 8.PAMA.Scheduler/8.PAMA.Scheduler.csproj -c Release -o out
 
 # Use a smaller runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
@@ -39,4 +39,4 @@ RUN apt-get update && apt-get install -y \
 COPY --from=build /app/out .
 
 EXPOSE 80
-ENTRYPOINT ["dotnet", "2.Web.API.Controllers.dll", "--urls", "http://+:80"]
+ENTRYPOINT ["dotnet", "8.PAMA.Scheduler.dll", "--urls", "http://+:80"]

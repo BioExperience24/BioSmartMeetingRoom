@@ -9,7 +9,7 @@ public class Program
 {
     static async Task Main(string[] args)
     {
-        var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(args);
+        var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddHttpClient();
         
@@ -25,7 +25,7 @@ public class Program
         // Console.ReadLine();
         var app = builder.Build();
 
-        if (args.Length > 0)
+        if (args.Length > 0 && !args[0].StartsWith("--"))
         {
             using var scope = app.Services.CreateScope();
             var scheduler = scope.ServiceProvider.GetRequiredService<ISchedulerService>();
