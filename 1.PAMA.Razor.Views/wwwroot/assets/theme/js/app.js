@@ -17,3 +17,22 @@ function objectify_form(formArray) {
     }
     return returnArray;
 }
+
+$(document).on("ajaxSend", function(event, jqXHR, settings) {
+    if (settings.type === "POST") {
+        // console.log("URL:", settings.url);
+        Swal.fire({
+            title: 'Please Wait !',
+            allowOutsideClick: false,
+            onBeforeOpen: () => {
+                Swal.showLoading()
+            },
+        });
+    }
+});
+
+$(document).on("ajaxComplete", function(event, jqXHR, settings) {
+    if (settings.type === "POST") {
+        Swal.close();
+    }
+});

@@ -60,7 +60,7 @@ namespace _3.BusinessLogic.Services.Implementation
             return _mapper.Map<List<RoomViewModelAlt>>(items);
         }
 
-        public async Task<IEnumerable<RoomViewModelAlt>> GetAllRoomAvailableAsync(RoomVMFindAvailable request)
+        public async Task<IEnumerable<RoomViewModelAlt>> GetAllRoomAvailableAsync(RoomVMFindAvailable request, bool withImage64 = true)
         {
             Room entity = new Room{};
 
@@ -128,33 +128,46 @@ namespace _3.BusinessLogic.Services.Implementation
 
             var results = _mapper.Map<List<RoomViewModelAlt>>(items);
 
-            var noImage = await _attachmentListService.NoImageBase64("no-image.jpg", 100);
-
-            // List untuk task generasi thumbnail
-            var tasks = results.Select(async item =>
+            if (withImage64)
             {
-                var image = noImage;
-                if (item.Image != null)
-                {
-                    var base64 = await _attachmentListService.GenerateThumbnailBase64(item.Image, 100);
-                    if (!string.IsNullOrEmpty(base64))
-                    {
-                        image = base64;
-                    }
-                
-                }
-                item.Image = image;
-            }).ToList();
+                var noImage = await _attachmentListService.NoImageBase64("no-image.jpg", 100);
 
-            // Tunggu semua task selesai
-            await Task.WhenAll(tasks);
+                // List untuk task generasi thumbnail
+                var tasks = results.Select(async item =>
+                {
+                    var image = noImage;
+                    if (item.Image != null)
+                    {
+                        var base64 = await _attachmentListService.GenerateThumbnailBase64(item.Image, 100);
+                        if (!string.IsNullOrEmpty(base64))
+                        {
+                            image = base64;
+                        }
+                    
+                    }
+                    item.Image = image;
+                }).ToList();
+
+                // Tunggu semua task selesai
+                await Task.WhenAll(tasks);
+            }
 
             // generate waktu yang sudah di booking
             var roomIds = results.Select(s => s.Radid).ToArray();
 
             if (roomIds.Any())
             {
-                var bookRooms = await _repoBooking.GetBookingsByRoomIdsAndDateAsync(roomIds, (DateOnly)entity.WorkDate!);
+                IEnumerable<Booking> bookRooms = new List<Booking>();
+
+                if (request.RoomCategory != "trainingroom")
+                {
+                    bookRooms = await _repoBooking.GetBookingsByRoomIdsAndDateAsync(roomIds, (DateOnly)entity.WorkDate!);
+
+                }
+                else
+                {
+                    bookRooms = await _repoBooking.GetBookingsByRoomIdsAndDateRangeAsync(roomIds, (DateOnly)entity.WorkDate!, (DateOnly)entity.WorkDateUntil!);
+                }
                 
                 if (bookRooms.Any())
                 {

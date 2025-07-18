@@ -12,7 +12,7 @@ public class PantryTransaksiRepository(
     )
     : BaseRepository<PantryTransaksi>(context)
 {
-    public async Task<IEnumerable<object>> GetPantryTransactionsAsync(DateTime? start = null, DateTime? end = null, long? pantryId = null, long? orderSt = null)
+    public async Task<IEnumerable<object>> GetPantryTransactionsAsync(DateTime? start = null, DateTime? end = null, long? pantryId = null, long? orderSt = null, string? attendanceId = null)
     {
         if (start.HasValue)
         {
@@ -60,8 +60,29 @@ public class PantryTransaksiRepository(
                         OrderDatetime = pt.OrderDatetime,
                         ExpiredAt = pt.ExpiredAt,
                         UpdatedAt = pt.UpdatedAt,
-                        OrderSt = pt.OrderSt
+                        OrderSt = pt.OrderSt,
+                        BookingId = booking.BookingId,
                     };
+
+        if (!string.IsNullOrEmpty(attendanceId))
+        {
+            var attendance = from bi in context.BookingInvitations
+                            where bi.IsDeleted == 0
+                            && bi.Internal == 1
+                            // && bi.IsPic == 1
+                            && bi.Nik == attendanceId
+                            select new
+                            {
+                                bi.BookingId,
+                                bi.Nik
+                            };
+
+            query = from q in query
+                    from at in attendance
+                        .Where(at => at.BookingId == q.BookingId).DefaultIfEmpty()
+                    where at.Nik == attendanceId
+                    select q;
+        }
 
         var result = await query.ToListAsync();
 
@@ -358,6 +379,10 @@ public class PantryTransaksiRepository(
                         BookingDate = b.Date,
                         BookingStart = b.Start,
                         BookingEnd = b.End,
+                        HeadEmployeeId = pt.HeadEmployeeId,
+                        ApprovalHead = pt.ApprovalHead,
+                        ApprovedHeadBy = pt.ApprovedHeadBy,
+                        ApprovedHeadAt = pt.ApprovedHeadAt
                     }).AsQueryable();
 
         if (entity?.StartDate != null && entity?.EndDate != null)
@@ -366,6 +391,11 @@ public class PantryTransaksiRepository(
                 q.OrderDatetime >= entity.StartDate.ToDateTime(TimeOnly.MinValue)
                 && q.OrderDatetime <= entity.EndDate.ToDateTime(TimeOnly.MaxValue)
             );
+        }
+
+        if (entity?.HeadEmployeeId != null)
+        {
+            query = query.Where(q => q.HeadEmployeeId == entity.HeadEmployeeId);
         }
 
         var recordsTotal = await query.CountAsync();
@@ -434,10 +464,209 @@ public class PantryTransaksiRepository(
                         BookingStart = b.Start,
                         BookingEnd = b.End,
                         ExpiredAt = pt.ExpiredAt,
-                        UpdatedAt = pt.UpdatedAt
+                        UpdatedAt = pt.UpdatedAt,
+                        ApprovedHeadBy = pt.ApprovedHeadBy
                     };
 
         return await query.FirstOrDefaultAsync();
+    }
+
+    public async Task<PantryTransaksiMailDataOrder?> GetMailDataOrderAsync(string bookingId, string pantryTransaksiId)
+    {
+        if (string.IsNullOrEmpty(bookingId) || string.IsNullOrEmpty(pantryTransaksiId))
+        {
+            return null;
+        }
+
+        var query = from pt in context.PantryTransaksis
+                    from hemp in context.Employees
+                        .Where(e => e.Nik == pt.HeadEmployeeId).DefaultIfEmpty()
+                    where pt.BookingId == bookingId 
+                    && pt.Id == pantryTransaksiId
+                    select new PantryTransaksiMailDataOrder
+                    {
+                        Id = pt.Id,
+                        PantryId = pt.PantryId,
+                        OrderNo = pt.OrderNo,
+                        EmployeeId = pt.EmployeeId,
+                        BookingId = pt.BookingId,
+                        IsBlive = pt.IsBlive,
+                        RoomId = pt.RoomId,
+                        Via = pt.Via,
+                        Datetime = pt.Datetime,
+                        OrderDatetime = pt.OrderDatetime,
+                        OrderDatetimeBefore = pt.OrderDatetimeBefore,
+                        OrderSt = pt.OrderSt,
+                        OrderStName = pt.OrderStName,
+                        Process = pt.Process,
+                        Complete = pt.Complete,
+                        Failed = pt.Failed,
+                        Done = pt.Done,
+                        Note = pt.Note,
+                        NoteReject = pt.NoteReject,
+                        NoteCanceled = pt.NoteCanceled,
+                        IsRejectedPantry = pt.IsRejectedPantry,
+                        RejectedBy = pt.RejectedBy,
+                        RejectedAt = pt.RejectedAt,
+                        IsTrashpantry = pt.IsTrashpantry,
+                        IsCanceled = pt.IsCanceled,
+                        IsExpired = pt.IsExpired,
+                        ExpiredAt = pt.ExpiredAt,
+                        CanceledBy = pt.CanceledBy,
+                        CanceledAt = pt.CanceledAt,
+                        CompletedAt = pt.CompletedAt,
+                        CompletedBy = pt.CompletedBy,
+                        ProcessAt = pt.ProcessAt,
+                        ProcessBy = pt.ProcessBy,
+                        CreatedAt = pt.CreatedAt,
+                        UpdatedAt = pt.UpdatedAt,
+                        UpdatedBy = pt.UpdatedBy,
+                        CanceledPantryBy = pt.CanceledPantryBy,
+                        RejectedPantryBy = pt.RejectedPantryBy,
+                        CompletedPantryBy = pt.CompletedPantryBy,
+                        ProcessPantryBy = pt.ProcessPantryBy,
+                        Timezone = pt.Timezone,
+                        FromPantry = pt.FromPantry,
+                        ToPantry = pt.ToPantry,
+                        Pending = pt.Pending,
+                        PendingAt = pt.PendingAt,
+                        PackageId = pt.PackageId,
+                        ApprovedBy = pt.ApprovedBy,
+                        ApprovedAt = pt.ApprovedAt,
+                        ApprovedHeadBy = pt.ApprovedHeadBy,
+                        ApprovedHeadAt = pt.ApprovedHeadAt,
+                        HeadEmployeeId = pt.HeadEmployeeId,
+                        ApprovalHead = pt.ApprovalHead,
+                        HeadEmployeeName = hemp.Name,
+                        HeadEmployeeEmail = hemp.Email,
+                        HeadEmployeeNRP = hemp.NikDisplay ?? string.Empty,
+                        HeadEmployeeNikDisplay = hemp.NikDisplay ?? string.Empty,
+                        HeadEmployeePhone = hemp.NoPhone ?? string.Empty,
+                        Detail = (
+                            from pd in context.PantryDetails
+                            from ptd in context.PantryTransaksiDs
+                                .Where(ptd => pd.Id == ptd.MenuId)
+                            where ptd.TransaksiId == pt.Id && ptd.IsDeleted == 0
+                            select new PantryDetailSelect
+                            {
+                                Id = pd.Id,
+                                Name = pd.Name,
+                                Description = pd.Description,
+                                Note = ptd.NoteOrder ?? pd.Note,
+                                Price = pd.Price,
+                                Qty = ptd.Qty,
+                                BookingId = pt.BookingId,
+                                PantryId = pd.PantryId,
+                                PackageId = pt.PackageId,
+                                TransaksiId = pt.Id,
+                            }
+                        ).ToList()
+                    };
+
+        return await query.AsNoTracking().FirstOrDefaultAsync();
+
+    }
+
+    public async Task<PantryTransaksiMailDataOrder?> GetMailDataOrderRecurringAsync(string bookingId, string recurringId)
+    {
+        if (string.IsNullOrEmpty(bookingId) || string.IsNullOrEmpty(recurringId))
+        {
+            return null;
+        }
+
+        var query = from pt in context.PantryTransaksis
+                    from hemp in context.Employees
+                        .Where(e => e.Nik == pt.HeadEmployeeId).DefaultIfEmpty()
+                    where pt.BookingId == bookingId 
+                    select new PantryTransaksiMailDataOrder
+                    {
+                        // Id = pt.Id,
+                        PantryId = pt.PantryId,
+                        OrderNo = pt.OrderNo,
+                        EmployeeId = pt.EmployeeId,
+                        BookingId = pt.BookingId,
+                        IsBlive = pt.IsBlive,
+                        RoomId = pt.RoomId,
+                        Via = pt.Via,
+                        Datetime = pt.Datetime,
+                        OrderDatetime = pt.OrderDatetime,
+                        OrderDatetimeBefore = pt.OrderDatetimeBefore,
+                        OrderSt = pt.OrderSt,
+                        OrderStName = pt.OrderStName,
+                        Process = pt.Process,
+                        Complete = pt.Complete,
+                        Failed = pt.Failed,
+                        Done = pt.Done,
+                        Note = pt.Note,
+                        NoteReject = pt.NoteReject,
+                        NoteCanceled = pt.NoteCanceled,
+                        IsRejectedPantry = pt.IsRejectedPantry,
+                        RejectedBy = pt.RejectedBy,
+                        RejectedAt = pt.RejectedAt,
+                        IsTrashpantry = pt.IsTrashpantry,
+                        IsCanceled = pt.IsCanceled,
+                        IsExpired = pt.IsExpired,
+                        ExpiredAt = pt.ExpiredAt,
+                        CanceledBy = pt.CanceledBy,
+                        CanceledAt = pt.CanceledAt,
+                        CompletedAt = pt.CompletedAt,
+                        CompletedBy = pt.CompletedBy,
+                        ProcessAt = pt.ProcessAt,
+                        ProcessBy = pt.ProcessBy,
+                        CreatedAt = pt.CreatedAt,
+                        UpdatedAt = pt.UpdatedAt,
+                        UpdatedBy = pt.UpdatedBy,
+                        CanceledPantryBy = pt.CanceledPantryBy,
+                        RejectedPantryBy = pt.RejectedPantryBy,
+                        CompletedPantryBy = pt.CompletedPantryBy,
+                        ProcessPantryBy = pt.ProcessPantryBy,
+                        Timezone = pt.Timezone,
+                        FromPantry = pt.FromPantry,
+                        ToPantry = pt.ToPantry,
+                        Pending = pt.Pending,
+                        PendingAt = pt.PendingAt,
+                        PackageId = pt.PackageId,
+                        ApprovedBy = pt.ApprovedBy,
+                        ApprovedAt = pt.ApprovedAt,
+                        ApprovedHeadBy = pt.ApprovedHeadBy,
+                        ApprovedHeadAt = pt.ApprovedHeadAt,
+                        HeadEmployeeId = pt.HeadEmployeeId,
+                        ApprovalHead = pt.ApprovalHead,
+                        HeadEmployeeName = hemp.Name,
+                        HeadEmployeeEmail = hemp.Email,
+                        HeadEmployeeNRP = hemp.NikDisplay ?? string.Empty,
+                        HeadEmployeeNikDisplay = hemp.NikDisplay ?? string.Empty,
+                        HeadEmployeePhone = hemp.NoPhone ?? string.Empty,
+                        Ids = (
+                            from xb in context.Bookings
+                            from xpt in context.PantryTransaksis
+                                .Where(xpt => xb.BookingId == xpt.BookingId).DefaultIfEmpty()
+                            where xb.RecurringId == recurringId
+                            select xpt.Id
+                        ).ToArray(),
+                        Detail = (
+                            from pd in context.PantryDetails
+                            from ptd in context.PantryTransaksiDs
+                                .Where(ptd => pd.Id == ptd.MenuId)
+                            where ptd.TransaksiId == pt.Id && ptd.IsDeleted == 0
+                            select new PantryDetailSelect
+                            {
+                                Id = pd.Id,
+                                Name = pd.Name,
+                                Description = pd.Description,
+                                Note = ptd.NoteOrder ?? pd.Note,
+                                Price = pd.Price,
+                                Qty = ptd.Qty,
+                                BookingId = pt.BookingId,
+                                PantryId = pd.PantryId,
+                                PackageId = pt.PackageId,
+                                TransaksiId = pt.Id,
+                            }
+                        ).ToList()
+                    };
+
+        return await query.AsNoTracking().FirstOrDefaultAsync();
+
     }
 }
 
@@ -593,5 +822,19 @@ public class PantryTransaksiConfiguration : IEntityTypeConfiguration<PantryTrans
             .HasPrecision(0)
             .HasDefaultValueSql("(getdate())")
             .HasColumnName("approved_at");
+
+        entity.Property(e => e.ApprovedHeadBy)
+            .HasMaxLength(255)
+            .HasDefaultValue("(NULL)")
+            .HasColumnName("approved_head_by");
+        entity.Property(e => e.ApprovedHeadAt)
+            .HasPrecision(0)
+            .HasDefaultValueSql("(NULL)")
+            .HasColumnName("approved_head_at");
+        entity.Property(e => e.HeadEmployeeId)
+            .HasMaxLength(255)
+            .HasDefaultValue("(NULL)")
+            .HasColumnName("head_employee_id");
+        entity.Property(e => e.ApprovalHead).HasColumnName("approval_head");
     }
 }

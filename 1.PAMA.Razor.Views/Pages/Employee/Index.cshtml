@@ -111,9 +111,9 @@
                                             </select>
                                         </div>
 
-                                        <label for="">Head Employee <b style="color:red;">*</b></label>
+                                        <label for="">Head Employee</label>
                                         <div class="form-group">
-                                                <select data-live-search="true"  required="" class="form-control show-tick" name="head_employee" id="id_crt_new_heademployee"  >
+                                                <select data-live-search="true"  class="form-control show-tick" name="head_employee" id="id_crt_new_heademployee"  >
                                                 <option value=""> C H O O S E</option>
                                                 <option value="" selected>Tommy May Perdana</option>
                                             </select>
@@ -143,16 +143,16 @@
                                                 <input type="text" name="card_number" id="id_crt_new_card_number"  class="form-control" placeholder="Card">
                                             </div>
                                         </div>
-                                        <label for="">Gender</label>
+                                        <label for="">Gender <b style="color:red;">*</b></label>
                                         <div class="form-group">
-                                            <select name="gender" id="id_crt_new_gender" class="form-control show-tick"  >
+                                            <select name="gender" id="id_crt_new_gender" class="form-control show-tick" required=""  >
                                                 <option value=""></option>
                                                 <option value="male">MALE</option>
                                                 <option value="female">FEMALE</option>
                                                 <option value="other">OTHER</option>
                                             </select>
                                         </div>
-                                        <label for="">Birth Date</label>
+                                        <label for="">Birth Date <b style="color:red;">*</b></label>
                                         <div class="form-group">
                                             <div class="form-line">
                                                 <input required="" type="text" name="birth_date" id="id_crt_new_birth_date"  class="datepicker form-control" placeholder="Birth Date">
@@ -296,9 +296,9 @@
                             </div>
                             <div class="row clearfix">
                                 <div class="col-xs-12">
-                                    <label for="">Head Employee <b style="color:red;">*</b></label>
+                                    <label for="">Head Employee</label>
                                     <div class="form-group">
-                                            <select data-live-search="true"  required="" class="form-control show-tick" name="head_employee" id="id_edt_heademployee"  >
+                                            <select data-live-search="true"  class="form-control show-tick" name="head_employee" id="id_edt_heademployee"  >
                                             <option value=""> C H O O S E</option>
                                             <option selected value="">Tommy May Perdana</option>
                                         </select>
@@ -345,7 +345,7 @@
                             </div>
                             <div class="row clearfix">
                                 <div class="col-xs-6">
-                                    <label for="">Gender</label>
+                                    <label for="">Gender <b style="color:red;">*</b></label>
                                     <div class="form-group">
                                         <select name="gender" id="id_edt_gender" class="form-control show-tick"  >
                                             
@@ -353,7 +353,7 @@
                                     </div>
                                 </div>
                                 <div class="col-xs-6">
-                                        <label for="">Birth Date <b style="color:red;">optional</b></label>
+                                        <label for="">Birth Date <b style="color:red;">*</b></label>
                                     <div class="form-group">
                                         <div class="form-line">
                                             <input type="text" name="birth_date" id="id_edt_birth_date"  class="datepicker form-control" placeholder="Birth Date">
@@ -457,6 +457,7 @@
                 post_update_employee_vip : "@Model.UpdateEmployeeVip",
                 post_delete_employee : "@Model.DeleteEmployee",
                 post_import_employee : "@Model.ImportEmployee",
+                get_head_employees : "@Model.GetHeadEmployees",
             }
         };
     </script>
@@ -475,6 +476,7 @@
     <script src="~/assets/theme/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
     <script>
         $(function(){
+            loadHeadEmployees();
             init();
             createNewData();
         }) 
@@ -484,6 +486,8 @@
         var gAutomation = [];
         var modules = JSON.parse($('#id_modules').val());
         var gDivisi = JSON.parse($('#id_alocation').val());
+        var gHeadEmployees = [];
+
         function initTable(selector){
             // selector.DataTable();
             selector.DataTable({
@@ -747,9 +751,13 @@
                 success:function(data){
                         if(data.status == "success"){
                           // $('#frm_create')[0].reset();
+                          loadHeadEmployees();
                           init();
                           // $('#id_mdl_create').modal('hide');
                           showNotification('alert-success', data.msg,'top','center')
+                          setTimeout(() => {
+                            window.location.reload();
+                          }, 500);
                         }else{
                           showNotification('alert-danger', data.msg,'top','center')
                         }
@@ -854,6 +862,15 @@
                 return;
                 console.log(error); 
             }
+            
+            if (ressUpdate.status == "fail") {
+                ajaxUpdate = 0;
+                $('#id_loader').html('');
+                $('#id_mdl_update').modal('hide');
+                showNotification('alert-danger', ressUpdate.msg,'top','center');
+                return;
+            }
+
             if( (modules['vip']['is_enabled'] - 0) == 1  ){
                 try { 
                     ressUpdateAdv = await submitFrmModuleUpdateVIP();
@@ -956,11 +973,13 @@
                                  data-name="'+item.name+'" \
                                  type="button" class="btn btn-primary waves-effect">\
                                     <i class="material-icons">mode_edit</i></button> ';
-                            html += '<button \
-                                 onclick="removeData($(this))" \
-                                 data-id="'+item.id+'" \
-                                 data-name="'+item.name+'" \
-                                 type="button" class="btn btn-danger waves-effect "><i class="material-icons">delete</i></button>';
+                            if (item.is_protected == 0) {
+                                html += '<button \
+                                    onclick="removeData($(this))" \
+                                    data-id="'+item.id+'" \
+                                    data-name="'+item.name+'" \
+                                    type="button" class="btn btn-danger waves-effect "><i class="material-icons">delete</i></button>';
+                            }
                             html += '</td>';
                             html += '</tr>';
                         })
@@ -1012,7 +1031,8 @@
                                     showNotification('alert-success', "Succes deleted employee "+name ,'top','center')
                                     init();
                                 }else{
-                                    showNotification('alert-danger', "Data not found",'bottom','left')
+                                    let msg = data.msg;
+                                    showNotification('alert-danger', msg,'bottom','left')
                                 }
                             },
                             error: errorAjax,
@@ -1041,6 +1061,8 @@
                 success:function(data){
                     if(data.status == "success"){
                         var input = data.collection;
+                        generateHeadEmployees(true, input['id']);
+
                         $('#id_edt_name').val(input['name']);
                         $('#id_edt_nik').val(input['nik_display']);
                         $('#id_edt_div').val(input['division_id']);
@@ -1050,6 +1072,7 @@
                         $('#id_edt_card_number').val(input['card_number']);
                         $('#id_edt_birth_date').val(input['birth_date']);
                         $('#id_edt_address').val(input['address']);
+                        $('#id_edt_heademployee').val(input['head_employee_id']);
                         // $('#id_edt_password').val(input['password_mobile']);
                         
 
@@ -1124,6 +1147,41 @@
                 },
                 error: errorAjax
             })
+        }
+
+        function loadHeadEmployees() {
+            $.ajax({
+                url : ajax.url.get_head_employees,
+                type : "GET",
+                dataType: "json",
+                success:function(data){
+                    if (data.status == "success") {
+                        gHeadEmployees = data.collection;
+                        generateHeadEmployees();
+                    }
+                },
+                error: errorAjax
+            })
+        }
+        function generateHeadEmployees(edtOnly=false, exceptId = "") {
+            if (!edtOnly) {
+                $('#id_crt_new_heademployee').empty();
+            }
+            $('#id_edt_heademployee').empty();
+
+            var html = '<option value="">C H O O S E</option>';
+            for (var x in gHeadEmployees) {
+                var r = gHeadEmployees[x];
+                if (r.id == exceptId) {
+                    continue;
+                }
+                html += '<option value="'+r.id+'">'+r.name+'</option>';
+            }
+            if (!edtOnly) {
+                $('#id_crt_new_heademployee').html(html);
+            }
+            $('#id_edt_heademployee').html(html);
+            select_enable();
         }
 
         function loadingg(title = "", body = "") {

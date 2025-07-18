@@ -2417,6 +2417,7 @@
                 data : form,
                 beforeSend: function(){
                     $('#id_loader').html('<div class="linePreloader"></div>');
+                    $("button[type=submit]").prop("disabled", true);
                 },
                 success:function(data){
                         if(data.status == "success"){
@@ -2429,6 +2430,8 @@
                           showNotification('alert-danger', data.msg,'top','center')
                         }
                         $('#id_loader').html('');
+
+                    $("button[type=submit]").prop("disabled", false);
                     },
                     error: errorAjax
             })

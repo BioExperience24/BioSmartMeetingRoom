@@ -16,7 +16,7 @@ public class BookingController(IAPIMainDisplayService _service)
     : ControllerBase
 {
 
-    [HttpPost("booking/access/open/room/pin")]
+    [HttpPost("access/open/room/pin")]
     public async Task<IActionResult> CheckDoorOpenMeetingPin(CheckDoorOpenMeetingPinFRViewModel request)
     {
         ReturnalModel ret = await _service.CheckDoorOpenMeetingPin(request);

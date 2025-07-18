@@ -578,7 +578,7 @@ function init() {
                     html += '<td><div style="width:25px;height:25px;border:2px solid #000;background:' + item.color_occupied + ' "></div></td>';
                     html += '<td><div style="width:25px;height:25px;border:2px solid #000;background:' + item.color_available + ' "></div></td>';
                     // html += '<td>'+status; +'</td>';
-                    html += `<td>${status_sync}</td>`;
+                    // html += `<td>${status_sync}</td>`;
                     html += `<td>${display_status}</td>`;
 
                     var enabled = item.enabled - 0;

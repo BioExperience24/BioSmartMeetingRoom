@@ -1,5 +1,9 @@
 
 
+using System.Security.Claims;
+using _5.Helpers.Consumer.EnumType;
+using Microsoft.AspNetCore.Http.Features;
+
 namespace _3.BusinessLogic.Services.Implementation
 {
     public class DashboardService : IDashboardService
@@ -7,16 +11,19 @@ namespace _3.BusinessLogic.Services.Implementation
         private readonly IMapper _mapper;
         private readonly RoomRepository _roomRepo;
         private readonly BookingRepository _bookingRepo;
-        
+        IHttpContextAccessor _context;
+
         public DashboardService(
             IMapper mapper, 
             RoomRepository roomRepo,
-            BookingRepository bookingRepo
+            BookingRepository bookingRepo,
+            IHttpContextAccessor context
         )
         {
             _mapper = mapper;
             _roomRepo = roomRepo;
             _bookingRepo = bookingRepo;
+            _context = context;
         }
     
     
@@ -85,10 +92,18 @@ namespace _3.BusinessLogic.Services.Implementation
 
         public async Task<IEnumerable<BookingViewModel>> GetAllOngoingBookingAsync(DateOnly startDate, DateOnly endDate, string? nik = null)
         {
+            var role = _context?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
+
+            if ( role != EnumLevelRole.Administrator.ToString() && role != EnumLevelRole.SOHelpdesk.ToString() && role != EnumLevelRole.SuperAdmin.ToString())
+            {
+
+                var userNik = _context?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+                nik ??= userNik;
+            }
+
             var items = await _bookingRepo.GetAllItemOngoingAsync(startDate, endDate, nik);
 
             var result = _mapper.Map<List<BookingViewModel>>(items);
-
             if (result.Any())
             {
                 foreach (var item in result)

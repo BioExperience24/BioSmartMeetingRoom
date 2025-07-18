@@ -1,37 +1,29 @@
-using _1.PAMA.Razor.Views.Attributes;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Configuration;
 
 namespace _1.PAMA.Razor.Views.Pages.Webview.BookingOrder;
 
-// [Authorize]
-// [PermissionAccess]
-public class IndexModel : PageModel
+public class IndexModel(IConfiguration config) : PageModel
 {
-    private readonly IConfiguration _config;
+    public string AppUrl { get; set; } = config["App:BaseUrl"] ?? string.Empty;
+    public string ApiUrl { get; set; } = config["ApiUrls:BaseApi"] ?? string.Empty;
+    public string GetClaims { get; set; } = config["ApiUrls:Endpoints:Webview:User:GetClaims"] 
+        ?? string.Empty;
+    public string GetDataTables { get; set; } = config["ApiUrls:Endpoints:Webview:Booking:GetDataTables"] 
+        ?? string.Empty;
+    public string CancelBooking { get; set; } = config["ApiUrls:Endpoints:Webview:Booking:CancelBooking"] 
+        ?? string.Empty;
+        
+    public string CancelAllBooking { get; set; } = config["ApiUrls:Endpoints:Webview:Booking:CancelAllBooking"] 
+        ?? string.Empty;
 
-    public IndexModel(IConfiguration config)
+    public string EndMeeting { get; set; } = config["ApiUrls:Endpoints:Webview:Booking:EndMeeting"]
+        ?? string.Empty;
+    public string CheckAvailableTimeBooking { get; set; } = config["ApiUrls:Endpoints:Webview:Booking:CheckAvailableTimeBooking"] 
+        ?? string.Empty;
+    public string RescheduleBooking { get; set; } = config["ApiUrls:Endpoints:Webview:Booking:RescheduleBooking"] 
+        ?? string.Empty;
+
+    public void OnGet()
     {
-        _config = config;
-        AppUrl = _config["App:BaseUrl"] ?? string.Empty;
-        ApiUrl = _config["ApiUrls:BaseUrl"] ?? string.Empty;
-        GetDataTables = _config["ApiUrls:Endpoints:Webview:Booking:GetDataTables"] ?? string.Empty;
-
-    }
-
-    public string AppUrl { get; private set; }
-    public string ApiUrl { get; private set; }
-    public string GetDataTables { get; private set; }
-
-    public async Task OnGetAsync()
-    {
-        // Call the service to get room details
-    }
-
-    public IActionResult OnGetDetailOrderContent()
-    {
-        return Partial("Webview/PantryOrder/Components/_DetailOrderContent");
     }
 }

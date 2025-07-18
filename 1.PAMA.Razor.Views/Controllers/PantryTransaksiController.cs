@@ -54,6 +54,14 @@ public class PantryTransaksiController(IPantryTransaksiService service)
         return StatusCode(ret.StatusCode, ret);
     }
 
+    [HttpPost]
+    public async Task<IActionResult> ProcessOrderApprovalHead([FromForm] PantryTransaksiVMProcessApproval request)
+    {
+        ReturnalModel ret = await service.ProcessOrderApprovalHeadAsync(request);
+
+        return StatusCode(ret.StatusCode, ret);
+    }
+
     [HttpGet("{pantryTransaksiId}")]
     public async Task<IActionResult> GetPrintOrderApproval(string pantryTransaksiId)
     {

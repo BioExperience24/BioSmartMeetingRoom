@@ -147,6 +147,18 @@ public class PantryTransaksiViewModel : BaseViewModel
     [JsonPropertyName("approved_at")]
     public DateTime? ApprovedAt { get; set; }
 
+    [JsonPropertyName("approved_head_by")]
+    public string? ApprovedHeadBy { get; set; }
+
+    [JsonPropertyName("approved_head_at")]
+    public DateTime? ApprovedHeadAt { get; set; }
+
+    [JsonPropertyName("head_employee_id")]
+    public string? HeadEmployeeId { get; set; }
+
+    [JsonPropertyName("approval_head")]
+    public int ApprovalHead { get; set; }
+
 }
 
 public class PantryTransaksiStatusViewModel
@@ -300,6 +312,9 @@ public class PantryTransaksiVMNeedApprovalDataTableFR : DataTableViewModel
 
     [FromQuery(Name = "package_id")]
     public string PackageId { get; set; } = string.Empty;
+
+    [FromQuery(Name = "head_employee_id")]
+    public string HeadEmployeeId { get; set; } = string.Empty;
 }
 
 public class PantryTransaksiVMApporval : PantryTransaksiViewModel
@@ -380,6 +395,9 @@ public class PantryTransaksiVMOrderApproval
 
     [JsonPropertyName("employee_approve")]
     public string EmployeeApprove { get; set; } = string.Empty;
+    
+    [JsonPropertyName("employee_head")]
+    public string EmployeeHead { get; set; } = string.Empty;
     
     [JsonPropertyName("order_detail")]
     public List<PantryDetailVMMenus> OrderDetail { get; set; } = new List<PantryDetailVMMenus>();

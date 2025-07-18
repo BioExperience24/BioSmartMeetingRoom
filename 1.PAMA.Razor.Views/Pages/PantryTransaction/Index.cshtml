@@ -70,7 +70,7 @@
                             </div>
                             <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                                 <button class="btn btn-primary" onclick="onFilter()"> Search </button>
-                                <button class="btn btn-success" onclick="newOrder()"> New Order </button>
+                                <button class="btn btn-success" onclick="newOrder()" id="btn_new_order_snack"> New Order </button>
                             </div>
                         </div>
                         <!-- row clearfix -->
@@ -231,7 +231,19 @@
             enable_datetimepicker()
             init();
             getPantryPackages();
+            checkHeadEmployeeAuthUser();
         })
+
+        function checkHeadEmployeeAuthUser() {
+            if (app.auth.level == "2") {
+                if (app.auth.head_employee != "") {
+                    $('#btn_new_order_snack').show();
+                } else {
+                    $('#btn_new_order_snack').hide();
+                }
+            }
+        }
+
         function clickSubmit(id) {
             $('#' + id).click();
         }
@@ -800,7 +812,7 @@
 
             $.each(meetingListCollection, function (_, item) { 
                 let opt = document.createElement("option");
-                let date = `${moment(item.date).format("DD MMM YYYY")} ${moment(item.start).format("HH:ss")} - ${moment(item.end).format("HH:ss")}`;
+                let date = `${moment(item.date).format("DD MMM YYYY")} ${moment(item.start).format("HH:mm")} - ${moment(item.end).format("HH:mm")}`;
 
                 $(opt).html(`${item.title} - ${item.room_name} <br> <small><b>(${date})</b></small>`);
                 $(opt).val(item.booking_id);

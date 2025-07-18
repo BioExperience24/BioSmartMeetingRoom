@@ -167,6 +167,7 @@ $("#id_frm_crt_meeting_category").on("change", function () {
     get_pantry_package_detail(t.val());
 });
 
+// change organizer
 $("#id_frm_crt_pic").on("change", function () {
     const t = $(this);
 
@@ -993,7 +994,6 @@ function init_pic_reserve_form() {
             select_enable();
         });
     }
-
 }
 
 function init_alocation_reserve_form() {
@@ -1289,14 +1289,19 @@ function onSubmitReserveRoom(_this)
 }
 
 function genDepartmentFromPic(itemID) {
-    let selectedData;
-    $.each(employeeCollection, function (_, item) { 
-        if (item.id == itemID) {
-            selectedData = item;
-            $("#id_frm_crt_alocation_name").val(item.department_name);
-            $("#id_frm_crt_alocation_id").val(item.department_id);
-        }
-    });
+    let selectedData = employeeCollection.find(item => item.id == itemID);
+
+    // remove element meeting category kalau dia employee dan tidak ada head_employeenya
+    if (selectedData.head_employee_id == null || selectedData.head_employee_id == "") {
+        $('#element_meeting_category').hide();
+    } else {
+        $('#element_meeting_category').show();
+    }
+
+    if (selectedData) {
+        $("#id_frm_crt_alocation_name").val(selectedData.department_name);
+        $("#id_frm_crt_alocation_id").val(selectedData.department_id);
+    }
 }
 
 function genPantryDetail() {

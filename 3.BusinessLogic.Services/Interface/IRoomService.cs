@@ -8,7 +8,7 @@ namespace _3.BusinessLogic.Services.Interface
         Task<int> GetCountRoomItemAsync(bool withIsDisabled = true);
         Task<IEnumerable<RoomViewModelAlt>> GetAllRoomRoomDisplayItemAsync();
         Task<IEnumerable<RoomViewModelAlt>> GetAllRoomWithRadidsItemAsycn(string[] radIds);
-        Task<IEnumerable<RoomViewModelAlt>> GetAllRoomAvailableAsync(RoomVMFindAvailable request);
+        Task<IEnumerable<RoomViewModelAlt>> GetAllRoomAvailableAsync(RoomVMFindAvailable request, bool withImage64 = true);
         Task<IEnumerable<RoomDataViewModel>> GetRoomData();
         //Task<List<SearchCriteriaViewModel>> GetReportusage(SearchCriteriaViewModel viewModel);
         Task<List<RoomViewModel>> GetSingleRoomData();

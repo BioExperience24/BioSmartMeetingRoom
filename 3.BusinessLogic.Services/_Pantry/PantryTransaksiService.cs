@@ -11,7 +11,15 @@ public class PantryTransaksiService(PantryTransaksiRepository repo, IMapper mapp
 {
     public async Task<List<PantryTransactionDetail>> GetPantryTransaction(DateTime? start = null, DateTime? end = null, long? pantryId = null, long? orderSt = null)
     {
-        var entities = await repo.GetPantryTransactionsAsync(start, end, pantryId, orderSt);
+        var authUserNIK = httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+        var authUserLevel = httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
+
+        string? attendanceId = null;
+        if (authUserLevel == EnumLevelRole.Employee.ToString())
+        {
+            attendanceId = authUserNIK;
+        }
+        var entities = await repo.GetPantryTransactionsAsync(start, end, pantryId, orderSt, attendanceId);
         return _mapper.Map<List<PantryTransactionDetail>>(entities); ;
     }
 
@@ -149,12 +157,22 @@ public class PantryTransaksiService(PantryTransaksiRepository repo, IMapper mapp
             filter.PackageId = request.PackageId;
         }
 
+        if (authUserLevel == "2")
+        {
+            filter.HeadEmployeeId = authUserNIK;
+        }
+
+        if (request.HeadEmployeeId != null)
+        {
+            filter.HeadEmployeeId = request.HeadEmployeeId;
+        }
+
         var item = await repo.GetAllApprovalItemWithEntityAsync(filter, request.Length, request.Start);
 
         var collections = _mapper.Map<List<PantryTransaksiVMApporval>>(item.Collections);
 
         var userNiks = collections
-            .SelectMany(q => new[] { q.UpdatedBy, q.ApprovedBy, q.RejectedBy, q.CanceledBy })
+            .SelectMany(q => new[] { q.UpdatedBy, q.ApprovedBy, q.RejectedBy, q.CanceledBy, q.ApprovedHeadBy })
             .Where(s => !string.IsNullOrEmpty(s))
             .Distinct()
             .ToList();
@@ -169,13 +187,14 @@ public class PantryTransaksiService(PantryTransaksiRepository repo, IMapper mapp
             collection.ApprovedBy = employees.Where(q => q?.Nik == collection.ApprovedBy).Select(q => q?.Name).FirstOrDefault() ?? string.Empty;
             collection.RejectedBy = employees.Where(q => q?.Nik == collection.RejectedBy).Select(q => q?.Name).FirstOrDefault() ?? string.Empty;
             collection.CanceledBy = employees.Where(q => q?.Nik == collection.CanceledBy).Select(q => q?.Name).FirstOrDefault() ?? string.Empty;
+            collection.ApprovedHeadBy = employees.Where(q => q?.Nik == collection.ApprovedHeadBy).Select(q => q?.Name).FirstOrDefault() ?? string.Empty;
         }
         
         return new DataTableResponse
         {
             Draw = request.Draw,
-            RecordsTotal = 0,
-            RecordsFiltered = 0,
+            RecordsTotal = item.RecordsTotal,
+            RecordsFiltered = item.RecordsFiltered,
             Data = collections
         };
     }
@@ -276,6 +295,94 @@ public class PantryTransaksiService(PantryTransaksiRepository repo, IMapper mapp
         }
     }
 
+    public async Task<ReturnalModel> ProcessOrderApprovalHeadAsync(PantryTransaksiVMProcessApproval request)
+    {
+        ReturnalModel ret = new();
+
+        var authUserNIK = httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+        var now = DateTime.Now;
+
+        using (var scope = new TransactionScope(
+            TransactionScopeOption.Required,
+            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+            TransactionScopeAsyncFlowOption.Enabled
+        ))
+        {
+            try
+            {
+                var pantryTransaksi = await repo.GetByIdAsync(request.Id);
+                if (pantryTransaksi == null)
+                {
+                    ret.Status = ReturnalType.Failed;
+                    ret.Message = "Data not found";
+                    return ret;
+                }
+
+                var pantryTransaksiDs = await pantryTransaksiDRepository.GetAllItemFilteredByTransaksiIdAsync(pantryTransaksi.Id!);
+
+                PantryTransaksiStatus? pantryTransaksiStatus = null;
+                switch (request.Approval)
+                {
+                    case 1:
+                        pantryTransaksi.ApprovedHeadBy = authUserNIK ?? "";
+                        pantryTransaksi.ApprovedHeadAt = now;
+                        pantryTransaksi.ApprovalHead = ApprovalHead.ACCEPT;
+                        
+                        
+                        break;
+                    case 2:
+                        pantryTransaksiStatus = await pantryTransaksiStatusRepository.GetAllPantryTransaksiStatus(5);
+
+                        pantryTransaksi.OrderSt = (int)(pantryTransaksiStatus?.Id ?? 0);
+                        pantryTransaksi.OrderStName = pantryTransaksiStatus?.Name ?? "";
+                        pantryTransaksi.IsRejectedPantry = 1;
+                        pantryTransaksi.RejectedAt = now;
+                        pantryTransaksi.RejectedBy = authUserNIK ?? "";
+                        pantryTransaksi.RejectedPantryBy = authUserNIK ?? "";
+                        pantryTransaksi.NoteReject = request.Note;
+
+                        pantryTransaksi.ApprovedHeadBy = authUserNIK ?? "";
+                        pantryTransaksi.ApprovedHeadAt = now;
+                        pantryTransaksi.ApprovalHead = ApprovalHead.REJECT;
+
+                        if (pantryTransaksiDs.Any())
+                        {
+                            foreach (var item in pantryTransaksiDs)
+                            {
+                                item.IsRejected = 1;
+                                item.RejectedAt = now;
+                                item.RejectedBy = authUserNIK ?? "";
+                                item.NoteReject = request.Note;
+                            }
+                        }
+                        break;
+                }
+
+                if (request.Approval == 2 && pantryTransaksiStatus == null)
+                {
+                    ret.Status = ReturnalType.Failed;
+                    ret.Message = "The approval process failed due to an invalid status.";
+                    return ret;
+                }
+
+                await repo.UpdateAsync(pantryTransaksi);
+
+                if (pantryTransaksiStatus!= null && pantryTransaksiStatus.Id == 5)
+                {
+                    await pantryTransaksiDRepository.UpdateBulk(pantryTransaksiDs);
+                }
+
+                scope.Complete();
+
+                return ret;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+    }
+
     public async Task<ReturnalModel> PrintOrderApprovakAsycn(string pantryTransaksiId)
     {
         ReturnalModel ret = new();
@@ -291,7 +398,8 @@ public class PantryTransaksiService(PantryTransaksiRepository repo, IMapper mapp
 
         var userNiks = new List<string> { 
             pantryTransaksi.EmployeeId ?? string.Empty, 
-            pantryTransaksi.ApprovedBy ?? string.Empty 
+            pantryTransaksi.ApprovedBy ?? string.Empty,
+            pantryTransaksi.ApprovedHeadBy ?? string.Empty,
         }
         .Where(nik => !string.IsNullOrEmpty(nik))
         .ToList();
@@ -300,6 +408,7 @@ public class PantryTransaksiService(PantryTransaksiRepository repo, IMapper mapp
         
         pantryTransaksi.EmployeeOrganize = employees.Where(q => q != null && q.Nik == pantryTransaksi.EmployeeId).FirstOrDefault()?.Name ?? string.Empty;
         pantryTransaksi.EmployeeApprove = employees.Where(q => q != null && q.Nik == pantryTransaksi.ApprovedBy).FirstOrDefault()?.Name ?? string.Empty;
+        pantryTransaksi.EmployeeHead = employees.Where(q => q != null && q.Nik == pantryTransaksi.ApprovedHeadBy).FirstOrDefault()?.Name ?? string.Empty;
 
         var pantryDetails = await pantryDetailRepository.GetAllFilteredByBookingIds(new string[] { pantryTransaksi.BookingId! });
 

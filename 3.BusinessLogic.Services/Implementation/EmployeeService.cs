@@ -66,7 +66,15 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
     {
         var employees = await _repo.GetItemsAsync();
 
-        return __mapper.Map<List<EmployeeVMResp>>(employees);
+        var collections = __mapper.Map<List<EmployeeVMResp>>(employees);
+
+        collections.Select(x =>
+        {
+            x.HeadEmployeeId = x.HeadEmployeeId ?? string.Empty;
+            return x;
+        }).ToList();
+
+        return collections;
     }
 
     public async Task<int> GetCountAsync()
@@ -92,6 +100,12 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
 
     public async Task<EmployeeViewModel?> CreateAsync(EmployeeVMCreateFR request)
     {
+        // check if the employee nrp already exists
+        var existEmployee = await _repo.GetItemByNikDisplayAsync(request.NikDisplay!);
+        if (existEmployee != null)
+        {
+            return null;
+        }
 
         using (var scope = new TransactionScope(
             TransactionScopeOption.Required,
@@ -155,6 +169,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
                     IsDeleted = 0,
                     Id = gid,
                     Nik = gid,
+                    HeadEmployeeId = request.HeadEmployeeId ?? string.Empty,
                 };
 
                 if (request.Photo != null)
@@ -185,7 +200,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
                     IsDisactived = 0,
                     CreatedBy = authUserNIK,
                     CreatedAt = now,
-                    AccessId = "1",
+                    AccessId = "1#2#3",
                     IsDeleted = 0,
                     LevelId = 2
                 };
@@ -220,6 +235,16 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
         if (employee == null)
         {
             return null;
+        }
+
+        if (employee.NikDisplay != request.NikDisplay)
+        {
+            // check if the employee nrp already exists
+            var existEmployee = await _repo.GetItemByNikDisplayAsync(request.NikDisplay!);
+            if (existEmployee != null)
+            {
+                return null;
+            }
         }
 
         using (var scope = new TransactionScope(
@@ -271,7 +296,45 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
                 employee.Address = request.Address ?? "";
                 employee.CardNumber = request.CardNumber ?? "";
                 employee.CardNumberReal = request.CardNumber ?? "";
+                employee.HeadEmployeeId = request.HeadEmployeeId ?? "";
 
+                await _repo.UpdateAsync(employee);
+
+                scope.Complete();
+
+                var result = __mapper.Map<EmployeeViewModel>(employee);
+
+                return result;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+    }
+
+    public async Task<EmployeeViewModel?> UpdateProfile(string id, EmployeeVMDefaultFR request)
+    {
+        var employee = await _repo.GetItemByIdAsync(id);
+
+        if (employee == null)
+        {
+            return null;
+        }
+
+        using (var scope = new TransactionScope(
+            TransactionScopeOption.Required,
+            new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
+            TransactionScopeAsyncFlowOption.Enabled
+        ))
+        {
+            try
+            {
+                __mapper.Map(request, employee);
+
+                DateTime now = DateTime.Now;
+
+                employee.UpdatedAt = now;
                 await _repo.UpdateAsync(employee);
 
                 scope.Complete();
@@ -331,7 +394,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
     {
         var employee = await _repo.GetByIdAsync(id);
 
-        if (employee == null)
+        if (employee == null || employee.IsProtected == 1)
         {
             return null;
         }
@@ -344,11 +407,19 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
         {
             try
             {
+                var user = await _userRepo.GetUserByEmployeeIdAsync(employee.Id!);
+
                 // DateTime now = DateTime.Now;
                 // employee.UpdatedAt = now;
                 employee.IsDeleted = 1;
 
                 await _repo.UpdateAsync(employee);
+
+                if (user != null)
+                {
+                    user.IsDeleted = 1;
+                    await _userRepo.Update(user);
+                }
 
                 scope.Complete();
 
@@ -393,6 +464,56 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
             return ret; 
         }
 
+        // check if the employee nrp already exists
+        string[] EmployeeNikDisplays = data.Select(x => x.Nrp).Distinct().ToArray();
+
+        var existNrp = await _repo.GetItemsByNikDisplayAsync(EmployeeNikDisplays);
+        
+        if (existNrp != null && existNrp.Any())
+        {
+            ret.Status = ReturnalType.Failed;
+            ret.Message = "Employee NRP already exists";
+            return ret;
+        }
+
+        // check if the NRP (Nik Display) of the head employee exists or not
+        string[] headEmployeeNikDisplays = data.Select(x => x.HeadEmployeeId).Distinct().ToArray();
+
+        var headEmployees = await _repo.GetItemsByNikDisplayAsync(headEmployeeNikDisplays);
+        if (!headEmployees.Any() || headEmployees.Count() != headEmployeeNikDisplays.Length)
+        {
+            ret.Status = ReturnalType.Failed;
+            ret.Message = "Head Employee not found";
+            return ret;
+        }
+        
+        // update headEmployeeId data with the id from headEmployees
+        data = data.Select(item => {
+            var headEmployeeId = headEmployees.FirstOrDefault(x => x.NikDisplay == item.HeadEmployeeId)?.Id;
+
+            item.HeadEmployeeId = headEmployeeId ?? string.Empty;
+            return item;
+        }).ToList();
+
+        // check if the departmentId exists or not
+        string[] departmentCodes = data.Select(x => x.DepartmentId).Distinct().ToArray();
+
+        var departments = await _alocationRepo.GetItemsByDepartmentCode(departmentCodes);
+        if (!departments.Any() || departments.Count() != departmentCodes.Length)
+        {
+            ret.Status = ReturnalType.Failed;
+            ret.Message = "Department not found";
+            return ret;
+        }
+
+        // update DepartmentId data with the id from departments
+        data = data.Select(item => {
+            var departmentId = departments.FirstOrDefault(x => x.DepartmentCode == item.DepartmentId)?.Id;
+
+            item.DepartmentId = departmentId ?? string.Empty;
+            return item;
+        }).ToList();
+
         string[] gids = new string[data.Count()];
         List<Employee> employees = new List<Employee>();
         List<User> users = new List<User>();
@@ -430,6 +551,11 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
 
                 var countCompany = await _alocationTypesRepo.CountByIds(alocationTypeIds);
                 var countDepartment = await _alocationRepo.CountByIds(alocationIds);
+
+                Console.WriteLine($"countCompany: {countCompany}");
+                Console.WriteLine($"countDepartment: {countDepartment}");
+                Console.WriteLine($"alocationTypeIds.Length: {alocationTypeIds.Length}");
+                Console.WriteLine($"alocationIds.Length: {alocationIds.Length}");
 
                 if (alocationTypeIds.Length != countCompany || alocationIds.Length != countDepartment)
                 {
@@ -487,6 +613,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
                         IsDeleted = 0,
                         Id = gid,
                         Nik = gid,
+                        HeadEmployeeId = item.val.HeadEmployeeId ?? string.Empty,
                     };
                     employees.Add(employee);
                     
@@ -507,7 +634,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
                         IsDisactived = 0,
                         CreatedBy = authUserNIK ?? string.Empty,
                         CreatedAt = now,
-                        AccessId = "1",
+                        AccessId = "1#2#3",
                         IsDeleted = 0,
                         LevelId = 2
                     };
@@ -544,6 +671,17 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
 
     }
 
+    public async Task<ReturnalModel> GetHeadEmployeesAsync()
+    {
+        var ret = new ReturnalModel();
+
+        var headEmployees = await _repo.GetHeadEmployeesAsync();
+
+        ret.Collection = __mapper.Map<List<EmployeeViewModel>>(headEmployees);
+
+        return ret;
+    }
+    
     private string validationFileImport(IFormFile file)
     {
         var allowedExtensions = _config["UploadFileSetting:importExtensionAllowed"]?.Split('#') ?? new[] { ".csv" };
@@ -601,7 +739,7 @@ public class EmployeeService : BaseService<EmployeeViewModel, Employee>, IEmploy
                 CompanyId = parts[1],
                 DepartmentName = parts[2],
                 DepartmentId = parts[3],
-                HeadEmployee = parts[4],
+                HeadEmployeeId = parts[4],
                 Name = parts[5],
                 Email = parts[6],
                 Nrp = parts[7],

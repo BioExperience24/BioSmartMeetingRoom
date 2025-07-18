@@ -747,13 +747,13 @@ namespace _5.Helpers.Consumer.Custom
     public class SendMailViewModel
     {
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         [JsonPropertyName("to")]
-        public string To { get; set; }
+        public string To { get; set; } = string.Empty;
         [JsonPropertyName("subject")]
-        public string Subject { get; set; }
+        public string Subject { get; set; } = string.Empty;
         [JsonPropertyName("body")]
-        public string Body { get; set; }
+        public string Body { get; set; } = string.Empty;
         [JsonPropertyName("isHtml")]
         public bool IsHtml { get; set; }
         [JsonPropertyName("emailType")]
@@ -769,9 +769,11 @@ namespace _5.Helpers.Consumer.Custom
         [JsonPropertyName("organizer")]
         public SendMailVMOrganizer Organizer { get; set; } = new SendMailVMOrganizer();
         [JsonPropertyName("attendees")]
-        public SendMailVMAttendees Attendees { get; set; } = new SendMailVMAttendees();
+        public SendMailVMAttendees? Attendees { get; set; }
         [JsonPropertyName("place")]
         public SendMailVMPlace Place { get; set; } = new SendMailVMPlace();
+        [JsonPropertyName("head_employee")]
+        public SendMailHeadEmployee? HeadEmployee { get; set; }
     }
 
     public class SendMailVMOrganizer
@@ -826,5 +828,26 @@ namespace _5.Helpers.Consumer.Custom
 
         [JsonPropertyName("kind_room")]
         public string KindRoom { get; set; } = string.Empty;
+    }
+
+    public class SendMailHeadEmployee
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("email")]
+        public string Email { get; set; } = string.Empty;
+
+        [JsonPropertyName("nrp")]
+        public string Nrp { get; set; } = string.Empty;
+
+        [JsonPropertyName("nik_display")]
+        public string NikDisplay { get; set; } = string.Empty;
+
+        [JsonPropertyName("phone")]
+        public string Phone { get; set; } = string.Empty;
     }
 }

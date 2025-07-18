@@ -10,7 +10,7 @@ namespace Controllers.Webview;
 [ApiController]
 [ApiExplorerSettings(GroupName = "webview")]
 [Route("api/webview/pantry-transaksi")]
-[AccessIdAuthorize("2")]
+// [AccessIdAuthorize("2")]
 [Authorize(Policy = AuthorizationWebviewPolicies.OnlyWebview)]
 public class PantryTransaksiController(
     IPantryTransaksiService service

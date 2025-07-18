@@ -57,14 +57,6 @@ namespace _1.PAMA.Razor.Views.Controllers
             // ret.Collection = await _service.GetItemOngoingAsync(sDate, eDate);
             ret.Collection = await _dashboardService.GetAllOngoingBookingAsync(sDate, eDate);
 
-            // NOTE: Buat ketika data auth (session) sudah ada 
-            // TODO: Kondisi jika session levelid-nya == 2
-            // On progress
-            
-            // NOTE: Buat ketika data auth (session) sudah ada 
-            // TODO: Kondisi jika session levelid-nya != 1 & 2
-            // Error return
-
             return StatusCode(ret.StatusCode, ret);
         }
 

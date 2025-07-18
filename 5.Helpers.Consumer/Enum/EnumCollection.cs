@@ -67,6 +67,18 @@ public static class EnumPantryTransaksiPushStatus
     public const int Reject = 5;
 }
 
+public static class EnumLevelRole
+{
+    public const int Administrator = 1;
+    public const int Employee = 2;
+    public const int EmployeeOld = 3;
+    public const int PantryDisplay = 4;
+    public const int PantryOperator = 5;
+    public const int SOHelpdesk = 6;
+    public const int SuperAdmin = 7;
+    
+}
+
 public static class EnumBookingTypeRoom
 {
     public const string AllRoom = "allroom";
@@ -255,4 +267,11 @@ public static class HelpItGaProblemReason
     public const string Comfort = "comfort";
     public const string Connection = "connection";
     public const string Facility = "facility";
+}
+
+public static class ApprovalHead
+{
+    public const int PENDING = 0;
+    public const int ACCEPT = 1;
+    public const int REJECT = 2;
 }

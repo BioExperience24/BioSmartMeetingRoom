@@ -214,6 +214,8 @@ public partial class Booking : BaseLongEntity
     public string? SortColumn { get; set; }
     [NotMapped]
     public string? SortDir { get; set; }
+    [NotMapped]
+    public string? Status { get; set; }
 }
 
 public class BookingChart

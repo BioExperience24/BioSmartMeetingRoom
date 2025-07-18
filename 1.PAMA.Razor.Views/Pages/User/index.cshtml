@@ -279,7 +279,7 @@
 </div>
 
 <textarea id="id_modules" style="display: none;">{"booking":{"module_id":"9","module_text":"module_booking","name":"Module booking","module_serial":null,"is_enabled":"1"},"pantry":{"module_id":"5","module_text":"module_pantry","name":"Module Pantry","module_serial":null,"is_enabled":"1"},"desk":{"module_id":"23","module_text":"module_desk","name":"Module Desk","module_serial":null,"is_enabled":"1"},"room_adv":{"module_id":"32","module_text":"module_room_advance","name":"Module Room","module_serial":null,"is_enabled":"1"}}</textarea> 
-<textarea id="id_access" style="display: none;">[{"access_id":"1","access_name":"Booking Meeting","is_active":"1"},{"access_id":"2","access_name":"Order Pantry","is_active":"1"},{"access_id":"3","access_name":"Booking Desk","is_active":"1"},{"access_id":"4","access_name":"Approval","is_active":"1"}]</textarea> 
+<textarea id="id_access" style="display: none;">[{"access_id":"1","access_name":"Booking Meeting","is_active":"1"},{"access_id":"2","access_name":"Order Pantry","is_active":"1"},{"access_id":"3","access_name":"Approval Order","is_active":"1"},{"access_id":"4","access_name":"Approval Meeting","is_active":"1"}]</textarea> 
 
 @section Scripts {
     <script src="~/assets/theme/plugins/jquery-datatable/jquery.dataTables.js"></script>
@@ -482,6 +482,9 @@
                             dataemployee += '<option value="'+item.id+'" >'+item.name+'</option>';
                         })
                         $.each(dataGroup, (index,item)=>{
+                            if (app.auth.level == "7" && item.id == 1) {
+                                return true;
+                            }
                             datagroup += '<option value="'+item.id+'">'+item.name+'</option>';
                         })
                         var listAccess = getAccess();
@@ -650,7 +653,9 @@
                                     html += '<li><a href="#" onclick="removeData($(this))" data-id="'+item.id+'" data-name="'+item.name+'" >Delete</a></li>';
                                 }
                             } else if (username != item.username) {
+                                if(item.is_protected == 0) {
                                     html += '<li><a href="#" onclick="removeData($(this))" data-id="'+item.id+'" data-name="'+item.name+'" >Delete</a></li>';
+                                }
                             }
 
                              
@@ -921,7 +926,8 @@
                                     showNotification('alert-success', "Succes deleted user "+name ,'top','center')
                                     init();
                                 }else{
-                                    showNotification('alert-danger', "Data not found",'bottom','left')
+                                    let msg = data.msg;
+                                    showNotification('alert-danger', msg,'bottom','left')
                                 }
                             },
                             error: errorAjax,

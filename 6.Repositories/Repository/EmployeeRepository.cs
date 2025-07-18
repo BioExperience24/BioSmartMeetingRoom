@@ -110,6 +110,13 @@ public class EmployeeRepository : BaseRepository<Employee>
 
         return result;
     }
+
+     public virtual async Task<Employee?> GetByHeadEmployeeId(string id)
+    {
+        return await _dbSet
+                        .Where(e => e.IsDeleted == 0) // Filter is_deleted
+                        .FirstOrDefaultAsync(e => e.HeadEmployeeId == id); // Cari berdasarkan id 
+    }
     
     public async Task<EmployeeReportOrganizerUsageDataTable> GetAllOrganizerUsageReportItemAsync(EmployeeFilter? filter = null, int limit = 0, int offset = 0)
     {
@@ -321,6 +328,23 @@ public class EmployeeRepository : BaseRepository<Employee>
             RecordsFiltered = recordsFiltered
         };
     }
+
+    public async Task<IEnumerable<Employee>> GetHeadEmployeesAsync()
+    {
+        // var levelIds = new[] { 1, 2, 6 };
+        var levelIds = new[] { 2 };
+        var query = from emp in _dbContext.Employees
+                    from usr in _dbContext.Users
+                        .Where(u => u.EmployeeId == emp.Id || u.EmployeeId == emp.Nik).DefaultIfEmpty()
+                    where emp.IsDeleted == 0 
+                    && usr.IsDeleted == 0
+                    && levelIds.Contains(usr.LevelId)
+                    select emp;
+
+        var result = await query.ToListAsync();
+        
+        return result;
+    }
     
     private IQueryable<EmployeeTotalParticipant> getParticipantsQuery(EmployeeFilter? filter = null)
     {
@@ -378,7 +402,7 @@ public class EmployeeRepository : BaseRepository<Employee>
                         on alocationMatrix.AlocationId equals alocation.Id // Swapped order
 
                     where employee.IsDeleted == 0 &&
-                          (employee.Nik == nikPic || employee.NikDisplay == nikPic)
+                        (employee.Nik == nikPic || employee.NikDisplay == nikPic)
                         select new EmployeeNikDto
                         {
                             DivisionId = string.Empty,
@@ -417,7 +441,27 @@ public class EmployeeRepository : BaseRepository<Employee>
     {
         var query = from employee in _dbContext.Employees.AsNoTracking()
                     where employee.IsDeleted == 0 &&
-                          nikPic.Contains(employee.Nik)
+                        nikPic.Contains(employee.Nik)
+                    select employee;
+
+        return await query.ToListAsync();
+    }
+
+    public async Task<Employee?> GetItemByNikDisplayAsync(string nikDisplay)
+    {
+        var query = from employee in _dbContext.Employees.AsNoTracking()
+                    where employee.NikDisplay == nikDisplay
+                    && employee.IsDeleted == 0
+                    select employee;
+
+        return await query.FirstOrDefaultAsync();
+    }
+
+    public async Task<List<Employee>> GetItemsByNikDisplayAsync(string[] nikDisplays)
+    {
+        var query = from employee in _dbContext.Employees.AsNoTracking()
+                    where nikDisplays.Contains(employee.NikDisplay)
+                    && employee.IsDeleted == 0
                     select employee;
 
         return await query.ToListAsync();

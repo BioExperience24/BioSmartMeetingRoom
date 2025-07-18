@@ -122,6 +122,7 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<VariableTimeExtend> VariableTimeExtends { get; set; }
     public virtual DbSet<RoomDisplayInformation> RoomDisplayInformations { get; set; }
     public virtual DbSet<HelpItGa> HelpItGas { get; set; }
+    public virtual DbSet<Session> Sessions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:DefaultConnection");
@@ -308,7 +309,7 @@ public partial class MyDbContext : DbContext
 
             entity.HasIndex(e => e.Generate, "alocation_matrix$_generate")
                 .IsUnique()
-                .IsClustered();
+                .IsClustered(false);
 
             entity.Property(e => e.AlocationId)
                 .HasMaxLength(100)
@@ -1947,6 +1948,14 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.VipLockRoom)
                 .HasDefaultValue(0)
                 .HasColumnName("vip_lock_room");
+            entity.Property(e => e.HeadEmployeeId)
+                .HasMaxLength(100)
+                .HasDefaultValueSql("(NULL)")
+                .HasColumnName("head_employee_id");
+            entity.Property(e => e.IsProtected)
+                .IsRequired()
+                .HasColumnName("is_protected")
+                .HasDefaultValueSql("(0)");
         });
 
         modelBuilder.Entity<Facility>(entity =>
@@ -4290,6 +4299,10 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.VipShiftedBypass)
                 .HasDefaultValue(0)
                 .HasColumnName("vip_shifted_bypass");
+            entity.Property(e => e.IsProtected)
+                .IsRequired()
+                .HasColumnName("is_protected")
+                .HasDefaultValueSql("(0)");
         });
 
         modelBuilder.Entity<UserAccess>(entity =>
@@ -4473,6 +4486,32 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("updated_by")
                 .HasDefaultValueSql("(NULL)");
+        });
+
+        modelBuilder.Entity<Session>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__sessions___3213E83F112681DD");
+            
+            entity.ToTable("sessions", "smart_meeting_room");
+
+            entity.Property(e => e.Id)
+                .HasMaxLength(449)
+                .HasColumnName("Id");
+
+            entity.Property(e => e.Value)
+                .HasColumnType("varbinary(max)")
+                .HasColumnName("Value");
+
+            entity.Property(e => e.ExpiresAtTime)
+                .HasColumnType("datetimeoffset")
+                .HasColumnName("ExpiresAtTime");
+
+            entity.Property(e => e.SlidingExpirationInSeconds)
+                .HasColumnName("SlidingExpirationInSeconds");
+
+            entity.Property(e => e.AbsoluteExpiration)
+                .HasColumnType("datetimeoffset")
+                .HasColumnName("AbsoluteExpiration");
         });
 
         //modelBuilder.Entity<RoomData>().HasNoKey();

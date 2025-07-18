@@ -118,10 +118,13 @@ async function setRoomSelect() {
         var meetingListCollection = data.collection;
 
         $.each(meetingListCollection, function (_, item) {
+          $("#roomSelect").empty();
+          $("#roomSelect").append(`<option value="">-- Select Room --</option>`);
+
           let opt = document.createElement("option");
           let date = `${moment(item.date).format("DD MMM YYYY")} ${moment(
             item.start
-          ).format("HH:ss")} - ${moment(item.end).format("HH:ss")}`;
+          ).format("HH:mm")} - ${moment(item.end).format("HH:mm")}`;
 
           $(opt).html(
             `${item.title} - ${item.room_name} <br> <small><b>(${date})</b></small>`
@@ -240,7 +243,7 @@ function genPantryDetail() {
                   <label>${item.name}</label>
                   <div class="row">
                     <div class="col-4">
-                      <input autocomplete="off" type="number" class="form-control number-without-arrow inp_qty_package_detail" placeholder="Qty" value="${item.qty}">
+                      <input autocomplete="off" type="number" min="0" class="form-control number-without-arrow inp_qty_package_detail" placeholder="Qty" value="${item.qty}" onkeyup="checkQty(this)">
                     </div>
                     <div class="col-8">
                       <input autocomplete="off" type="text" class="form-control number-without-arrow inp_note_package_detail" placeholder="Note" value="${item.note}">
@@ -444,6 +447,14 @@ function swalShowNotification(icon, title, loc = "", loc2 = "") {
 }
 
 get_pantry_transactions();
+
+function checkQty(t)
+{
+  if ($(t).val() < 0) {
+    $(t).val(0);
+    $(t).focus();
+  }
+}
 
 $(document).ready(function () {
   // Inisialisasi DateRangePicker untuk dashboard

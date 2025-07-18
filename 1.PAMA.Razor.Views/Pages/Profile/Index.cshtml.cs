@@ -30,7 +30,7 @@ public class IndexModel : PageModel
         GetProfile = config["ApiUrls:Endpoints:GetProfile"];
         GetAuthUser = config["ApiUrls:Endpoints:GetAuthUser"];
         GetLevels = config["ApiUrls:Endpoints:GetLevels"];
-        UpdateEmployee = config["ApiUrls:Endpoints:UpdateEmployee"];
+        UpdateEmployee = config["ApiUrls:Endpoints:UpdateProfile"];
         UpdateUsername = config["ApiUrls:Endpoints:UpdateUsername"];
         UpdatePassword = config["ApiUrls:Endpoints:UpdatePassword"];
     }

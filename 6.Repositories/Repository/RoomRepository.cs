@@ -220,6 +220,25 @@ public class RoomRepository : BaseLongRepository<Room>
             requestedDate <= DateOnly.FromDateTime(today.AddDays((int)q.room.ConfigAdvanceBooking))
         );
 
+        if (entity.WorkStart != null && entity.WorkEnd != null)
+        {
+            TimeSpan timeStart = TimeSpan.Parse(entity.WorkStart);
+            TimeSpan timeEnd = TimeSpan.Parse(entity.WorkEnd);
+
+            // Calculate the time difference in minutes
+            int differenceInMinutes = (int)(timeEnd - timeStart).TotalMinutes;
+
+            qRoom = qRoom.Where(q => 
+                (q.room.ConfigMinDuration == 0
+                || q.room.ConfigMinDuration == null
+                || q.room.ConfigMinDuration <= differenceInMinutes)
+                
+                && (q.room.ConfigMaxDuration == 0 
+                || q.room.ConfigMaxDuration == null 
+                || q.room.ConfigMaxDuration >= differenceInMinutes)
+            );
+        }
+
         if (entity.Radid != null)
         {
             qRoom = qRoom.Where(q => q.room.Radid == entity.Radid);
@@ -294,6 +313,9 @@ public class RoomRepository : BaseLongRepository<Room>
                                 // && b.End.TimeOfDay <= endDate.Value.TimeOfDay
                                 && b.Start.TimeOfDay <= endDate.Value.TimeOfDay
                                 && b.End.TimeOfDay >= startDate.Value.TimeOfDay
+                                // && b.IsCanceled != 1
+                                // && b.IsApprove != 2
+                                // && b.EndEarlyMeeting != 1
                             ));
                 }
             }
@@ -316,6 +338,13 @@ public class RoomRepository : BaseLongRepository<Room>
                         .Any(b => 
                             b.RoomId == q.room.Radid 
                             && b.Date == workDate
+                            && b.EndEarlyMeeting == 0
+                            && b.IsExpired == 0
+                            && b.IsCanceled == 0
+                            
+                            // && b.IsCanceled != 1
+                            // && b.IsApprove != 2
+                            // && b.EndEarlyMeeting != 1
                         ));
             } 
             else 

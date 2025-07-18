@@ -51,7 +51,7 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
     public async Task<IEnumerable<UserViewModel>> GetItemsAsync()
     {
         var authUserNIK = _httpCont?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
-        var filter = new UserFilter{};
+        var filter = new UserFilter { };
         if (!string.IsNullOrEmpty(authUserNIK))
         {
             filter.ExceptEmployeeId = authUserNIK;
@@ -280,7 +280,6 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
         }
 
         var getLevel = await _levelService.GetLevel(user.LevelId);
-        // List<MenuHeaderLevel> getMenuHeaader = await _levelService.GetMenuHeader(user.LevelId);
 
         // get side menu by level (role)
         List<LevelMenu> getMenu = await _levelService.GetMenu(user.LevelId);
@@ -288,28 +287,319 @@ public class UserService : BaseLongService<UserViewModel, User>, IUserService
         List<LevelMenu> getMenuChild = getMenu.Where(x => x.IsChild != 0).ToList();
         List<LevelMenu> getGroupMenu = getMenuChild.GroupBy(x => x.MenuGroupId).Select(x => x.First()).ToList();
         var menuMap = _mapper.Map<List<MenuVM>>(getMenuParent);
-
-        foreach (var item in getGroupMenu)
+        if (user.LevelId == 2)
         {
-            menuMap.Add(
-                new MenuVM
+             List<MenuVM> listAproval = [
+                
+             ];
+
+            List<MenuVM> listMeetingRoom = [
+                
+             ];
+
+            List<MenuVM> listPantry = [
+                
+             ];
+
+            if (user.AccessId!.Contains('1'))
+            {
+
+                listMeetingRoom.Add(new MenuVM
                 {
-                    MenuName = item.GroupName!,
-                    MenuIcon = item.GroupIcon!,
-                    MenuUrl = "#",
-                    MenuSort = item.MenuSort,
-                    ModuleText = item.ModuleText,
-                    Child = getMenuChild.Where(x => x.MenuGroupId == item.MenuGroupId).Select(x => new MenuVM
+                    MenuName = "Room Schedule",
+                    MenuIcon = "schedule",
+                    MenuUrl = "/booking",
+                    MenuSort = 0,
+                    ModuleText = "",  
+                });
+
+                listMeetingRoom.Add(new MenuVM
+                {
+                    MenuName = "Room Usage",
+                    MenuIcon = "description",
+                    MenuUrl = "/report-usage",
+                    MenuSort = 0,
+                    ModuleText = "",  
+                });
+
+                menuMap.Add(
+                    new MenuVM
                     {
-                        MenuName = x.MenuName,
-                        MenuIcon = x.MenuIcon,
-                        MenuUrl = x.MenuUrl,
-                        MenuSort = x.MenuSort,
-                        ModuleText = x.ModuleText
-                    }).ToList()
-                }
-            );
+                        MenuName = "MeetingRoom",
+                        MenuIcon = "input",
+                        MenuUrl = "#",
+                        MenuSort = 0,
+                        ModuleText = "",
+                        Child = listMeetingRoom
+                    }
+                );
+                
+            }
+            var employee = await _employeeRepo.GetByIdAsync(user.EmployeeId);
+            var checkAsHeadEmployee = await _employeeRepo.GetByHeadEmployeeId(employee.Id);
+            if(user.AccessId!.Contains('2'))
+            {
+                    listPantry.Add(new MenuVM
+                {
+                    MenuName = "Order Management",
+                    MenuIcon = "schedule",
+                    MenuUrl = "/pantry-transaction",
+                    MenuSort = 4,
+                    ModuleText = "",  
+                });
+
+                menuMap.Add(
+                    new MenuVM
+                    {
+                        MenuName = "Snack & Pantry",
+                        MenuIcon = "local_cafe",
+                        MenuUrl = "#",
+                        MenuSort = 4,
+                        ModuleText = "",
+                        Child = listPantry
+                    }
+                );
+
+     
+            }
+            if(user.AccessId!.Contains('3') && checkAsHeadEmployee == null)
+            {
+                listAproval.Add(new MenuVM
+                {
+                    MenuName = "Approval  Order",
+                    MenuIcon = "open_with",
+                    MenuUrl = "/approval-order",
+                    MenuSort = 2,
+                    ModuleText = "",
+                });
+
+            }
+            if(user.AccessId!.Contains('4'))
+            {
+                listAproval.Add(new MenuVM
+                {
+                    MenuName = "Approval Meeting",
+                    MenuIcon = "done_all",
+                    MenuUrl = "/approval-meeting",
+                    MenuSort = 1,
+                    ModuleText = "",
+                });
+            }
+
+             if(user.AccessId!.Contains('3') || user.AccessId!.Contains('4'))
+             {
+                menuMap.Add(
+                    new MenuVM
+                    {
+                        MenuName = "Approval",
+                        MenuIcon = "done_all",
+                        MenuUrl = "#",
+                        MenuSort = 1,
+                        ModuleText = "",
+                        Child = listAproval
+                    }
+                );
+             }
+            if (checkAsHeadEmployee != null)
+           {     
+                listAproval.Add(new MenuVM
+                {
+                    MenuName = "Approval  Order",
+                    MenuIcon = "open_with",
+                    MenuUrl = "/approval-order",
+                    MenuSort = 2,
+                    ModuleText = "",
+                });
+            }
+          
+             
         }
+        else if(user.LevelId == 6)
+        {
+            List<MenuVM> listHelp = [
+                
+             ];
+               List<MenuVM> listAproval = [
+                
+             ];
+
+            List<MenuVM> listMeetingRoom = [
+                
+             ];
+
+            List<MenuVM> listPantry = [
+                
+             ];
+
+            if (user.AccessId!.Contains('1'))
+            {
+                listMeetingRoom.Add(new MenuVM
+                {
+                    MenuName = "Room Schedule",
+                    MenuIcon = "schedule",
+                    MenuUrl = "/booking",
+                    MenuSort = 0,
+                    ModuleText = "",  
+                });
+                    listMeetingRoom.Add(new MenuVM
+                {
+                    MenuName = "Room Management",
+                    MenuIcon = "management",
+                    MenuUrl = "/room",
+                    MenuSort = 0,
+                    ModuleText = "",  
+                });
+                listMeetingRoom.Add(new MenuVM
+                {
+                    MenuName = "Room Usage",
+                    MenuIcon = "description",
+                    MenuUrl = "/report-usage",
+                    MenuSort = 0,
+                    ModuleText = "",  
+                });
+
+                    menuMap.Add(
+                    new MenuVM
+                    {
+                        MenuName = "MeetingRoom",
+                        MenuIcon = "input",
+                        MenuUrl = "#",
+                        MenuSort = 0,
+                        ModuleText = "",
+                        Child = listMeetingRoom
+                    }
+                );
+  
+                
+            }
+            var employee = await _employeeRepo.GetByIdAsync(user.EmployeeId);
+            var checkAsHeadEmployee = await _employeeRepo.GetByHeadEmployeeId(employee.Id);
+            if(user.AccessId!.Contains('2'))
+            {
+                    listPantry.Add(new MenuVM
+                {
+                    MenuName = "Order Management",
+                    MenuIcon = "schedule",
+                    MenuUrl = "/pantry-transaction",
+                    MenuSort = 4,
+                    ModuleText = "",  
+                });
+
+                menuMap.Add(
+                    new MenuVM
+                    {
+                        MenuName = "Snack & Pantry",
+                        MenuIcon = "local_cafe",
+                        MenuUrl = "#",
+                        MenuSort = 4,
+                        ModuleText = "",
+                        Child = listPantry
+                    }
+                );
+            }
+            if(user.AccessId!.Contains('3'))
+            {
+                listAproval.Add(new MenuVM
+                {
+                    MenuName = "Approval  Order",
+                    MenuIcon = "open_with",
+                    MenuUrl = "/approval-order",
+                    MenuSort = 2,
+                    ModuleText = "",
+                });
+
+            }
+            if(user.AccessId!.Contains('4'))
+            {
+                listAproval.Add(new MenuVM
+                {
+                    MenuName = "Approval Meeting",
+                    MenuIcon = "done_all",
+                    MenuUrl = "/approval-meeting",
+                    MenuSort = 1,
+                    ModuleText = "",
+                });
+            }
+        //     if (checkAsHeadEmployee != null)
+        //    {
+                
+        //         listAproval.Add(new MenuVM
+        //         {
+        //             MenuName = "Approval  Order",
+        //             MenuIcon = "open_with",
+        //             MenuUrl = "/approval-order",
+        //             MenuSort = 2,
+        //             ModuleText = "",
+        //         });
+            
+        //     }
+            menuMap.Add(
+                    new MenuVM
+                    {
+                        MenuName = "Approval",
+                        MenuIcon = "done_all",
+                        MenuUrl = "#",
+                        MenuSort = 1,
+                        ModuleText = "",
+                        Child = listAproval
+                    }
+                );
+
+
+            menuMap.Add(
+                    new MenuVM
+                {
+                    MenuName = "Help",
+                    MenuIcon = "help_outline",
+                    MenuUrl = "#",
+                    MenuSort = 1,
+                    ModuleText = "",  
+                    Child = listHelp
+                });
+
+            listHelp.Add(new MenuVM
+                {
+                    MenuName = "Help IT",
+                    MenuIcon = "apps",
+                    MenuUrl = "/help-it",
+                    MenuSort = 2,
+                    ModuleText = "",  
+                });
+            listHelp.Add(new MenuVM
+                {
+                    MenuName = "Help GS",
+                    MenuIcon = "apps",
+                    MenuUrl = "/help-ga",
+                    MenuSort = 2,
+                    ModuleText = "",  
+                });
+        }
+        else
+        {
+            foreach (var item in getGroupMenu)
+            {
+                menuMap.Add(
+                    new MenuVM
+                    {
+
+                        MenuName = item.GroupName!,
+                        MenuIcon = item.GroupIcon!,
+                        MenuUrl = "#",
+                        MenuSort = item.MenuSort,
+                        ModuleText = item.ModuleText,
+                        Child = getMenuChild.Where(x => x.MenuGroupId == item.MenuGroupId).Select(x => new MenuVM
+                        {
+                            MenuName = x.MenuName,
+                            MenuIcon = x.MenuIcon,
+                            MenuUrl = x.MenuUrl,
+                            MenuSort = x.MenuSort,
+                            ModuleText = x.ModuleText
+                        }).ToList()
+                    }
+                );
+            }
+        }
+
         var menuOrdered = menuMap.OrderBy(x => x.MenuSort).ToList();
         // .get side menu by level (role)
 

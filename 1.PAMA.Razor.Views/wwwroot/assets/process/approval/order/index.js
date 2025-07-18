@@ -3,6 +3,7 @@ const bsApp = $("#id_appurl").val();
 let localtimezone = moment.tz.guess();
 let gPantryPackage = [];
 let globalStatusInvoice = [];
+let gHeadEmployees = [];
 let tblApproval;
 
 $(function () {
@@ -17,6 +18,7 @@ $("#id_search").on("click", function () {
 async function initMasterData() {
     try {
         await fetchPantryPackages();
+        await fetchHeadEmployees();
     } finally {
         // load table
         initTable();
@@ -47,6 +49,34 @@ async function fetchPantryPackages() {
     }
 }
 
+async function fetchHeadEmployees() {
+    try {
+        var data = await $.ajax({
+            type: "Get",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            url: bs + ajax.url.get_head_employees
+        });
+
+        if (data.status == "success")
+        {
+            $.each(data.collection, function (key, val) { 
+                gHeadEmployees.push({
+                    id: val.id,
+                    name: val.name
+                });
+            });            
+            initFilterHeadEmployees();
+        } else {
+            var msg = "Your session is expired, login again !!!";
+            showNotification('alert-danger', msg, 'top', 'center');
+        }
+    } catch (err) {
+        // console.log(err);
+        errorAjax;
+    }
+}
+
 function initFilterPantryPackages() {
     $(`#id_package_search`).empty();
     
@@ -59,6 +89,22 @@ function initFilterPantryPackages() {
         $(opt).val(item.id);
         
         $(`#id_package_search`).append(opt);
+        selectEnable();
+    });
+}
+
+function initFilterHeadEmployees() {
+    $(`#id_head_search`).empty();
+    
+    $(`#id_head_search`).append(`<option value="">All Head Employee</option>`);
+
+    $.each(gHeadEmployees, function (_, item) { 
+        let opt = document.createElement("option");
+
+        $(opt).text(`${item.name}`);
+        $(opt).val(item.id);
+        
+        $(`#id_head_search`).append(opt);
         selectEnable();
     });
 }
@@ -80,21 +126,38 @@ function initTable() {
             return item.updated_by ?? "";
         }},
         {data:"meeting", name:"meeting", searchable:false, orderable:false, render: function(_, _, item) {
-            let date = `${moment(item.booking_date).format("DD MMM YYYY")} ${moment(item.booking_start).format("HH:ss")} - ${moment(item.booking_end).format("HH:ss")}`;
+            let date = `${moment(item.booking_date).format("DD MMM YYYY")} ${moment(item.booking_start).format("HH:mm")} - ${moment(item.booking_end).format("HH:mm")}`;
             return `
                 ${item.booking_room_name} - ${item.booking_title}
                 <br>
                 <small><b>(${date})</b></small>
             `;
         }},
+        {data:"approved_head_by", name:"approved_head_by", searchable:false, orderable:false, render: function(_, _, item) {
+            if (
+                item.booking_is_approve == 1 
+                && item.order_st == 0 
+                && item.approval_head == 0
+                && item.head_employee_id == app.auth.nik
+            ) {
+                btn = `
+                    <button type="button" class="btn btn-info waves-effect" onclick="processToAcceptHead($(this))">Accept</button>
+                    <button type="button" class="btn btn-danger waves-effect" onclick="processToRejectHead($(this))">Reject</button>
+                `;
+                return btn;
+            } else {
+                return item.approved_head_by ?? "";
+            }
+            return "";
+        }},
         {data:"approved_by", name:"approved_by", searchable:false, orderable:false, render: function(_, _, item) {
             let reviewer = "";
             if (item.booking_is_approve == 1 && item.order_st == 1) {
-                reviewer = item.approved_by ?? "";
+                reviewer = item.approved_by != "" ? item.approved_by : "Admin";
             } else if ((item.booking_is_approve == 2 || item.booking_is_approve == 1) && item.order_st == 5) {
-                reviewer = item.rejected_by ?? "";
+                reviewer = item.rejected_by != "" ? item.rejected_by : "Admin";
             } else  if (item.order_st == 4 || item.booking_is_canceled == 1) {
-                reviewer = item.canceled_by ?? "";
+                reviewer = item.canceled_by != "" ? item.canceled_by : "Admin";
             }
             return reviewer;
         }},
@@ -105,8 +168,13 @@ function initTable() {
             if (item.order_st == 4 || item.booking_is_canceled == 1) {
                 status = "Canceled";
             } else if (item.booking_is_approve == 0 || (item.booking_is_approve == 1 && item.order_st == 0)) {
-                let waitingApprovalMeeting = (item.booking_is_approve == 0) ? " (Waiting Approval Meeting)" : "";
-                status = "Pending" + waitingApprovalMeeting;
+                if (item.approval_head == 1) {
+                    let waitingApprovalMeeting = (item.booking_is_approve == 0) ? " (Waiting Approval Meeting)" : "";
+                    status = "Pending" + waitingApprovalMeeting;
+                    
+                } else {
+                    status = "Pending (Waiting Approval Head)";
+                }
             } else if (item.booking_is_approve == 0 || item.order_st == 0 && (moment().unix() > momentEnd.unix())) {
                 status = "Order Expired";
             } else if (item.booking_is_approve == 1 && item.order_st == 1) {
@@ -124,14 +192,16 @@ function initTable() {
             let btn = ``;
 
             // if (item.booking_is_approve == 1 && (moment().unix() <= momentEnd.unix()) && item.order_st == 0) {
-            if (item.booking_is_approve == 1 && item.order_st == 0) {
-                btn = `
-                    <button type="button" class="btn btn-info waves-effect" onclick="processToAccept($(this))">Accept</button>
-                    <button type="button" class="btn btn-danger waves-effect" onclick="processToReject($(this))">Reject</button>
-                `;
-            } else if (item.booking_is_approve == 1 && item.order_st == 1) {
-                // btn = ` <a href="${bsApp}approval-order/print-memo?bid=${item.booking_id}" target="_blank" class="btn btn-success waves-effect">Print Memo</a>`;
-                btn = ` <a href="${bsApp}approval-order/print-memo?pid=${item.id}" target="_blank" class="btn btn-success waves-effect">Print Memo</a>`;
+            if (item.approval_head == 1 && app.auth.level != "2") {
+                if (item.booking_is_approve == 1 && item.order_st == 0) {
+                    btn = `
+                        <button type="button" class="btn btn-info waves-effect" onclick="processToAccept($(this))">Accept</button>
+                        <button type="button" class="btn btn-danger waves-effect" onclick="processToReject($(this))">Reject</button>
+                    `;
+                } else if (item.booking_is_approve == 1 && item.order_st == 1) {
+                    // btn = ` <a href="${bsApp}approval-order/print-memo?bid=${item.booking_id}" target="_blank" class="btn btn-success waves-effect">Print Memo</a>`;
+                    btn = ` <a href="${bsApp}approval-order/print-memo?pid=${item.id}" target="_blank" class="btn btn-success waves-effect">Print Memo</a>`;
+                }
             }
 
             return btn;
@@ -165,6 +235,7 @@ function initTable() {
                 param.start_date = startDate;
                 param.end_date = endDate;
                 param.package_id = $("#id_package_search").val();
+                param.head_employee_id = $("#id_head_search").val();
             },
             dataSrc: function (json) {
                 // Map properties to the expected structure
@@ -319,7 +390,8 @@ function processToAccept(t) {
                                 showNotification('alert-success', "Succes accept " + data.id, 'top', 'center')
                                 reloadTable();
                             } else {
-                                showNotification('alert-danger', "Accept " + data.id + " meeting is failed!!!", 'bottom', 'left')
+                                let msg = data.msg ?? "Accept order is failed!!!";
+                                showNotification('alert-danger', msg, 'bottom', 'left')
                             }
                         },
                         complete: function() {
@@ -400,7 +472,147 @@ function processToReject(t) {
                                 showNotification('alert-success', "Succes reject " + data.id, 'top', 'center')
                                 reloadTable();
                             } else {
-                                showNotification('alert-danger', "Reject " + data.id + " meeting is failed!!!", 'bottom', 'left')
+                                let msg = data.msg ?? "Reject order is failed!!!";
+                                showNotification('alert-danger', msg, 'bottom', 'left')
+                            }
+                        },
+                        complete: function() {
+                            $('#id_loader').html('');
+                        },
+                        error: errorAjax,
+                    });
+                }
+            });
+        }
+    });
+}
+
+function processToAcceptHead(t) {
+    let row = t.parents("tr");
+    let data = row.data("approvalData");
+    
+    Swal.fire({
+        title: 'Are you sure you want to accept order ' + data.id + '?',
+        type: "question",
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Accept Order !',
+        cancelButtonText: 'Close !',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.value) {
+            var bs = $('#id_baseurl').val();
+            var form = new FormData();
+            form.append('id', data.id);
+            form.append('approval', 1);
+            $.ajax({
+                // url: bs + "booking/post/cancelbook",
+                url: bs + ajax.url.post_process_order_approval_head,
+                type: "POST",
+                data: form,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                beforeSend: function() {
+                    $('#id_loader').html('<div class="linePreloader"></div>');
+                    Swal.fire({
+                        title: 'Please Wait !',
+                        html: 'Process to cancel meeting',
+                        allowOutsideClick: false,
+                        onBeforeOpen: () => {
+                            Swal.showLoading()
+                        },
+                    });
+                },
+                success: function(data) {
+                    Swal.close();
+                    $('#id_loader').html('');
+                    if (data.status == "success") {
+                        showNotification('alert-success', "Succes accept " + data.id, 'top', 'center')
+                        reloadTable();
+                    } else {
+                        let msg = data.msg ?? "Accept order is failed!!!";
+                        showNotification('alert-danger', msg, 'bottom', 'left')
+                    }
+                },
+                complete: function() {
+                    $('#id_loader').html('');
+                },
+                error: errorAjax,
+            });
+        }
+    });
+}
+
+function processToRejectHead(t) {
+    let row = t.parents("tr");
+    let data = row.data("approvalData");
+    
+    Swal.fire({
+        title: 'Are you sure want reject order ' + data.id + '?',
+        text: "You will reject the data order " + data.id + " !",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Reject Order !',
+        cancelButtonText: 'Close !',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.value) {
+            Swal.fire({
+                title: 'Reason for Rejection',
+                input: "text",
+                inputAttributes: {
+                    autocapitalize: "off",
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Submit',
+                cancelButtonText: 'Close !',
+                reverseButtons: true,
+                preConfirm: (result) => {
+                    if (result == "" || result == null) {
+                        return Swal.showValidationMessage(`Reason for Rejection is required`);
+                    }
+                }
+            }).then((result) => {
+                if (result.value !== undefined) {
+                    var form = new FormData();
+                    form.append('id', data.id);
+                    form.append('approval', 2);
+                    form.append('note', result.value);
+                    var bs = $('#id_baseurl').val();
+                    $.ajax({
+                        // url: bs + "booking/post/cancelbook",
+                        url: bs + ajax.url.post_process_order_approval_head,
+                        type: "POST",
+                        data: form,
+                        processData: false,
+                        contentType: false,
+                        dataType: "json",
+                        beforeSend: function() {
+                            $('#id_loader').html('<div class="linePreloader"></div>');
+                            Swal.fire({
+                                title: 'Please Wait !',
+                                html: 'Process to cancel meeting',
+                                allowOutsideClick: false,
+                                onBeforeOpen: () => {
+                                    Swal.showLoading()
+                                },
+                            });
+                        },
+                        success: function(data) {
+                            Swal.close();
+                            $('#id_loader').html('');
+                            if (data.status == "success") {
+                                showNotification('alert-success', "Succes reject " + data.id, 'top', 'center')
+                                reloadTable();
+                            } else {
+                                let msg = data.msg ?? "Reject order is failed!!!";
+                                showNotification('alert-danger', msg, 'bottom', 'left')
                             }
                         },
                         complete: function() {

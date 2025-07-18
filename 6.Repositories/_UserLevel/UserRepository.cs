@@ -78,7 +78,8 @@ public class UserRepository(MyDbContext dbContext) : BaseLongRepository<User>(db
                     select new
                     {
                         User = user,   // Select User directly
-                        Nik = employee.Nik
+                        Nik = employee.Nik,
+                        HeadEmployeeId = employee.HeadEmployeeId
                     };
 
         var result = await query.FirstOrDefaultAsync();
@@ -105,7 +106,8 @@ public class UserRepository(MyDbContext dbContext) : BaseLongRepository<User>(db
             VipLimitCapBypass = result.User.VipLimitCapBypass,
             VipShiftedBypass = result.User.VipShiftedBypass,
             IsApproval = result.User.IsApproval,
-            Nik = result.Nik
+            Nik = result.Nik,
+            HeadEmployeeId = result.HeadEmployeeId
         };
 
         return userLogin;
@@ -123,6 +125,15 @@ public class UserRepository(MyDbContext dbContext) : BaseLongRepository<User>(db
                     select user;  // Return only user
 
         return await query.FirstOrDefaultAsync(); // Use FirstOrDefault instead of ToList
+    }
+
+    public async Task<User?> GetUserByEmployeeIdAsync(string employeeId)
+    {
+        var query = from user in dbContext.Users
+                    where user.IsDeleted == 0 && user.EmployeeId == employeeId
+                    select user;
+
+        return await query.FirstOrDefaultAsync();
     }
 
 }

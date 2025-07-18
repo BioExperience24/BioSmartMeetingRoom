@@ -1,0 +1,31 @@
+﻿@page "/webview/error/{code?}"
+@model _1.PAMA.Razor.Views.Pages.Webview.ErrorModel
+@{
+    ViewData["PageName"] = Model.Title;
+
+    Layout = "_LayoutBlank";
+}
+@section Styles
+{
+    <style>
+        .center-middle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: @(User.Identity != null && User.Identity.IsAuthenticated ? "85vh" : "100vh");
+        }
+    </style>
+}
+<div class="container-fluid center-middle">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h1 class="display-1">@Model.StatusCode</h1>
+            <p class="lead">@Model.StatusMessage</p>
+            @* <p></p>
+            <p>
+                <strong>Request ID:</strong> <code>@Model.RequestId</code>
+            </p> *@
+        </div>
+    </div>
+</div>
+

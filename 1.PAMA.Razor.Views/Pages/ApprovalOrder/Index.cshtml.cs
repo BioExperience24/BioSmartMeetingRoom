@@ -20,6 +20,10 @@ namespace _1.PAMA.Razor.Views.Pages.ApprovalOrder
             config["ApiUrls:Endpoints:PantryTransaksi:ProcessOrderApproval"] ?? string.Empty;
         public string GetOrderDetail { get; private set; } = 
             config["ApiUrls:Endpoints:PantryTransaksi:GetPrintOrderApproval"] ?? string.Empty;
+        public string GetHeadEmployees { get; private set; } = 
+            config["ApiUrls:Endpoints:GetHeadEmployees"] ?? string.Empty;
+        public string ProcessOrderApprovalHead { get; private set; } = 
+            config["ApiUrls:Endpoints:PantryTransaksi:ProcessOrderApprovalHead"] ?? string.Empty;
 
         public void OnGet()
         {

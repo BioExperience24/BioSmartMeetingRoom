@@ -26,7 +26,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        if (!builder.Environment.IsDevelopment())
+        if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Staging"))
         {
             var secretManager = new AwsSecretManagerService(builder.Configuration);
             await secretManager.LoadSecretsAsync();

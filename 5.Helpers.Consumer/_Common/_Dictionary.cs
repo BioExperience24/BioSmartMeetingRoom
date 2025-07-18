@@ -30,6 +30,7 @@ namespace _5.Helpers.Consumer._Common
         public static readonly Dictionary<int, string> StatusCodeMessage = new Dictionary<int, string>
         {
             {400, "Invalid request. Please check your input and try again."},
+            {401, "Unauthorized access. Please provide a valid token."},
             {403, "Access denied. You do not have permission to access this resource."},
             {404, "Sorry, the page you are looking for could not be found."},
             {500, "Something went wrong on our end. Please try again later."},

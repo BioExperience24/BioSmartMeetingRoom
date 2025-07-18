@@ -117,8 +117,8 @@ namespace _3.BusinessLogic.Services.Implementation
             if (request.BookingDate != null)
             {
                 string[] dates = request.BookingDate.Split(" - ");
-                entity.DateStart = _String.ToDateOnly(_String.RemoveAllSpace(dates[0]), "MM/dd/yyyy");
-                entity.DateEnd = _String.ToDateOnly(_String.RemoveAllSpace(dates[1]), "MM/dd/yyyy");
+                entity.DateStart = _String.ToDateOnlyMultiFormat(_String.RemoveAllSpace(dates[0]), new[] { "MM/dd/yyyy", "yyyy-MM-dd" });
+                entity.DateEnd = _String.ToDateOnlyMultiFormat(_String.RemoveAllSpace(dates[1]), new[] { "MM/dd/yyyy", "yyyy-MM-dd" });
             }
 
             if (request.BookingOrganizer != null)
@@ -145,6 +145,11 @@ namespace _3.BusinessLogic.Services.Implementation
             {
                 entity.SortColumn = request.SortColumn;
                 entity.SortDir = request.SortDir;
+            }
+
+            if (!string.IsNullOrEmpty(request.Status))
+            {
+                entity.Status = request.Status;
             }
 
             var (items, recordsTotal, recordsFiltered) = await _bookingRepo.GetAllItemWithEntityAsync(entity, request.Length, request.Start);
@@ -230,7 +235,7 @@ namespace _3.BusinessLogic.Services.Implementation
             return result;
         }
 
-        public async Task<ReturnalModel> CheckRescheduleDateAsync(string bookingId, DateOnly date, string roomId)
+        public async Task<ReturnalModel> CheckRescheduleDateAsync(string bookingId, DateOnly date, string roomId, int? defaultDuration = null)
         {
             ReturnalModel ret = new();
 
@@ -250,7 +255,7 @@ namespace _3.BusinessLogic.Services.Implementation
             var dataSettingGeneralMap = _mapper.Map<SettingRuleBookingViewModel>(dataSettingGeneral);
 
             // var setDuration = dataSettingGeneralMap?.Duration ?? 30;
-            var setDuration = 15;
+            var setDuration = defaultDuration != null ? defaultDuration.Value : 15;
 
             var timeArray = await _timeScheduleRepo.GetAllTimeScheduleFilteredByDurationAsync(setDuration);
 
@@ -761,7 +766,6 @@ namespace _3.BusinessLogic.Services.Implementation
             ReturnalModel ret = new();
 
             var dataSettingGeneral = await _settingRuleBookingRepo.GetSettingRuleBookingTopOne();
-
             if (dataSettingGeneral?.ExtendMeeting != 1)
             {
                 ret.Status = ReturnalType.Failed;
@@ -842,7 +846,7 @@ namespace _3.BusinessLogic.Services.Implementation
                 ret.Status = ReturnalType.Failed;
                 ret.Message = "Extend time not available.";
                 return ret;
-            }
+            }            
 
             ret.Collection = bookingDurations;
 
@@ -1215,9 +1219,18 @@ namespace _3.BusinessLogic.Services.Implementation
 
         public async Task<ReturnalModel> GetOngoingBookingAsync()
         {
+            var authUserLevel = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.Role)?.Value;
+            var authUserNIK = _httpCtx?.HttpContext?.User?.FindFirst(ClaimTypes.UserData)?.Value;
+
             ReturnalModel ret = new();
 
-            var ongoingBooking = await _bookingRepo.GetAllInProgressItemAsync();
+            string? organizerId = null;
+            if (authUserLevel == EnumLevelRole.Employee.ToString())
+            {
+                organizerId = authUserNIK;
+            }
+
+            var ongoingBooking = await _bookingRepo.GetAllInProgressItemAsync(organizerId);
 
             ret.Collection = _mapper.Map<List<BookingViewModel>>(ongoingBooking);
 
@@ -1241,6 +1254,7 @@ namespace _3.BusinessLogic.Services.Implementation
                 return ret;
             }
 
+            PantryTransaksi? pantryTransaksiCollection = null;
             using (var scope = new TransactionScope(
                 TransactionScopeOption.Required,
                 new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
@@ -1263,11 +1277,24 @@ namespace _3.BusinessLogic.Services.Implementation
 
                     // PIC
                     var pic = await _bookingInvitationRepo.GetPicFilteredByBookingId(dataBooking.BookingId);
+                    if (pic == null)
+                    {
+                        ret.Status = ReturnalType.Failed;
+                        ret.Message = "Organizer / Host not found. Please contact the admin to update the personal data.";
+                        return ret;
+                    }
+
+                    var picData = await _employeeRepo.GetItemByIdAsync(pic.Nik);
+                    // if (picData != null && string.IsNullOrEmpty(picData.HeadEmployeeId))
+                    // {
+                    //     ret.Status = ReturnalType.Failed;
+                    //     ret.Message = "Organizer / Host does not have a head employee. Please contact the admin to update the personal data.";
+                    //     return ret;
+                    // }
                     // .PIC
 
 
                     // generate pantry transaction & pantry transaction detail
-                    PantryTransaksi? pantryTransaksiCollection = null;
                     List<PantryTransaksiD> pantryTransaksiDCollections = new List<PantryTransaksiD>();
                     if (pantryPackage != null && setPantryConfig?.Status == 1 && modules.ContainsKey("pantry") && modules["pantry"]?.IsEnabled == 1)
                     {
@@ -1322,7 +1349,10 @@ namespace _3.BusinessLogic.Services.Implementation
                             CanceledBy = string.Empty,
                             NoteCanceled = string.Empty,
 
-                            ExpiredAt = dataBooking.End
+                            ExpiredAt = dataBooking.End,
+
+                            HeadEmployeeId = picData?.HeadEmployeeId ?? "",
+                            ApprovalHead = ApprovalHead.PENDING // pending
                         };
 
                         if (pantryDetail.Any())
@@ -1373,18 +1403,25 @@ namespace _3.BusinessLogic.Services.Implementation
 
                     scope.Complete();   
                     
-                    return ret;
+                    // return ret;
                 }
                 catch (Exception)
                 {
                     throw;
                 }
             }
+
+            // send mail
+            // Jalankan SendMailInvitation di latar belakang
+            await Task.Run(() => _emailService.SendMailNotifApprovalOrder(pantryTransaksiCollection?.BookingId!, pantryTransaksiCollection?.Id!));
+
+            return ret;
         }
 
         private async Task<(BookingViewModel?, string?)> createReserveRoom(BookingVMCreateReserveFR request)
         {
             Booking? booking = null;
+            PantryTransaksi? pantryTransaksiCollection = null;
             using (var scope = new TransactionScope(
                 TransactionScopeOption.Required,
                 new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted },
@@ -1466,6 +1503,10 @@ namespace _3.BusinessLogic.Services.Implementation
 
                     // pic
                     var pic = await _employeeRepo.GetItemByIdAsync(request.Pic);
+                    // if (pic != null && string.IsNullOrEmpty(pic.HeadEmployeeId))
+                    // {
+                    //     return (null, "Organizer / Host does not have a head employee. Please contact the admin to update the personal data.");
+                    // }
                     // .pic
 
                     // pantry package (pantry menu)
@@ -1574,7 +1615,6 @@ namespace _3.BusinessLogic.Services.Implementation
                     // .generate booking
 
                     // generate pantry transaction & pantry transaction detail
-                    PantryTransaksi? pantryTransaksiCollection = null;
                     List<PantryTransaksiD> pantryTransaksiDCollections = new List<PantryTransaksiD>();
                     if (pantryPackage != null && setPantryConfig?.Status == 1 && modules.ContainsKey("pantry") && modules["pantry"]?.IsEnabled == 1)
                     {
@@ -1629,7 +1669,10 @@ namespace _3.BusinessLogic.Services.Implementation
                             CanceledBy = string.Empty,
                             NoteCanceled = string.Empty,
 
-                            ExpiredAt = bookEnd
+                            ExpiredAt = bookEnd,
+
+                            HeadEmployeeId = pic?.HeadEmployeeId,
+                            ApprovalHead = ApprovalHead.PENDING // pending
                         };
 
                         if (pantryDetail.Any())
@@ -1829,6 +1872,7 @@ namespace _3.BusinessLogic.Services.Implementation
             // send mail
             // Jalankan SendMailInvitation di latar belakang
             await Task.Run(() => _emailService.SendMailInvitation(booking!.BookingId));
+            await Task.Run(() => _emailService.SendMailNotifApprovalOrder(booking!.BookingId, pantryTransaksiCollection?.Id!));
 
             return ((booking != null) ? _mapper.Map<BookingViewModel>(booking) : null, "Get success");
         }
@@ -1912,6 +1956,10 @@ namespace _3.BusinessLogic.Services.Implementation
 
                     // pic
                     var pic = await _employeeRepo.GetItemByIdAsync(request.Pic);
+                    // if (pic != null && string.IsNullOrEmpty(pic.HeadEmployeeId))
+                    // {
+                    //     return (null, "Organizer / Host does not have a head employee. Please contact the admin to update the personal data.");
+                    // }
                     // .pic
 
                     // pantry package (pantry menu)
@@ -2127,7 +2175,10 @@ namespace _3.BusinessLogic.Services.Implementation
                                 CanceledBy = string.Empty,
                                 NoteCanceled = string.Empty,
 
-                                ExpiredAt = bookEnd
+                                ExpiredAt = bookEnd,
+
+                                HeadEmployeeId = pic?.HeadEmployeeId,
+                                ApprovalHead = ApprovalHead.PENDING // pending
                             };
 
                             pantryTransaksiCollections.Add(pantryTransaksiCollection);
@@ -2332,6 +2383,7 @@ namespace _3.BusinessLogic.Services.Implementation
             // send mail
             // Jalankan SendMailInvitationRecurring di latar belakang
             await Task.Run(() => _emailService.SendMailInvitationRecurring(recurringId));
+            await Task.Run(() => _emailService.SendMailNotifApprovalOrderRecurring(recurringId));
 
             var booking = bookingCollections.FirstOrDefault();
             return ((booking != null) ? _mapper.Map<BookingViewModel>(booking) : null, "Get success");

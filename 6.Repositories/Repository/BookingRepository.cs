@@ -177,7 +177,19 @@ public class BookingRepository : BaseLongRepository<Booking>
                     from participant in participants
                         .Where(bi => bi.BookingId == booking.BookingId).DefaultIfEmpty()
                     from room in _dbContext.Rooms
+                        .Select(r => new { 
+                            Radid = r.Radid, 
+                            BuildingId = r.BuildingId, 
+                            Image = r.Image 
+                        })
                         .Where(r => booking.RoomId == r.Radid).DefaultIfEmpty()
+                    from building in _dbContext.Buildings
+                        .Select(bu => new { 
+                            Id = bu.Id, 
+                            Name = bu.Name 
+                        })
+                        .Where(bu => bu.Id != null && !string.IsNullOrEmpty(bu.Name))
+                        .Where(bu => room.BuildingId == bu.Id).DefaultIfEmpty()
                     where booking.IsExpired == 0 && booking.IsDeleted == 0
                     // orderby booking.Start descending
                     select new
@@ -185,6 +197,7 @@ public class BookingRepository : BaseLongRepository<Booking>
                         booking,
                         Attendees = participant.Total != null ? participant.Total : 0,
                         RoomImage = room.Image,
+                        BuildingName = building.Name,
                     };
 
         if (entity?.DateStart != null && entity?.DateEnd != null)
@@ -202,6 +215,67 @@ public class BookingRepository : BaseLongRepository<Booking>
                         .Where(bi => q.booking.BookingId == bi.BookingId && bi.Nik == entity.AuthUserNIK).DefaultIfEmpty()
                     where bi.Nik == entity.AuthUserNIK || q.booking.CreatedBy == entity.AuthUserNIK
                     select q;
+        }
+
+        if (!string.IsNullOrEmpty(entity?.Status))
+        {
+            var status = entity?.Status;
+
+            switch (status)
+            {
+                case "pending":
+                    query = query.Where(q =>
+                        (q.booking.IsCanceled == 0 
+                        && q.booking.IsExpired == 0 
+                        && q.booking.IsApprove == 0 
+                        && DateTime.Now <= q.booking.ServerEnd
+                        && DateTime.Now < q.booking.ServerEnd.Value.AddMinutes(q.booking.ExtendedDuration ?? 0))
+                        || q.booking.IsAlive == 0
+                    );
+                    break;
+
+                case "queue":
+                    query = query.Where(q =>
+                        q.booking.IsCanceled == 0
+                        && q.booking.IsExpired == 0
+                        && q.booking.IsApprove == 1
+                        && DateTime.Now <= q.booking.Start
+                    );
+                    break;
+
+                case "ongoing":
+                    query = query.Where(q =>
+                        q.booking.IsCanceled == 0
+                        && q.booking.IsExpired == 0
+                        && q.booking.EndEarlyMeeting == 0
+                        && q.booking.IsApprove == 1
+                        && DateTime.Now <= q.booking.ServerEnd
+                        && DateTime.Now >= q.booking.ServerStart
+                        && q.booking.ServerStart <= DateTime.Now 
+                        // EF.Functions.DateDiffMinute(q.booking.ServerStart, DateTime.Now) <= 0
+                    );
+                    break;
+
+                case "expired":
+                    query = query.Where(q =>
+                        (
+                            DateTime.Now > q.booking.ServerEnd 
+                            && DateTime.Now >= q.booking.ServerEnd.Value.AddMinutes(q.booking.ExtendedDuration ?? 0)
+                            && q.booking.IsCanceled == 0
+                            && q.booking.IsApprove == 1
+                        )
+                        || (q.booking.IsExpired == 1 || q.booking.EndEarlyMeeting == 1)
+                    );
+                    break;
+
+                case "canceled":
+                    query = query.Where(q => q.booking.IsCanceled == 1);
+                    break;
+                
+                case "rejected":
+                    query = query.Where(q => q.booking.IsApprove == 2);
+                    break;
+            }
         }
 
         var recordsTotal = await query.CountAsync();
@@ -227,15 +301,6 @@ public class BookingRepository : BaseLongRepository<Booking>
             query = query.Where(q => q.booking.RoomId == entity.RoomId);
         }
 
-        var recordsFiltered = await query.CountAsync();
-
-        if (limit > 0)
-        {
-            query = query
-                    .Skip(offset)
-                    .Take(limit);
-        }
-
         string sortColumn = "booking.Start";
         string sortDir = string.IsNullOrEmpty(entity?.SortDir) ? "desc" : entity?.SortDir ?? "desc";
 
@@ -252,9 +317,22 @@ public class BookingRepository : BaseLongRepository<Booking>
             case "booking_date":
                 sortColumn = "booking.Date";
                 break;
+
+            case "id":
+                sortColumn = "booking.Id";
+                break;
         }
 
         query = query.OrderByColumn(sortColumn, sortDir);
+
+        var recordsFiltered = await query.CountAsync();
+
+        if (limit > 0)
+        {
+            query = query
+                    .Skip(offset)
+                    .Take(limit);
+        }
 
         var result = await query.ToListAsync();
 
@@ -382,6 +460,40 @@ public class BookingRepository : BaseLongRepository<Booking>
                     && booking.EndEarlyMeeting == 0
                     && roomId.Contains(booking.RoomId)
                     && booking.Date == date
+                    select booking;
+        // select new Booking {
+        //     RoomId = booking.RoomId,
+        //     Date = booking.Date,
+        //     Start = booking.Start,
+        //     End = booking.End,
+        // };
+
+        if (withIsAlive)
+        {
+            query = query.Where(q => q.IsAlive == 1);
+        }
+
+        query = query.Select(booking => new Booking
+        {
+            RoomId = booking.RoomId,
+            Date = booking.Date,
+            Start = booking.Start,
+            End = booking.End,
+            ExtendedDuration = booking.ExtendedDuration,
+        });
+
+        var result = await query.ToListAsync();
+        return result;
+    }
+
+    public async Task<IEnumerable<Booking>> GetBookingsByRoomIdsAndDateRangeAsync(string[] roomId, DateOnly dateStart, DateOnly dateEnd, bool withIsAlive = false)
+    {
+        var query = from booking in _dbContext.Bookings
+                    where booking.IsDeleted == 0
+                    && booking.IsCanceled == 0
+                    && booking.EndEarlyMeeting == 0
+                    && roomId.Contains(booking.RoomId)
+                    && (booking.Date >= dateStart && booking.Date <= dateEnd)
                     select booking;
         // select new Booking {
         //     RoomId = booking.RoomId,
@@ -1152,7 +1264,7 @@ public class BookingRepository : BaseLongRepository<Booking>
         return await query.FirstOrDefaultAsync();
     }
 
-    public async Task<IEnumerable<object>> GetAllInProgressItemAsync()
+    public async Task<IEnumerable<object>> GetAllInProgressItemAsync(string? organizerId = null)
     {
         var currentTime = DateTime.Now;
 
@@ -1186,6 +1298,26 @@ public class BookingRepository : BaseLongRepository<Booking>
                         b,
                         Attendees = p.Total != null ? p.Total : 0
                     };
+
+        if (!string.IsNullOrEmpty(organizerId))
+        {
+            var organizer = from bi in _dbContext.BookingInvitations
+                            where bi.IsDeleted == 0
+                            && bi.Internal == 1
+                            && bi.IsPic == 1
+                            && bi.Nik == organizerId
+                            select new
+                            {
+                                bi.BookingId,
+                                bi.Nik
+                            };
+
+            query = from q in query
+                    from org in organizer
+                        .Where(o => o.BookingId == q.b.BookingId).DefaultIfEmpty()
+                    where org.Nik == organizerId
+                    select q;
+        }
         
         var result = await query.ToListAsync();
 
@@ -1198,7 +1330,7 @@ public class BookingRepository : BaseLongRepository<Booking>
                     where b.RoomId == roomId
                         && b.Date == date
                         && b.Start.TimeOfDay <= time
-                        && b.End.TimeOfDay >= time
+                        && b.End.AddMinutes(b.ExtendedDuration == null ? 0 : (double)b.ExtendedDuration).TimeOfDay >= time
                         && b.IsDeleted == 0
                         && b.IsCanceled == 0
                         && b.IsExpired == 0

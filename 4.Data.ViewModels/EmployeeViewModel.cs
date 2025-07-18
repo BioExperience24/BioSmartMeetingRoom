@@ -62,6 +62,12 @@ public class EmployeeViewModel : BaseViewModel
 
     [JsonPropertyName("vip_lock_room")]
     public int? VipLockRoom { get; set; }
+
+    [JsonPropertyName("head_employee_id")]
+    public string HeadEmployeeId { get; set; } = string.Empty;
+
+    [JsonPropertyName("is_protected")]
+    public int IsProtected { get; set; }
 }
 
 public class EmployeeVMDefaultFR
@@ -100,7 +106,7 @@ public class EmployeeVMDefaultFR
     public string? CardNumber { get; set; }
     
     [FromForm(Name = "head_employee")]
-    public string? HeadEmployee { get; set; }
+    public string? HeadEmployeeId { get; set; }
 }
 
 public class EmployeeVMCreateFR : EmployeeVMDefaultFR
@@ -159,7 +165,7 @@ public class EmployeeVMImportData
     public string CompanyId { get; set; } = string.Empty;
     public string DepartmentName { get; set; } = string.Empty;
     public string DepartmentId { get; set; } = string.Empty;
-    public string HeadEmployee { get; set; } = string.Empty;
+    public string HeadEmployeeId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Nrp { get; set; } = string.Empty;

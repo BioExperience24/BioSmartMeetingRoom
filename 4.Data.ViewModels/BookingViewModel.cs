@@ -342,6 +342,9 @@ public class BookingViewModel : BaseLongViewModel
 
     [JsonPropertyName("room_image")]
     public string? RoomImage { get; set; }
+
+    [JsonPropertyName("building_name")]
+    public string? BuildingName { get; set; }
 }
 
 public class BookingVMChart
@@ -468,6 +471,24 @@ public class BookingVMDataTableFR : DataTableViewModel
 
     [FromQuery(Name = "booking_room")]
     public string? BookingRoom { get; set; }
+
+    [FromQuery(Name = "status")]
+    public string? Status { get; set; }
+}
+
+public class BookingWebViewListFR
+{
+    [FromQuery(Name = "start")]
+    public int Start { get; set; }
+
+    [FromQuery(Name = "length")]
+    public int Length { get; set; }
+    
+    [FromQuery(Name = "booking_date")]
+    public string? BookingDate { get; set; }
+
+    [FromQuery(Name = "status")]
+    public string? Status { get; set; }
 }
 
 public class BookingVMRoomUsageFR : DataTableViewModel
@@ -908,46 +929,27 @@ public class ListDisplaySerialFRViewModel
 
 public class ListDisplayMeetingScheduleTodayFRViewModel 
 {
-
     [JsonPropertyName("serial")]
-    public string Serial { get; set; }
+    public required string Serial { get; set; }
 
     [JsonPropertyName("type")]
-    public string Type { get; set; }
+    public required string Type { get; set; }
 
     [JsonPropertyName("room_id")]
-    public string RadId { get; set; }
-
-    [JsonPropertyName("title")]
-    public string Title { get; set; }
-
-    [JsonPropertyName("duration")]
-    public int Duration { get; set; }
+    public required string RadId { get; set; }
 
     [JsonPropertyName("nik")]
-    public string Nik { get; set; }
+    public required string Nik { get; set; }
 
     [JsonPropertyName("date")]
-    public string Date { get; set; }
+    public required string Date { get; set; }
 
     [JsonPropertyName("time")]
-    public string Time { get; set; }
+    public required string Time { get; set; }
 
     [JsonPropertyName("timezone")]
-    public string Timezone { get; set; }
+    public required string Timezone { get; set; }
 
-    [JsonPropertyName("notif")]
-    public int Notif { get; set; }
-
-    [JsonPropertyName("is_merge")]
-    public short? IsMerge { get; set; }
-
-    [JsonPropertyName("startTime")]
-    public string StartTime { get; set; }
-    [JsonPropertyName("link")]
-    public string? Link { get; set; }
-    [JsonPropertyName("note")]
-    public string? Note { get; set; }
     [JsonPropertyName("room_select")]
     public string? RoomSelect { get; set; }
 

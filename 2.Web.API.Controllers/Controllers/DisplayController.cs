@@ -108,7 +108,7 @@ public class DisplayController(
         return StatusCode(ret.StatusCode, ret);
     }
 
-    [HttpPost("display/set-extendtime")]
+    [HttpPost("display/schedule/set-extendtime")]
     public async Task<IActionResult> SetExtendBookingDisplay(BookingVMExtendMeetingFR request)
     {
         ReturnalModel ret = await _processService.SetExtendMeetingAsync(request);
@@ -116,7 +116,7 @@ public class DisplayController(
         return StatusCode(ret.StatusCode, ret);
     }
 
-    [HttpPost("display/get-extendtime")]
+    [HttpPost("display/schedule/get-extendtime")]
     public async Task<IActionResult> GetExtendBookingDisplay(BookingVMCheckExtendMeetingFR request)
     {
         ReturnalModel ret = await _processService.CheckExtendMeetingTimeAsync(request);
@@ -124,7 +124,7 @@ public class DisplayController(
         return StatusCode(ret.StatusCode, ret);
     }
 
-    [HttpPost("schedule/post/end-meeting")]
+    [HttpPost("display/schedule/post/end-meeting")]
     public async Task<IActionResult> SetExtendBookingDisplay(BookingVMEndMeetingFR request)
     {
         ReturnalModel ret = await _processService.EndMeetingAsync(request, true);

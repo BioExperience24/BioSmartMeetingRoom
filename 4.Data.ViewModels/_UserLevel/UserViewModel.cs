@@ -49,6 +49,9 @@ public class UserViewModel : BaseLongViewModel
     [JsonPropertyName("is_approval")]
     public int? IsApproval { get; set; }
 
+    [JsonPropertyName("is_protected")]
+    public int IsProtected { get; set; }
+
     [JsonPropertyName("group_name")]
     public string? GroupName { get; set; }
 
@@ -62,6 +65,9 @@ public class UserViewModel : BaseLongViewModel
     public LevelViewModel? Level { get; set; }
     [JsonPropertyName("secure_qr")]
     public string? SecureQr { get; set; }
+
+    [JsonPropertyName("head_employee_id")]
+    public string? HeadEmployeeId { get; set; }
 
     //[JsonPropertyName("levels")]
     //public List<MenuHeaderLevelVM>? Levels { get; set; }

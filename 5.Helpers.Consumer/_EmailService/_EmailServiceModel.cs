@@ -34,3 +34,17 @@ public class _EmailServiceVMInvitation
     public string Url { get; set; } = string.Empty;
     public string AgendaText { get; set; } = string.Empty;
 }
+
+public class _EmailServiceVMNotifApprovalOrder
+{
+    public string MeetingName { get; set; } = string.Empty;
+    public string MeetingOrganizer { get; set; } = string.Empty;
+    public string MeetingDate { get; set; } = string.Empty;
+    public string MeetingTime { get; set; } = string.Empty;
+    public string MeetingHead { get; set; } = string.Empty;
+    public string MeetingLocation { get; set; } = string.Empty;
+    public string MeetingOrderId { get; set; } = string.Empty;
+    public string MeetingOrderList { get; set; } = string.Empty;
+    public string MeetingLinkApproval { get; set; } = string.Empty;
+    public string HormatKami { get; set; } = string.Empty;
+}

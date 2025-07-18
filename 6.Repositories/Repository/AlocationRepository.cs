@@ -83,5 +83,14 @@ namespace _6.Repositories.Repository
 
             return await query.CountAsync();
         }
+
+        public async Task<List<Alocation>> GetItemsByDepartmentCode(string[] departmentCodes)
+        {
+            var query = _context.Alocations.AsQueryable();
+
+            query = query.Where(c => c.IsDeleted == 0 && departmentCodes.Contains(c.DepartmentCode));
+
+            return await query.ToListAsync();
+        }
     }
 }

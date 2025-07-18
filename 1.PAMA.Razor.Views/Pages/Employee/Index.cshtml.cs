@@ -61,6 +61,7 @@ public class IndexModel : PageModel
     public string GetAlocationByTypeId { get; private set; } = string.Empty;
     
     public string ImportEmployee { get; set; } = string.Empty;
+    public string GetHeadEmployees { get; set; } = string.Empty;
 
     public async Task OnGetAsync()
     {
@@ -77,6 +78,7 @@ public class IndexModel : PageModel
         DeleteEmployee = $"{baseUrl}{_config["ApiUrls:Endpoints:DeleteEmployee"]}";
         GetAlocationByTypeId = $"{baseUrl}{_config["ApiUrls:Endpoints:GetAlocationByTypeId"]}";
         ImportEmployee = $"{baseUrl}{_config["ApiUrls:Endpoints:ImportEmployee"]}";
+        GetHeadEmployees = $"{baseUrl}{_config["ApiUrls:Endpoints:GetHeadEmployees"]}";
     }
 
     /* public async Task<IActionResult> OnGetEmployees()

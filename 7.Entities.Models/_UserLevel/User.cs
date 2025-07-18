@@ -41,11 +41,14 @@ public partial class User : BaseLongEntity
     public int? VipShiftedBypass { get; set; }
 
     public int? IsApproval { get; set; }
+
+    public int IsProtected { get; set; }
 }
 
 public partial class UserLogin : User
 {
     public string Nik { get; set; } = null!;
+    public string? HeadEmployeeId { get; set; }
 }
 
 public partial class UserFilter : User

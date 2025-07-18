@@ -71,6 +71,9 @@ public partial class Employee : BaseEntity
     public int? VipLimitCapBypass { get; set; }
 
     public int? VipLockRoom { get; set; }
+
+    public string? HeadEmployeeId { get; set; }
+    public int IsProtected { get; set; }
 }
 
 

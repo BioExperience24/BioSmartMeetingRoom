@@ -99,6 +99,11 @@ public partial class PantryTransaksi : BaseEntity
     public string? ApprovedBy { get; set; }
     public DateTime? ApprovedAt { get; set; }
 
+    public string? ApprovedHeadBy { get; set; }
+    public DateTime? ApprovedHeadAt { get; set; }
+    public string? HeadEmployeeId { get; set; }
+    public int ApprovalHead { get; set; }
+
     [NotMapped]
     public List<string> BookingIds { get; set; } = new();
 }
@@ -190,6 +195,7 @@ public class PantryTransaksiOrderApproval
     public string? BuildingFloorName { get; set; }
     public string? EmployeeOrganize { get; set; }
     public string? EmployeeApprove { get; set; }
+    public string? EmployeeHead { get; set; }
     public string? RoomImage { get; set; }
     public int? OrderStatus { get; set; }
     public string? OrderStatusName { get; set; }
@@ -198,5 +204,17 @@ public class PantryTransaksiOrderApproval
     public DateTime? BookingEnd { get; set; }
     public DateTime? ExpiredAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public string? ApprovedHeadBy { get; set; }
 }
 
+public class PantryTransaksiMailDataOrder : PantryTransaksi
+{
+    public string HeadEmployeeName { get; set; } = string.Empty;
+    public string HeadEmployeeEmail { get; set; } = string.Empty;
+    public string HeadEmployeeNRP { get; set; } = string.Empty;
+    public string HeadEmployeeNikDisplay { get; set; } = string.Empty;
+    public string HeadEmployeePhone { get; set; } = string.Empty;
+    public string[]? Ids { get; set; }
+
+    public List<PantryDetailSelect> Detail { get; set; } = new();
+}

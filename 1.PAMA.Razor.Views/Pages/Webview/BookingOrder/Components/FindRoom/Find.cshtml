@@ -1,0 +1,143 @@
+<div id="create-meeting" class="main-content">
+    <section class="section">
+        <div class="section-header">
+            <h1>Smart Meeting App - Create Meeting</h1>
+            <div class="section-header-breadcrumb">
+            <div class="breadcrumb-item active">
+                <a href="@ViewData["NavbarBackLink"]">Meeting</a>
+            </div>
+            <div class="breadcrumb-item">Create Meeting</div>
+            </div>
+        </div>
+        <div class="section-body">
+            <div class="row mt-sm-4">
+            <div class="col-12 col-md-12 col-lg-7">
+                <div class="card">
+                <form id="id_frm" class="needs-validation" novalidate="">
+                    <div class="card-header">
+                    <h4>Meeting</h4>
+                    </div>
+                    <div class="card-body">
+                    <div class="row">
+                        <div class="form-group col-md-6 col-12">
+                        <label for="building">Select Building</label>
+                        <select
+                            class="form-control select2"
+                            id="building"
+                            name="building"
+                            required=""
+                        >
+                            <option>Loading</option>
+                        </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-6 col-12">
+                        <label for="when-date">When</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="when-date"
+                            name="when_date"
+                            required=""
+                            placeholder="Select Date"
+                        />
+                        <div class="invalid-feedback">
+                            Please fill in the date
+                        </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-6 col-12">
+                        <label for="until-date">Until</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="until-date"
+                            name="until_date"
+                            required=""
+                            placeholder="Select Date"
+                        />
+                        <div class="invalid-feedback">
+                            Please fill in the date
+                        </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-6 col-12">
+                        <label for="start-time">Start Time</label>
+                        <select
+                            class="form-control select2"
+                            id="start-time"
+                            name="start_time"
+                        >
+                            <option>Loading</option>
+                        </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-6 col-12">
+                        <label for="end-time">End Time</label>
+                        <select
+                            class="form-control select2"
+                            id="end-time"
+                            name="end_time"
+                        >
+                            <option>Loading</option>
+                        </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-6 col-12">
+                        <label for="seats">Select Seats</label>
+                        <select
+                            class="form-control select2"
+                            id="seats"
+                            name="seats"
+                            required=""
+                        >
+                            <option>Loading</option>
+                        </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-6 col-12">
+                        <label for="facilities">Select Facilities</label>
+                        <select
+                            class="form-control select2"
+                            id="facilities"
+                            name="facilities"
+                            multiple
+                            data-live-search=""
+                            required=""
+                        >
+                            <option>Loading</option>
+                        </select>
+                        </div>
+                    </div>
+
+                    <div class="card-footer text-right">
+                        <button class="btn btn-primary" id="filter-btn">
+                        Filter
+                        </button>
+                    </div>
+                    <div id="room-container">
+                        <label for="room-list">Available Rooms:</label>
+                        <ul
+                        id="room-list"
+                        class="list-group"
+                        style="list-style: none; padding: 0"
+                        ></ul>
+                        <!-- Custom spinner for loading -->
+                        <div id="loader-list" class="custom-spinner-container mb-0 mt-3">
+                            <div class="custom-spinner"></div>
+                        </div>
+                    </div>
+                    </div>
+                </form>
+                </div>
+            </div>
+            </div>
+        </div>
+    </section>
+</div>

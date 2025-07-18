@@ -69,7 +69,11 @@ namespace _1.PAMA.Razor.Views.Controllers
             ReturnalModel ret = new();
 
             ret.Message = "Get Success";
-            ret.Collection = await _service.GetById(id);
+            
+            var collections = await _service.GetById(id); 
+            collections!.HeadEmployeeId = collections.HeadEmployeeId ?? string.Empty;
+            
+            ret.Collection = collections;
 
             if (ret.Collection == null)
             {
@@ -129,7 +133,26 @@ namespace _1.PAMA.Razor.Views.Controllers
                 ret.Message = $"Failed update a employee {request.Name}";
             }
 
-            
+
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpPost("{id}")]
+        public async Task<IActionResult> UpdateProfile(string id, [FromForm] EmployeeVMDefaultFR request)
+        {
+            ReturnalModel ret = new();
+
+            ret.Message = $"Success update a employee {request.Name}";
+            ret.Collection = await _service.UpdateProfile(id, request);
+
+            if (ret.Collection == null)
+            {
+                ret.Status = ReturnalType.Failed;
+                // ret.Message = $"Failed update a employee vip";
+                ret.Message = $"Failed update a employee {request.Name}";
+            }
+
+
             return StatusCode(ret.StatusCode, ret);
         }
 
@@ -177,6 +200,14 @@ namespace _1.PAMA.Razor.Views.Controllers
         {
             ReturnalModel ret = await _service.ImportAsync(request);
         
+            return StatusCode(ret.StatusCode, ret);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> GetHeadEmployees()
+        {
+            ReturnalModel ret = await _service.GetHeadEmployeesAsync();
+
             return StatusCode(ret.StatusCode, ret);
         }
     }

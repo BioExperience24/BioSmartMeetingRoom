@@ -30,7 +30,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        if (!builder.Environment.IsDevelopment())
+        if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Staging"))
         {
             var secretManager = new AwsSecretManagerService(builder.Configuration);
             await secretManager.LoadSecretsAsync();
@@ -206,9 +206,12 @@ public class Program
         });
 
         // Configure Data Protection to use a shared directory in PVC
-        builder.Services.AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo(@"/app/DataProtection-Keys"))
-            .SetApplicationName("pama-smr");
+        if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Staging"))
+        {
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(@"/app/DataProtection-Keys"))
+                .SetApplicationName("pama-smr");
+        }
 
         builder.Services.AddSwaggerGen(c =>
         {
@@ -252,7 +255,7 @@ public class Program
         }
 
         // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
+        if (!app.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Staging"))
         {
             app.UseExceptionHandler("/Error");
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.

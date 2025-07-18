@@ -1,0 +1,219 @@
+@page "/webview/booking/find-room"
+@model _1.PAMA.Razor.Views.Pages.Webview.BookingOrder.FindRoomModel
+@{
+    Layout = "_LayoutWebview";
+    ViewData["PageName"] = "Smart Meeting App - List Booking Meeting";
+    ViewData["NavbarBackLink"] = Model.AppUrl + "webview/booking/index?token=" + Model.Token;
+}
+
+@section Styles
+{
+    <style>
+    /* Custom spinner styles */
+    .custom-spinner-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 1rem 0;
+    }
+
+    .custom-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3; /* Light gray */
+        border-top: 4px solid #3498db; /* Blue */
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    </style>
+}
+
+<!-- Main Content -->
+@await Html.PartialAsync("Webview/BookingOrder/Components/FindRoom/Find")
+
+@await Html.PartialAsync("Webview/BookingOrder/Components/FindRoom/Reserve")
+
+@section Modals
+{
+    <!-- Modals -->
+    <div
+        class="modal fade"
+        id="internalAttendeeModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="internalAttendeeModalLabel"
+    >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="internalAttendeeModalLabel">
+                        Select Internal Attendees
+                    </h5>
+                    <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                    >
+                        <span>×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="internalAttendeeForm">
+                        <div class="form-group">
+                            <label for="internalAttendeeSelect">Select Employees</label>
+                            <select
+                                multiple
+                                class="form-control select2"
+                                id="internalAttendeeSelect"
+                                data-live-search="true"
+                            ></select>
+                        </div>
+                        <button id="addInternalAttendeeBtn" class="btn btn-primary">
+                            Add Selected Attendees
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div
+        class="modal fade"
+        id="externalAttendeeModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="externalAttendeeModalLabel"
+    >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="externalAttendeeModalLabel">
+                        Add External Attendee
+                    </h5>
+                    <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                    >
+                        <span>×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="attendeeForm">
+                        <div class="form-group">
+                            <label for="attendeeName">Attendee Name</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="attendeeName"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="attendeeEmail">Attendee Email</label>
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="attendeeEmail"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="attendeeCompany">Attendee Company</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="attendeeCompany"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="attendeePosition">Attendee Position</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="attendeePosition"
+                                required
+                            />
+                        </div>
+                        <button id="addExternalAttendeeBtn" class="btn btn-primary">
+                            Add Attendee
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div
+        class="modal fade"
+        id="confirmationModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="confirmationModalLabel"
+    >
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">
+                        Confirm Submission
+                    </h5>
+                    <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                    >
+                        <span>×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Are you sure the data is correct?</div>
+                <div class="modal-footer">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-dismiss="modal"
+                    >
+                        Back
+                    </button>
+                    <button type="button" class="btn btn-primary" id="confirm-submit">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts
+{
+    <script>
+        const roomType = "@Model.Type";
+        const ajax = {
+            url: {
+                get_claims: "@Model.GetClaims",
+                get_buildings: "@Model.GetBuildings",
+                get_facilities: "@Model.GetFacilities",
+                get_pantry_packages: "@Model.GetPantryPackages",
+                get_employees: "@Model.GetEmployees",
+                get_alocations: "@Model.GetAlocations",
+                get_available_rooms: "@Model.GetAvailableRooms",
+                get_pantry_package_by_id: "@Model.GetPantryPackageById",
+                post_create_booking: "@Model.CreateBooking",
+            }
+        };
+    </script>
+    <!-- Page Specific JS File -->
+    <script src="~/assets/webview/js/page/booking/reserve.js" asp-append-version="true"></script>
+}

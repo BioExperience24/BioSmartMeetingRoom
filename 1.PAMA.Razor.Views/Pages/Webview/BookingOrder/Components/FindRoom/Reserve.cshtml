@@ -1,0 +1,228 @@
+<div id="meeting-details" class="main-content" style="display: none;">
+    <section class="section">
+        <div
+            id="error-message"
+            class="alert alert-danger d-none"
+            role="alert"
+        >
+            Please fill in all required fields before proceeding.
+        </div>
+        <div class="section-body">
+            <div class="row mt-sm-4">
+                <div class="col-12 col-md-12 col-lg-7">
+                    <div class="card">
+                        <form id="id_frm_crt" class="needs-validation" novalidate="">
+                            <div class="card-header">
+                                <h4>Meeting Details</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="form-group col-md-6 col-12">
+                                        <input autocomplete="off" type="hidden" name="booking_type" id="id_frm_crt_booking_type" value="">
+                                        <input autocomplete="off" type="hidden" name="date" id="id_frm_crt_date" value="">
+                                        <input autocomplete="off" type="hidden" name="date_until" id="id_frm_crt_date_until" value="">
+                                        <input autocomplete="off" type="hidden" name="room_id" id="id_frm_crt_room_id" value="">
+                                        
+                                        <input autocomplete="off" type="hidden" name="pic" id="id_frm_crt_pic" value="">
+                                        <input autocomplete="off" type="hidden" name="alocation_id" id="id_frm_crt_alocation_id" value="">
+                                        <input autocomplete="off" type="hidden" name="alocation_name" id="id_frm_crt_alocation_name" value="">
+                                        
+                                        <label>Selected Room</label>
+                                        <p id="selected-room" class="form-control-static">
+                                            @* No room selected *@
+                                            Room Ruang Meeting Gedung Utama Lt 1 
+                                            <br>
+                                            <b>(14 Apr 2025)</b>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-12 col-12">
+                                    <label for="id_frm_crt_title">Meeting Title</label>
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="id_frm_crt_title"
+                                        name="title"
+                                        placeholder="Enter Meeting Title"
+                                        required
+                                    />
+                                    <div class="invalid-feedback">
+                                        Please fill in the title
+                                    </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 d-flex align-items-end">
+                                    <div class="form-group w-50">
+                                        <label for="id_frm_crt_timestart">Start Time</label>
+                                        <select
+                                            class="form-control select2"
+                                            id="id_frm_crt_timestart"
+                                            name="start"
+                                            required=""
+                                        >
+                                            <option>Loading</option>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                        Please fill in start time
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center mx-3"></div>
+                                    <div class="form-group w-50">
+                                        <label for="id_frm_crt_timeend">End Time</label>
+                                        <select
+                                            class="form-control select2"
+                                            id="id_frm_crt_timeend"
+                                            name="end"
+                                            required=""
+                                        >
+                                            <option>Loading</option>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                        Please fill in end time
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-12 col-12">
+                                    <label for="notes">Meeting Notes</label>
+                                    <textarea
+                                        class="form-control"
+                                        id="id_frm_crt_note"
+                                        name="note"
+                                        rows="5"
+                                        placeholder="Enter meeting notes..."
+                                        style="height: 150px; resize: none"
+                                    ></textarea>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="form-group col-md-12 col-12">
+                                    <label for="online-link">Online Meeting Link</label>
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="id_frm_crt_external_link"
+                                        name="external_link"
+                                        placeholder="Enter Online Meeting Link"
+                                    />
+                                    </div>
+                                </div>
+                                <div id="section-organizer" class="row" styele="display: none;">
+                                    <div class="form-group col-md-12 col-12">
+                                    <label for="online-link">Organizer (Host)</label>
+                                    <select
+                                        class="form-control select2"
+                                        id="organizer"
+                                        required
+                                    >
+                                        <option>Loading</option>
+                                    </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Attendees -->
+                            <div class="card-header">
+                                <h4>Attendees</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="card my-3">
+                                    <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                    >
+                                    <h5 class="mb-0">Internal Attendees</h5>
+                                    <a
+                                        class="btn btn-primary btn-sm text-white"
+                                        data-toggle="modal"
+                                        data-target="#internalAttendeeModal"
+                                        data-type="internal"
+                                    >
+                                        + Add
+                                    </a>
+                                    </div>
+                                    <p
+                                    id="no-internal-attendees"
+                                    class="text-muted"
+                                    style="padding-left: 20px; padding-top: 5px"
+                                    >
+                                    No internal attendees added yet.
+                                    </p>
+                                    <ul
+                                    class="list-group list-group-flush"
+                                    id="internal-attendees"
+                                    ></ul>
+                                </div>
+                                <div class="card my-3">
+                                    <div
+                                    class="card-header d-flex justify-content-between align-items-center"
+                                    >
+                                    <h5 class="mb-0">External Attendees</h5>
+                                    <a
+                                        class="btn btn-primary btn-sm text-white"
+                                        data-toggle="modal"
+                                        data-target="#externalAttendeeModal"
+                                        data-type="external"
+                                    >
+                                        + Add
+                                    </a>
+                                    </div>
+                                    <p
+                                    id="no-external-attendees"
+                                    class="text-muted"
+                                    style="padding-left: 20px; padding-top: 5px"
+                                    >
+                                    No external attendees added yet.
+                                    </p>
+                                    <ul
+                                    class="list-group list-group-flush"
+                                    id="external-attendees"
+                                    ></ul>
+                                </div>
+                            </div>
+
+                            <!-- Meeting Category -->
+                            <div class="card-header">
+                                <h4>Meeting Category</h4>
+                            </div>
+                            <div class="card-body" style="padding-bottom: 80px">
+                                <div class="row">
+                                    <div class="form-group col-md-6 col-12">
+                                    <label for="category">Meeting Category</label>
+                                    <select
+                                        class="form-control select2"
+                                        id="category"
+                                        name="meeting_category"
+                                        @* required *@
+                                    >
+                                        <option value=""> Loading... </option>
+                                    </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 col-12">
+                                        <ul class="list-group" id="item-list">
+                                            
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                            class="fixed-bottom card-footer text-center bg-white"
+                            >
+                                <button
+                                    class="btn btn-primary btn-lg w-50"
+                                    id="submit-btn"
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

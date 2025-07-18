@@ -9,5 +9,7 @@ namespace _3.BusinessLogic.Services.EmailService
         Task SendMailReschedule(string bookingId);
         Task SendMailCancellation(string bookingId);
         Task SendMailCancellationRecurring(string recurringId);
+        Task SendMailNotifApprovalOrder(string bookingId, string pantryTransaksiId);
+        Task SendMailNotifApprovalOrderRecurring(string recurringId);
     }
 }

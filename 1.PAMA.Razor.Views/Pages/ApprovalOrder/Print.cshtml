@@ -102,11 +102,11 @@
                     </tr>
                     <tr>
                         <td class="borderless"><strong>Meeting:</strong> <span id="meeting-name">Loading...</span></td>
-                        <td class="borderless" style="text-align: right;"><strong>Approved By:</strong> <span id="approved-by">Loading...</span></td>
+                        <td class="borderless" style="text-align: right;"><strong>Head Employee:</strong> <span id="head-by">Loading...</span></td>
                     </tr>
                     <tr>
                         <td class="borderless"><strong>Location:</strong> <span id="location">Loading...</span></td>
-                        <td class="borderless" style="text-align: right;"></td>
+                        <td class="borderless" style="text-align: right;"><strong>Approved By:</strong> <span id="approved-by">Loading...</span></td>
                     </tr>
                 </table>
             </div>
@@ -187,7 +187,8 @@
 
                             $("#meeting-name").text(data.booking_title);
                             $("#organize-by").text(data.employee_organize);
-                            $("#approved-by").text(data.employee_approve);
+                            $("#approved-by").text(data.employee_approve != "" ? data.employee_approve : "Admin");
+                            $("#head-by").text(data.employee_head != "" ? data.employee_head : "Admin");
                             $("#location").text(location);
 
                             $("#tbl-order tbody").empty();

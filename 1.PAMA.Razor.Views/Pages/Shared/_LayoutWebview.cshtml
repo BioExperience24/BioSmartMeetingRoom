@@ -1,4 +1,3 @@
-@* @model _1.PAMA.Razor.Views.Pages.Shared._LayoutWebviewModel *@
 @using _4.Data.ViewModels;
 @using System.Text.Json;
 @inject Microsoft.Extensions.Configuration.IConfiguration Config
@@ -7,31 +6,11 @@
     var ApiUrl = Config["ApiUrls:BaseUrl"];
     var ApiSmrUrl = Config["ApiUrls:BaseApi"];
 
-    var authToken = Context.Request.Cookies["AuthToken"];
-    var authInfoId = Context.Request.Cookies["AuthInfoId"];
-    string? authInfoSessionKey = null;
-    string? jsonAuthInfo = null;
-    UserViewModel? authInfo = null;
-    int? levelId = null;
-    string? nik = null;
-    if (!string.IsNullOrEmpty(authInfoId))
+    var token = Context.Request.Query["token"].ToString();
+    if (string.IsNullOrEmpty(token))
     {
-        authInfoSessionKey = $"AuthInfo-{authInfoId}";
-        jsonAuthInfo = Context.Session.GetString(authInfoSessionKey);
-        if (!string.IsNullOrEmpty(jsonAuthInfo))
-        {
-            authInfo = JsonSerializer.Deserialize<UserViewModel>(jsonAuthInfo);
-            levelId = authInfo?.LevelId ?? null;
-            nik = authInfo?.Nik ?? null;
-        }
+        Context.Response.Redirect("/webview/error/401");
     }
-
-    var data = new
-    {
-        AppUrl = AppUrl,
-        ApiUrl = ApiUrl,
-        AuthInfo = authInfo
-    };
 }
 
 
@@ -42,13 +21,14 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-    <title>PAMA Dashboard - @ViewData["PageName"]</title>
+    <title>Smart Meeting App - @ViewData["PageName"]</title>
 
     <link rel="stylesheet" href="~/assets/webview/modules/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/assets/webview/modules/fontawesome/css/all.min.css" />
     <!-- CSS Libraries -->
     
     <link rel="stylesheet" type="text/css" href="~/assets/external/daterangepicker/daterangepicker.css" />
+    <link rel="stylesheet" type="text/css" href="~/assets/external/timepicker/1.14.1/jquery.timepicker.min.css" />
     <!-- Select2 CSS -->
     <link rel="stylesheet" href="~/assets/webview/css/select2.min.css" />
     <link rel="stylesheet" href="~/assets/webview/css/select2-bootstrap4.min.css" />
@@ -56,6 +36,14 @@
     <!-- Template CSS -->
     <link rel="stylesheet" href="~/assets/webview/css/style.css" />
     <link rel="stylesheet" href="~/assets/webview/css/components.css" />
+
+    <style>
+        .select2-results__option[aria-disabled="true"] {
+            color: #d9534f;
+            background-color: #f9d6d5;
+            font-style: italic;
+        }
+    </style>
 
     <!-- style section -->
     @await RenderSectionAsync("Styles", required: false)
@@ -79,28 +67,19 @@
     @RenderSection("Modals", required: false)
 
     <script>
-        const app = {
-            url: {
-                app: "@AppUrl",
-                api: "@ApiUrl",
-                apiSmr: "@ApiSmrUrl",
-            },
-            auth: {
-                nik: "@nik",
-                level: "@levelId"
-            }
-        }
-        const bsApp = app.url.app;
-        const bsApi = app.url.api;
-        const bsApiSmr = app.url.apiSmr;
+        const bsApp = "@AppUrl";
+        const bsApi = "@ApiUrl";
+        const bsApiSmr = "@ApiSmrUrl";
+        const token = "@token";
     </script>
 
-      <!-- General JS Scripts -->
+    <!-- General JS Scripts -->
     <script src="~/assets/webview/js/jquery.min.js"></script>
     <script src="~/assets/webview/js/bootstrap/bootstrap.min.js"></script>
     <script src="~/assets/webview/js/stisla.js"></script>
     <script src="~/assets/theme/plugins/momentjs/moment.js"></script>
     <script src="~/assets/external/daterangepicker/daterangepicker.js"></script>
+    <script src="~/assets/external/timepicker/1.14.1//jquery.timepicker.min.js"></script>
 
     <!-- JS Libraries -->
     <script src="~/assets/theme/plugins/sweatalert2/sweetalert2.all.js"></script>
@@ -112,16 +91,17 @@
         $.ajaxSetup({
             headers: {
                 'XSRF-TOKEN': $('input:hidden[name="__RequestVerificationToken"]').val(),
-                'Authorization': "Bearer @authToken"
+                'Authorization': "Bearer @token"
             }
         });
     </script>
 
+    <script src="~/assets/webview/js/scripts.js" asp-append-version="true"></script>
+    <script src="~/assets/webview/js/custom.js" asp-append-version="true"></script>
+    
     <!-- scripts section  -->
     @await RenderSectionAsync("Scripts", required: false)
     <!-- Template JS File -->
-    <script src="~/assets/webview/js/scripts.js"></script>
-    <script src="~/assets/webview/js/custom.js"></script>
 
 </body>
 
