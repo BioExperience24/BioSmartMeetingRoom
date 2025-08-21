@@ -94,6 +94,13 @@ public class DisplayController(
         return StatusCode(ret.StatusCode, ret);
     }
 
+    [HttpPost("display-information/room-available")]
+    public async Task<IActionResult> DisplayRoomAvailable(DisplayRoomAvailableViewModel request)
+    {
+        ReturnalModel ret = await _service.GetDisplayRoomAvailable(request);
+        return StatusCode(ret.StatusCode, ret);
+    }
+
     [HttpPost("display/schedule/get-soon/today")]
     public async Task<IActionResult> DisplayGetMeetingListToday(ListDisplayMeetingScheduleTodayFRViewModel request)
     {

@@ -20,7 +20,7 @@ namespace _6.Repositories.Repository
                         where roomDisplay.IsDeleted == 0 && room.IsDeleted == 0
                         orderby room.Id ascending
                         select roomDisplay;
-            
+
             return await query.CountAsync();
         }
 
@@ -34,34 +34,34 @@ namespace _6.Repositories.Repository
                         orderby r.Id ascending
                         select new RoomDisplaySelect
                         {
-                            Id = rd.Id, 
-                            RoomId = rd.RoomId, 
-                            DisplaySerial = rd.DisplaySerial, 
-                            Type = rd.Type, 
-                            Background = rd.Background, 
-                            BackgroundUpdate = rd.BackgroundUpdate, 
-                            ColorOccupied = rd.ColorOccupied, 
-                            ColorAvailable = rd.ColorAvailable, 
-                            EnableSignage = rd.EnableSignage, 
-                            SignageType = rd.SignageType, 
-                            SignageMedia = rd.SignageMedia, 
-                            SignageUpdate = rd.SignageUpdate, 
-                            CreatedBy = rd.CreatedBy, 
-                            UpdatedBy = rd.UpdatedBy, 
-                            CreatedAt = rd.CreatedAt, 
-                            UpdatedAt = rd.UpdatedAt, 
-                            IsDeleted = rd.IsDeleted, 
-                            StatusSync = rd.StatusSync, 
-                            Enabled = rd.Enabled, 
-                            HardwareUuid = rd.HardwareUuid, 
-                            HardwareInfo = rd.HardwareInfo, 
-                            HardwareLastsync = rd.HardwareLastsync, 
-                            RoomSelect = rd.RoomSelect, 
-                            DisableMsg = rd.DisableMsg, 
-                            Name = rd.Name, 
-                            Description = rd.Description, 
-                            BuildingId = rd.BuildingId, 
-                            FloorId = rd.FloorId, 
+                            Id = rd.Id,
+                            RoomId = rd.RoomId,
+                            DisplaySerial = rd.DisplaySerial,
+                            Type = rd.Type,
+                            Background = rd.Background,
+                            BackgroundUpdate = rd.BackgroundUpdate,
+                            ColorOccupied = rd.ColorOccupied,
+                            ColorAvailable = rd.ColorAvailable,
+                            EnableSignage = rd.EnableSignage,
+                            SignageType = rd.SignageType,
+                            SignageMedia = rd.SignageMedia,
+                            SignageUpdate = rd.SignageUpdate,
+                            CreatedBy = rd.CreatedBy,
+                            UpdatedBy = rd.UpdatedBy,
+                            CreatedAt = rd.CreatedAt,
+                            UpdatedAt = rd.UpdatedAt,
+                            IsDeleted = rd.IsDeleted,
+                            StatusSync = rd.StatusSync,
+                            Enabled = rd.Enabled,
+                            HardwareUuid = rd.HardwareUuid,
+                            HardwareInfo = rd.HardwareInfo,
+                            HardwareLastsync = rd.HardwareLastsync,
+                            RoomSelect = rd.RoomSelect,
+                            DisableMsg = rd.DisableMsg,
+                            Name = rd.Name,
+                            Description = rd.Description,
+                            BuildingId = rd.BuildingId,
+                            FloorId = rd.FloorId,
                             RoomName = r.Name,
                             BuildingName = b.Name,
                             FloorName = bf.Name
@@ -128,7 +128,11 @@ namespace _6.Repositories.Repository
                             RoomId = d.RoomId,
                             Icon = d.Icon,
                             Distance = d.Distance,
-                            RoomName = r.Name
+                            RoomName = r.Name,
+                            WorkDay = r.WorkDay ?? new List<string>(),
+                            WorkTime = r.WorkTime,
+                            WorkStart = r.WorkStart,
+                            WorkEnd = r.WorkEnd
                         };
 
             return await query.ToListAsync();
@@ -136,6 +140,8 @@ namespace _6.Repositories.Repository
 
         public async Task<List<RoomDisplayInformationMeetingDTO>> GetMeetingDisplayInformation(DateTime date, string serial)
         {
+            DateTime parsedDate = date.Date;
+
             var query = from rd in _dbContext.RoomDisplays
                         join rdi in _dbContext.RoomDisplayInformations on rd.Id equals rdi.DisplayId into rdiGroup
                         from rdi in rdiGroup.DefaultIfEmpty()
@@ -146,12 +152,15 @@ namespace _6.Repositories.Repository
                         from bf in bfGroup.DefaultIfEmpty()
                         join bu in _dbContext.Buildings on bf.BuildingId equals bu.Id into buGroup
                         from bu in buGroup.DefaultIfEmpty()
-                        where b.ServerDate == date &&
+                        where b.ServerDate!.Value.Date == parsedDate &&
                               rd.DisplaySerial == serial &&
                               r.IsDeleted == 0 &&
                               rd.IsDeleted == 0 &&
+                              b.IsCanceled == 0 &&
+                              b.IsExpired == 0 &&
                               bi.IsPic == 1
-                        orderby r.Name ascending
+                        orderby b.Start ascending
+
                         select new RoomDisplayInformationMeetingDTO
                         {
                             DisplayId = rdi.DisplayId,
@@ -174,12 +183,72 @@ namespace _6.Repositories.Repository
                             OrganizerName = bi.Name,
                             PinRoom = bi.PinRoom,
                             BuildingName = bu.Name,
-                            FloorName = bf.Name
+                            FloorName = bf.Name,
+                            WorkDay = r.WorkDay ?? new List<string>(),
+                            WorkTime = r.WorkTime,
+                            WorkStart = r.WorkStart,
+                            WorkEnd = r.WorkEnd
                         };
 
             return await query.ToListAsync();
         }
 
+        public async Task<RoomDisplayAvailableInformationMeetingDTO> GetMeetingRoomAvailableDisplayInformation(DateTime day, DateTime current, string serial)
+        {
+            var currentPlus30 = current.AddMinutes(30);
 
+            var roomIds = await (
+                from rd in _dbContext.RoomDisplays
+                join rdi in _dbContext.RoomDisplayInformations on rd.Id equals rdi.DisplayId
+                where rd.DisplaySerial == serial && rd.IsDeleted == 0
+                select rdi.RoomId
+            ).Distinct().ToListAsync();
+
+            if (roomIds.Count == 0)
+            {
+                return new RoomDisplayAvailableInformationMeetingDTO
+                {
+                    Serial = serial,
+                    TotalRoom = 0,
+                    TotalAvailable = 0,
+                    RoomNames = new List<string>()
+                };
+            }
+
+            var activeRooms = await _dbContext.Rooms
+                .Where(r => r.IsDeleted == 0 && roomIds.Contains(r.Radid))
+                .Select(r => new { r.Radid, r.Name })
+                .ToListAsync();
+
+            var totalRoom = activeRooms.Count;
+
+            var busyRoomIds = await _dbContext.Bookings
+                .Where(b =>
+                    roomIds.Contains(b.RoomId) &&
+                    b.IsCanceled == 0 &&
+                    b.IsExpired == 0 &&
+                    b.EndEarlyMeeting == 0 &&
+                    b.Start != null && b.End != null &&
+                    b.Start.Date == day &&
+                    b.Start <= currentPlus30 &&
+                    b.End.AddMinutes((double)(b.ExtendedDuration ?? 0)) > current
+                )
+                .Select(b => b.RoomId)
+                .Distinct()
+                .ToListAsync();
+
+            var availableRoomNames = activeRooms
+                .Where(r => !busyRoomIds.Contains(r.Radid))
+                .Select(r => r.Name)
+                .ToList();
+
+            return new RoomDisplayAvailableInformationMeetingDTO
+            {
+                Serial = serial,
+                TotalRoom = totalRoom,
+                TotalAvailable = availableRoomNames.Count,
+                RoomNames = availableRoomNames
+            };
+        }
     }
 }

@@ -15,6 +15,10 @@ public partial class RoomDisplayInformation
 public class RoomDisplayInformationSelect : RoomDisplayInformation
 {
     public string? RoomName { get; set; }
+    public List<string>? WorkDay { get; set; } = new List<string>();
+    public string? WorkTime { get; set; }
+    public string? WorkStart { get; set; }
+    public string? WorkEnd { get; set; }
 }
 
 public class RoomDisplayInformationMeetingDTO : RoomDisplayInformation
@@ -26,7 +30,7 @@ public class RoomDisplayInformationMeetingDTO : RoomDisplayInformation
     public DateOnly Date { get; set; }
     public DateTime Start { get; set; }
     public DateTime End { get; set; }
-    public TimeSpan EndMeeting { get; set; } 
+    public TimeSpan EndMeeting { get; set; }
     public int IsAlive { get; set; }
     public int? IsApprove { get; set; }
     public int? IsExpired { get; set; }
@@ -36,4 +40,18 @@ public class RoomDisplayInformationMeetingDTO : RoomDisplayInformation
     public string? PinRoom { get; set; } = string.Empty;
     public string? BuildingName { get; set; } = string.Empty;
     public string? FloorName { get; set; } = string.Empty;
+    public List<string>? WorkDay { get; set; } = new List<string>();
+    public string? WorkTime { get; set; }
+    public string? WorkStart { get; set; }
+    public string? WorkEnd { get; set; }
+}
+
+
+public class RoomDisplayAvailableInformationMeetingDTO
+{
+    public string Serial { get; set; } = string.Empty;
+    public int? TotalRoom { get; set; }
+    public int? TotalAvailable { get; set; }
+
+    public List<string> RoomNames { get; set; } = new List<string>();
 }

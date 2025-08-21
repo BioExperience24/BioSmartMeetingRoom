@@ -30,6 +30,8 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        Console.WriteLine($"Update : 15082025-1604");
+
         if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Staging"))
         {
             var secretManager = new AwsSecretManagerService(builder.Configuration);

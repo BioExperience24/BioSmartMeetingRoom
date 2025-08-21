@@ -470,7 +470,7 @@ public class APIMainDisplayService(
         //Explicit cast to anonymous type
         var collection = (meetingData.Collection as dynamic)!;
         var meetingsData = await _repo.GetMeetingListOccupiedByDisplay(collection.ServerDateTime, collection.RoomSelect);
-
+        
         var result = _mapper.Map<List<BookingViewModel>>(meetingsData);
         return new ReturnalModel
         {
@@ -502,11 +502,40 @@ public class APIMainDisplayService(
             };
         }
 
-        // Set default timezone if not provided
-        string timezone = !string.IsNullOrEmpty(request.Timezone) ? request.Timezone
-            : _config?["OTHER_SETTING:DefaultTimeZone"] ?? "Asia/Jakarta";
+        // // Set default timezone if not provided
+        // string timezone = !string.IsNullOrEmpty(request.Timezone) ? request.Timezone
+        //     : _config?["OTHER_SETTING:DefaultTimeZone"] ?? "Asia/Jakarta";
 
-        // Convert date and time to DateTime based on timezone
+        // // Convert date and time to DateTime based on timezone
+        // if (!DateTime.TryParse($"{request.Date} {request.Time}", out DateTime localDateTime))
+        // {
+        //     return new ReturnalModel
+        //     {
+        //         Status = ReturnalType.Failed,
+        //         Message = "Invalid date/time format"
+        //     };
+        // }
+
+        // try
+        // {
+        //     localDateTime = FastBook.ConvertTimezoneId(localDateTime, timezone);
+        // }
+        // catch (TimeZoneNotFoundException)
+        // {
+        //     return new ReturnalModel
+        //     {
+        //         Status = ReturnalType.Failed,
+        //         Message = $"Invalid timezone: {timezone}"
+        //     };
+        // }
+
+        // // Convert to default system timezone (APP_GMT)
+        // string defaultTimeZone = _config?["OTHER_SETTING:DefaultTimeZone"] ?? "Asia/Jakarta";
+        // DateTime serverDateTime = FastBook.ConvertTimezoneId(localDateTime, defaultTimeZone);
+
+        // // Update request date and time
+        // request.Date = serverDateTime.ToString("yyyy-MM-dd");
+        // request.Time = serverDateTime.ToString("HH:mm:ss");
         if (!DateTime.TryParse($"{request.Date} {request.Time}", out DateTime localDateTime))
         {
             return new ReturnalModel
@@ -515,39 +544,18 @@ public class APIMainDisplayService(
                 Message = "Invalid date/time format"
             };
         }
-
-        try
-        {
-            localDateTime = FastBook.ConvertTimezoneId(localDateTime, timezone);
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            return new ReturnalModel
-            {
-                Status = ReturnalType.Failed,
-                Message = $"Invalid timezone: {timezone}"
-            };
-        }
-
-        // Convert to default system timezone (APP_GMT)
-        string defaultTimeZone = _config?["OTHER_SETTING:DefaultTimeZone"] ?? "Asia/Jakarta";
-        DateTime serverDateTime = FastBook.ConvertTimezoneId(localDateTime, defaultTimeZone);
-
-        // Update request date and time
-        request.Date = serverDateTime.ToString("yyyy-MM-dd");
-        request.Time = serverDateTime.ToString("HH:mm:ss");
-
+        var serverDateTime = localDateTime;
         // Determine selected rooms
         var roomSelect = (!string.IsNullOrEmpty(request.Type) && (request.Type == EnumBookingTypeRoom.AllRoom || request.Type == EnumBookingTypeRoom.Receptionist))
-            ? request.RoomSelect.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
+            ? request.RoomSelect!.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
             : !string.IsNullOrEmpty(request.RadId) ? new List<string> { request.RadId } : new List<string>();
-
+        
         return new ReturnalModel
         {
             Collection = new MeetingDisplayCollection
             {
                 ServerDateTime = serverDateTime,
-                RoomSelect = roomSelect
+                RoomSelect = roomSelect,
             }
         };
     }
@@ -1187,6 +1195,72 @@ public class APIMainDisplayService(
             {
                 Status = ReturnalType.Success,
                 Collection = fetchMap,
+                Message = "Success get data to active"
+            };
+        }
+
+        return new ReturnalModel
+        {
+            Status = ReturnalType.Failed,
+            Message = "Failed error a active"
+        };
+    }
+
+    public async Task<ReturnalModel> GetDisplayRoomAvailable(DisplayRoomAvailableViewModel request)
+    {
+        string defaultTimezone = _config?["OTHER_SETTING:DefaultTimeZone"] ?? "Asia/Jakarta";
+        string timezone = !string.IsNullOrWhiteSpace(request.Timezone) ? request.Timezone : defaultTimezone;
+
+        DateTime parsedDate;       // tanggal untuk filter hari
+        DateTime serverDateTime;   // waktu server untuk "current"
+
+        try
+        {
+            // Gabungkan date + time dari request
+            DateTime localDateTime = DateTime.ParseExact(
+                $"{request.Date} {request.Time}",
+                "yyyy-MM-dd HH:mm:ss",
+                CultureInfo.InvariantCulture
+            );
+
+            // Konversi ke timezone server
+            TimeZoneInfo sourceTimeZone = TimeZoneInfo.FindSystemTimeZoneById(timezone);
+            TimeZoneInfo serverTimeZone = TimeZoneInfo.FindSystemTimeZoneById(defaultTimezone);
+
+            serverDateTime = TimeZoneInfo.ConvertTime(localDateTime, sourceTimeZone, serverTimeZone);
+
+            // Set nilai untuk query
+            parsedDate = serverDateTime.Date;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Failed,
+                Message = "Invalid timezone provided."
+            };
+        }
+        catch (FormatException)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Failed,
+                Message = "Invalid date/time format."
+            };
+        }
+
+        var fetchData = await _repoRoomDisplayRepository.GetMeetingRoomAvailableDisplayInformation(
+            parsedDate,
+            serverDateTime,
+            request.Serial
+        );
+
+        if (fetchData != null)
+        {
+            return new ReturnalModel
+            {
+                Status = ReturnalType.Success,
+                Collection = fetchData,
                 Message = "Success get data to active"
             };
         }

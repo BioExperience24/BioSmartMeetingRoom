@@ -32,11 +32,18 @@ namespace _5.Helpers.Consumer._AWS
                     ContentType = contentType
                 };
 
-                await _s3Client.PutObjectAsync(request);
+                // console request
+                Console.WriteLine($"Uploading file to S3: {request.BucketName}");
+
+                var response = await _s3Client.PutObjectAsync(request);
+
+
+                Console.WriteLine($"PutObject status code: {response.HttpStatusCode}");
                 return true;
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"S3 region: {_s3Client.Config.RegionEndpoint}");
                 Console.WriteLine($"Upload failed: {ex.Message}");
                 return false;
             }

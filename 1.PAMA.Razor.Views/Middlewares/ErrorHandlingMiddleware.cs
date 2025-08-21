@@ -13,13 +13,28 @@ namespace _1.PAMA.Razor.Views.Middlewares
 
         public async Task Invoke(HttpContext context)
         {
-            await _next(context);
-
-            int statusCode = context.Response.StatusCode;
-
-            if (_handledStatusCodes.Contains(statusCode))
+            try
             {
-                context.Response.Redirect($"/error/{statusCode}");
+                await _next(context);
+
+                // Tangani status error seperti 404 setelah pipeline selesai
+                if (!context.Response.HasStarted && _handledStatusCodes.Contains(context.Response.StatusCode))
+                {
+                    context.Response.Redirect($"/error/{context.Response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.Redirect("/Error");
+                }
+                else
+                {
+                    context.Response.ContentType = "text/plain";
+                    await context.Response.WriteAsync("Terjadi kesalahan internal.");
+                    Console.WriteLine("❗ Error: " + ex.Message);
+                }
             }
         }
     }

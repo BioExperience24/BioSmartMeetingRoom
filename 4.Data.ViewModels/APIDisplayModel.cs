@@ -77,3 +77,14 @@ public class DisplayScheduledFRViewModel : SerialRequest
     [BindProperty(Name = "timezone")]
     public string Timezone { get; set; } = string.Empty;
 }
+
+public class DisplayRoomAvailableViewModel : SerialRequest
+{
+    [BindProperty(Name = "date")]
+    public string? Date { get; set; }
+
+    [BindProperty(Name = "time")]
+    public string? Time { get; set; }
+    [BindProperty(Name = "timezone")]
+    public string Timezone { get; set; } = string.Empty;
+}

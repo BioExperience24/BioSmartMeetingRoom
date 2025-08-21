@@ -20,6 +20,18 @@ namespace _4.Data.ViewModels
 
         [JsonPropertyName("icon")]
         public string Icon { get; set; } = string.Empty;
+
+        [JsonPropertyName("work_day")]
+        public List<string>? WorkDay { get; set; } = new List<string>();
+
+        [JsonPropertyName("work_time")]
+        public string? WorkTime { get; set; }
+
+        [JsonPropertyName("work_start")]
+        public string? WorkStart { get; set; }
+
+        [JsonPropertyName("work_end")]
+        public string? WorkEnd { get; set; }
     }
 
     public class RoomDisplayInformationMeetingViewModel : RoomDisplayInformationViewModel
@@ -74,6 +86,33 @@ namespace _4.Data.ViewModels
 
         [JsonPropertyName("floor_name")]
         public string? FloorName { get; set; } = string.Empty;
+
+        [JsonPropertyName("work_day")]
+        public List<string>? WorkDay { get; set; } = new List<string>();
+
+        [JsonPropertyName("work_time")]
+        public string? WorkTime { get; set; }
+
+        [JsonPropertyName("work_start")]
+        public string? WorkStart { get; set; }
+
+        [JsonPropertyName("work_end")]
+        public string? WorkEnd { get; set; }
+    }
+
+    public class RoomAvailableDisplayInformationMeetingViewModel
+    {
+        [JsonPropertyName("serial")]
+        public new string Serial { get; set; } = string.Empty;
+
+        [JsonPropertyName("total_room")]
+        public int? TotalRoom { get; set; }
+
+        [JsonPropertyName("available_room")]
+        public int? AvailableRoom { get; set; }
+
+        [JsonPropertyName("rooms")]
+        public List<string>? Rooms { get; set; }
     }
 }
 

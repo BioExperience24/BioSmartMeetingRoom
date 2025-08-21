@@ -19,4 +19,5 @@ public interface IAPIMainDisplayService
     Task<ReturnalModel> CheckDoorOpenMeetingPin(CheckDoorOpenMeetingPinFRViewModel request);
     Task<ReturnalModel> CheckSerialIsAlready(string serial);
     Task<ReturnalModel> GetScheduledDisplay(DisplayScheduledFRViewModel request);
+    Task<ReturnalModel> GetDisplayRoomAvailable(DisplayRoomAvailableViewModel request);
 }

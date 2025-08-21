@@ -34,7 +34,11 @@ namespace _6.Repositories.Repository
                             RoomId = rdi.RoomId,
                             Icon = rdi.Icon,
                             Distance = rdi.Distance,
-                            RoomName = r.Name
+                            RoomName = r.Name,
+                            WorkDay = r.WorkDay ?? new List<string>(),
+                            WorkTime = r.WorkTime,
+                            WorkStart = r.WorkStart,
+                            WorkEnd = r.WorkEnd
                         };
 
             return await query.ToListAsync();
@@ -51,7 +55,11 @@ namespace _6.Repositories.Repository
                             RoomId = rdi.RoomId,
                             Icon = rdi.Icon,
                             Distance = rdi.Distance,
-                            RoomName = r.Name
+                            RoomName = r.Name,
+                            WorkDay = r.WorkDay ?? new List<string>(),
+                            WorkTime = r.WorkTime,
+                            WorkStart = r.WorkStart,
+                            WorkEnd = r.WorkEnd
                         };
 
             return await query.ToListAsync();
